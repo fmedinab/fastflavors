@@ -1,6 +1,6 @@
 /**
  * API - Capa de abstracción para comunicación con el backend
- * Todas las peticiones HTTP al backend pasan por aquí
+ * Usa JSONP para evitar problemas de CORS con Google Apps Script
  */
 
 class API {
@@ -13,30 +13,51 @@ class API {
   }
 
   /**
+   * Realizar petición usando JSONP (solución para CORS de Google Apps Script)
+   */
+  async jsonp(action, params = {}) {
+    return new Promise((resolve, reject) => {
+      const callbackName = `jsonp_callback_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+      
+      window[callbackName] = (data) => {
+        delete window[callbackName];
+        document.body.removeChild(script);
+        resolve(data);
+      };
+
+      const queryParams = new URLSearchParams({
+        action: action,
+        callback: callbackName,
+        ...params
+      });
+
+      const script = document.createElement('script');
+      script.src = `${this.baseURL}?${queryParams.toString()}`;
+      script.onerror = () => {
+        delete window[callbackName];
+        document.body.removeChild(script);
+        reject(new Error('Error al cargar el script JSONP'));
+      };
+
+      document.body.appendChild(script);
+
+      // Timeout de 30 segundos
+      setTimeout(() => {
+        if (window[callbackName]) {
+          delete window[callbackName];
+          document.body.removeChild(script);
+          reject(new Error('Timeout de la petición'));
+        }
+      }, 30000);
+    });
+  }
+
+  /**
    * Realizar petición GET al servidor
    */
   async get(action, params = {}) {
     try {
-      const queryParams = new URLSearchParams({
-        action: action,
-        ...params
-      });
-
-      const url = `${this.baseURL}?${queryParams.toString()}`;
-      
-      const response = await fetch(url, {
-        method: 'GET',
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const data = await response.json();
+      const data = await this.jsonp(action, params);
       
       if (!data.success && data.error) {
         throw new Error(data.error);
@@ -53,30 +74,20 @@ class API {
   /**
    * Realizar petición POST al servidor
    */
-  async post(action, data) {
+  async post(action, postData) {
     try {
-      const url = `${this.baseURL}?action=${action}`;
+      // Para POST, agregamos los datos como parámetros en la URL
+      const params = {
+        postData: JSON.stringify(postData)
+      };
       
-      const response = await fetch(url, {
-        method: 'POST',
-        redirect: 'follow',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
+      const data = await this.jsonp(action, params);
       
-      if (!result.success && result.error) {
-        throw new Error(result.error);
+      if (!data.success && data.error) {
+        throw new Error(data.error);
       }
       
-      return result;
+      return data;
 
     } catch (error) {
       console.error('Error en petición POST:', error);
@@ -90,74 +101,41 @@ class API {
   async getMenuDelDia(turno, forceRefresh = false) {
     const cacheKey = `menu_${turno}`;
     if (this.cache[cacheKey] && !forceRefresh) {
+      console.log('📦 Menú cargado desde caché');
       return this.cache[cacheKey];
     }
 
-    const response = await this.get('getMenuDelDia', { turno: turno });
-    
-    if (response.success) {
-      this.cache[cacheKey] = response;
-      return response;
-    } else {
-      throw new Error(response.error || 'Error al obtener el menú');
-    }
+    const data = await this.get('getMenuDelDia', { turno });
+    this.cache[cacheKey] = data;
+    return data;
   }
 
   /**
-   * Obtener el menú semanal completo (para admin)
-   */
-  async getMenuSemanal() {
-    const response = await this.get('getMenuSemanal');
-    
-    if (response.success) {
-      return response;
-    } else {
-      throw new Error(response.error || 'Error al obtener el menú semanal');
-    }
-  }
-
-  /**
-   * Verificar disponibilidad para reservar según el turno
+   * Verificar disponibilidad de reserva según turno
    */
   async checkDisponibilidad(turno) {
-    const response = await this.get('checkDisponibilidad', { turno: turno });
-    
-    if (response.success) {
-      this.cache.disponibilidad = response;
-      return response;
-    } else {
-      throw new Error(response.error || 'Error al verificar disponibilidad');
-    }
+    return await this.get('checkDisponibilidad', { turno });
   }
 
   /**
-   * Crear una nueva reserva
+   * Obtener menú semanal completo (para admin)
    */
-  async crearReserva(reservaData) {
-    const response = await this.post('crearReserva', reservaData);
-    
-    if (response.success) {
-      return response;
-    } else {
-      throw new Error(response.error || 'Error al crear la reserva');
-    }
+  async getMenuSemanal() {
+    return await this.get('getMenuSemanal');
   }
 
   /**
-   * Obtener reservas de una fecha específica y turno
+   * Crear nueva reserva
    */
-  async getReservas(fecha = null, turno = null) {
-    const params = {};
-    if (fecha) params.fecha = fecha;
-    if (turno) params.turno = turno;
-    
-    const response = await this.get('getReservas', params);
-    
-    if (response.success) {
-      return response;
-    } else {
-      throw new Error(response.error || 'Error al obtener las reservas');
-    }
+  async crearReserva(datosReserva) {
+    return await this.post('crearReserva', datosReserva);
+  }
+
+  /**
+   * Actualizar menú semanal (para admin)
+   */
+  async actualizarMenu(menuData) {
+    return await this.post('actualizarMenu', menuData);
   }
 
   /**
@@ -168,8 +146,9 @@ class API {
       menu: null,
       horaLimite: null
     };
+    console.log('🗑️ Caché limpiado');
   }
 }
 
-// Crear instancia global de la API
+// Crear instancia global del API
 const api = new API();
