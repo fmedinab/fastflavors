@@ -26,6 +26,7 @@ class API {
       
       const response = await fetch(url, {
         method: 'GET',
+        redirect: 'follow',
         headers: {
           'Content-Type': 'application/json'
         }
@@ -36,6 +37,11 @@ class API {
       }
 
       const data = await response.json();
+      
+      if (!data.success && data.error) {
+        throw new Error(data.error);
+      }
+      
       return data;
 
     } catch (error) {
@@ -53,6 +59,7 @@ class API {
       
       const response = await fetch(url, {
         method: 'POST',
+        redirect: 'follow',
         headers: {
           'Content-Type': 'application/json'
         },
@@ -64,6 +71,11 @@ class API {
       }
 
       const result = await response.json();
+      
+      if (!result.success && result.error) {
+        throw new Error(result.error);
+      }
+      
       return result;
 
     } catch (error) {
