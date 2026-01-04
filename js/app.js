@@ -1,0 +1,422 @@
+/**
+ * APP - Lógica principal de la aplicación
+ * Sistema de Comedor Estudiantil
+ */
+
+class ComedorApp {
+  constructor() {
+    this.menu = [];
+    this.menuSeleccionado = null;
+    this.turnoActual = CONFIG.TURNO_DEFAULT;
+    this.puedeReservar = true;
+    this.initTheme();
+    this.init();
+  }
+
+  /**
+   * Inicializar tema (dark/light)
+   */
+  initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+    this.setTheme(theme);
+  }
+
+  /**
+   * Cambiar tema
+   */
+  setTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('theme', theme);
+    
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+      themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+  }
+
+  /**
+   * Toggle tema
+   */
+  toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    this.setTheme(newTheme);
+  }
+
+  /**
+   * Inicializar aplicación
+   */
+  async init() {
+    console.log('🚀 Inicializando aplicación...');
+    
+    if (!Utils.esDiaHabil()) {
+      this.mostrarAlertaFinDeSemana();
+      return;
+    }
+    
+    this.setupEventListeners();
+    await this.cambiarTurno(this.turnoActual);
+    
+    console.log('✅ Aplicación lista');
+  }
+
+  /**
+   * Cambiar turno y cargar menú correspondiente
+   */
+  async cambiarTurno(turno) {
+    this.turnoActual = turno;
+    
+    document.querySelectorAll('.btn-turno').forEach(btn => {
+      btn.classList.remove('active');
+      if (btn.dataset.turno === turno) {
+        btn.classList.add('active');
+      }
+    });
+    
+    await this.verificarDisponibilidad(turno);
+    await this.cargarMenu(turno);
+  }
+
+  /**
+   * Verificar si aún se pueden hacer reservas para el turno
+   */
+  async verificarDisponibilidad(turno) {
+    try {
+      Utils.showLoader();
+      const response = await api.checkDisponibilidad(turno);
+      
+      this.puedeReservar = response.puedeReservar;
+      this.actualizarBannerTurno(response);
+      
+      const alerta = document.getElementById('alertaTurnoCerrado');
+      if (!this.puedeReservar && alerta) {
+        alerta.style.display = 'block';
+        alerta.textContent = `⚠️ ${response.mensaje}`;
+      } else if (alerta) {
+        alerta.style.display = 'none';
+      }
+      
+    } catch (error) {
+      console.error('Error al verificar disponibilidad:', error);
+      Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
+    } finally {
+      Utils.hideLoader();
+    }
+  }
+
+  /**
+   * Cargar menú del día según el turno
+   */
+  async cargarMenu(turno) {
+    try {
+      Utils.showLoader();
+      const response = await api.getMenuDelDia(turno);
+      
+      this.menu = response.menu || [];
+      this.renderMenu();
+      
+      console.log(`📋 Menú ${response.nombreTurno} cargado: ${this.menu.length} platos`);
+      
+    } catch (error) {
+      console.error('Error al cargar el menú:', error);
+      Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
+    } finally {
+      Utils.hideLoader();
+    }
+  }
+
+  /**
+   * Renderizar menú en el DOM
+   */
+  renderMenu() {
+    const menuContainer = document.getElementById('menuContainer');
+    if (!menuContainer) return;
+
+    menuContainer.innerHTML = '';
+
+    if (this.menu.length === 0) {
+      menuContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="icon-empty">🍽️</div>
+          <h3>No hay menú disponible</h3>
+          <p>Para este turno no hay platos configurados</p>
+        </div>
+      `;
+      return;
+    }
+
+    this.menu.forEach(plato => {
+      const card = this.crearCardPlato(plato);
+      menuContainer.appendChild(card);
+    });
+  }
+
+  /**
+   * Crear tarjeta de plato
+   */
+  crearCardPlato(plato) {
+    const card = document.createElement('div');
+    card.className = 'menu-card';
+    
+    const esSeleccionado = this.menuSeleccionado && this.menuSeleccionado.id === plato.id;
+    if (esSeleccionado) {
+      card.classList.add('selected');
+    }
+    
+    card.innerHTML = `
+      <div class="menu-image" style="background-color: var(--secondary-color); display: flex; align-items: center; justify-content: center; font-size: 4rem;">
+        🍽️
+      </div>
+      <div class="menu-info">
+        <h3 class="menu-name">${Utils.sanitizeHTML(plato.nombre)}</h3>
+        <p class="menu-description">${Utils.sanitizeHTML(plato.descripcion)}</p>
+        <div class="menu-footer">
+          <span class="menu-price">${Utils.formatPrice(plato.precio)}</span>
+          <button class="btn-select-menu ${esSeleccionado ? 'selected' : ''}" data-id="${plato.id}">
+            ${esSeleccionado ? '✓ Seleccionado' : 'Seleccionar'}
+          </button>
+        </div>
+      </div>
+    `;
+
+    const btnSelect = card.querySelector('.btn-select-menu');
+    btnSelect.addEventListener('click', () => this.seleccionarMenu(plato));
+
+    return card;
+  }
+
+  /**
+   * Seleccionar menú del día
+   */
+  seleccionarMenu(plato) {
+    if (!this.puedeReservar) {
+      Utils.showToast(CONFIG.MENSAJES.RESERVA_CERRADA, 'error');
+      return;
+    }
+
+    this.menuSeleccionado = plato;
+    this.renderMenu();
+    this.actualizarResumen();
+    Utils.showToast(`${plato.nombre} seleccionado`, 'success');
+  }
+
+  /**
+   * Actualizar resumen de la reserva
+   */
+  actualizarResumen() {
+    const resumenContainer = document.getElementById('resumenReserva');
+    const totalElement = document.getElementById('totalReserva');
+    const btnConfirmar = document.getElementById('btnConfirmarReserva');
+
+    if (!this.menuSeleccionado) {
+      if (resumenContainer) {
+        resumenContainer.innerHTML = `
+          <div class="empty-resumen">
+            <i class="icon-empty">🍽️</i>
+            <p>Selecciona tu menú para continuar</p>
+          </div>
+        `;
+      }
+      if (totalElement) totalElement.textContent = Utils.formatPrice(0);
+      if (btnConfirmar) btnConfirmar.disabled = true;
+      return;
+    }
+
+    if (resumenContainer) {
+      resumenContainer.innerHTML = `
+        <div class="resumen-item">
+          <div class="resumen-info">
+            <h4>${Utils.sanitizeHTML(this.menuSeleccionado.nombre)}</h4>
+            <p>${Utils.sanitizeHTML(this.menuSeleccionado.descripcion)}</p>
+          </div>
+          <div class="resumen-precio">
+            ${Utils.formatPrice(this.menuSeleccionado.precio)}
+          </div>
+        </div>
+      `;
+    }
+
+    if (totalElement) {
+      totalElement.textContent = Utils.formatPrice(this.menuSeleccionado.precio);
+    }
+
+    if (btnConfirmar) {
+      btnConfirmar.disabled = false;
+    }
+  }
+
+  /**
+   * Procesar reserva
+   */
+  async procesarReserva(event) {
+    event.preventDefault();
+
+    if (!this.puedeReservar) {
+      Utils.showToast(CONFIG.MENSAJES.RESERVA_CERRADA, 'error');
+      return;
+    }
+
+    if (!this.menuSeleccionado) {
+      Utils.showToast('Por favor selecciona un menú', 'error');
+      return;
+    }
+
+    const formData = {
+      turno: this.turnoActual,
+      nombreEstudiante: document.getElementById('nombreEstudiante').value.trim(),
+      codigoEstudiante: document.getElementById('codigoEstudiante').value.trim(),
+      email: document.getElementById('emailEstudiante').value.trim(),
+      notas: document.getElementById('notasReserva').value.trim(),
+      plato: this.menuSeleccionado.nombre
+    };
+
+    if (!formData.nombreEstudiante || !formData.codigoEstudiante) {
+      Utils.showToast(CONFIG.MENSAJES.CAMPOS_REQUERIDOS, 'error');
+      return;
+    }
+
+    if (!Utils.validarCodigo(formData.codigoEstudiante)) {
+      Utils.showToast('Código de estudiante no válido (5-10 caracteres)', 'error');
+      return;
+    }
+
+    if (formData.email && !Utils.validarEmail(formData.email)) {
+      Utils.showToast('Email no válido', 'error');
+      return;
+    }
+
+    try {
+      Utils.showLoader();
+      const response = await api.crearReserva(formData);
+
+      if (response.success) {
+        this.mostrarConfirmacionReserva(response);
+        this.limpiarFormulario();
+        this.menuSeleccionado = null;
+        this.actualizarResumen();
+      }
+
+    } catch (error) {
+      console.error('Error al crear reserva:', error);
+      Utils.showToast(error.message || CONFIG.MENSAJES.ERROR_CONEXION, 'error');
+    } finally {
+      Utils.hideLoader();
+    }
+  }
+
+  /**
+   * Mostrar confirmación de reserva
+   */
+  mostrarConfirmacionReserva(response) {
+    const modal = document.getElementById('modalConfirmacion');
+    const content = document.getElementById('confirmacionContent');
+
+    if (modal && content) {
+      const reserva = response.reserva;
+      content.innerHTML = `
+        <div class="success-icon">✅</div>
+        <h2>¡Reserva Confirmada!</h2>
+        <div class="reserva-details">
+          <p><strong>Fecha:</strong> ${reserva.fecha}</p>
+          <p><strong>Hora:</strong> ${reserva.hora}</p>
+          <p><strong>Turno:</strong> ${reserva.turno}</p>
+          <p><strong>Estudiante:</strong> ${reserva.estudiante}</p>
+          <p><strong>Menú:</strong> ${reserva.plato}</p>
+        </div>
+        <p class="message">${response.mensaje}</p>
+        <button class="btn btn-primary" onclick="app.cerrarModal()">Aceptar</button>
+      `;
+      modal.style.display = 'flex';
+    } else {
+      Utils.showToast(response.mensaje, 'success');
+    }
+  }
+
+  /**
+   * Cerrar modal
+   */
+  cerrarModal() {
+    const modal = document.getElementById('modalConfirmacion');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
+  /**
+   * Limpiar formulario
+   */
+  limpiarFormulario() {
+    const form = document.getElementById('formReserva');
+    if (form) {
+      form.reset();
+    }
+  }
+
+  /**
+   * Actualizar banner de turno
+   */
+  actualizarBannerTurno(info) {
+    const banner = document.getElementById('turnoBanner');
+    if (!banner) return;
+
+    const configTurno = CONFIG.TURNOS[this.turnoActual];
+    banner.innerHTML = `
+      <div class="turno-info ${info.puedeReservar ? 'abierto' : 'cerrado'}">
+        <span class="hora-icon">${info.puedeReservar ? '✅' : '⏰'}</span>
+        <span class="hora-texto">${info.mensaje}</span>
+      </div>
+    `;
+  }
+
+  /**
+   * Mostrar alerta de fin de semana
+   */
+  mostrarAlertaFinDeSemana() {
+    const alerta = document.getElementById('alertaTurnoCerrado');
+    if (alerta) {
+      alerta.style.display = 'block';
+      alerta.textContent = CONFIG.MENSAJES.FIN_SEMANA;
+    }
+    
+    const menuContainer = document.getElementById('menuContainer');
+    if (menuContainer) {
+      menuContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="icon-empty">🏖️</div>
+          <h3>Fin de semana</h3>
+          <p>${CONFIG.MENSAJES.FIN_SEMANA}</p>
+        </div>
+      `;
+    }
+  }
+
+  /**
+   * Configurar event listeners
+   */
+  setupEventListeners() {
+    const form = document.getElementById('formReserva');
+    if (form) {
+      form.addEventListener('submit', (e) => this.procesarReserva(e));
+    }
+
+    document.querySelectorAll('.btn-turno').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const turno = e.currentTarget.dataset.turno;
+        this.cambiarTurno(turno);
+      });
+    });
+
+    const btnTheme = document.getElementById('btnTheme');
+    if (btnTheme) {
+      btnTheme.addEventListener('click', () => this.toggleTheme());
+    }
+  }
+}
+
+// Inicializar aplicación cuando el DOM esté listo
+let app;
+document.addEventListener('DOMContentLoaded', () => {
+  app = new ComedorApp();
+});

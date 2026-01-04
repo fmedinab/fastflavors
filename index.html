@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Sistema de reservas de comedor estudiantil - Reserva tu menú antes del receso">
+  <meta name="theme-color" content="#d62300">
+  <title>FAST Flavors - Reserva tu Menú</title>
+  
+  <!-- Estilos -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <div class="header-content">
+      <div class="logo">
+        Fast <span>Flavors</span>
+      </div>
+      <div class="header-info">
+        <button id="btnTheme" class="btn-theme" aria-label="Cambiar tema">
+          <span class="theme-icon">🌙</span>
+        </button>
+        <span id="diaActual">📅 Cargando...</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER DE TURNO -->
+  <div class="turno-banner" id="turnoBanner">
+    <div class="turno-info">
+      <span class="hora-icon">⏰</span>
+      <span class="hora-texto">Cargando...</span>
+    </div>
+  </div>
+
+  <!-- ALERTA TURNO CERRADO -->
+  <div class="alerta-cerrada" id="alertaTurnoCerrado" style="display: none;">
+    ⚠️ Lo sentimos, ya no se aceptan reservas para este turno
+  </div>
+
+  <!-- SELECTOR DE TURNOS -->
+  <div class="turnos-container">
+    <div class="turnos">
+      <button class="btn-turno active" data-turno="MANANA">
+        <span class="turno-icon">🌅</span>
+        <div class="turno-text">
+          <strong>Mañana</strong>
+          <small>Receso 10:00 AM</small>
+        </div>
+      </button>
+      <button class="btn-turno" data-turno="TARDE">
+        <span class="turno-icon">🌇</span>
+        <div class="turno-text">
+          <strong>Tarde</strong>
+          <small>Receso 5:30 PM</small>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO PRINCIPAL -->
+  <div class="main-container">
+    
+    <!-- SECCIÓN MENÚ DEL DÍA -->
+    <section class="menu-section">
+      <h2 class="section-title">🍽️ Menú del Día</h2>
+      <div class="menu-container" id="menuContainer">
+        <!-- Los platos se cargan dinámicamente aquí -->
+        <div class="empty-state">
+          <div class="icon-empty">⏳</div>
+          <h3>Cargando menú...</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- SIDEBAR RESERVA -->
+    <aside class="reserva-sidebar">
+      <div class="reserva-header">
+        <h3 class="reserva-title">📝 Tu Reserva</h3>
+      </div>
+
+      <!-- Resumen del menú seleccionado -->
+      <div class="resumen-container">
+        <h4>Menú Seleccionado:</h4>
+        <div id="resumenReserva">
+          <div class="empty-resumen">
+            <i class="icon-empty">🍽️</i>
+            <p>Selecciona tu menú para continuar</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Total -->
+      <div class="total-reserva">
+        <span class="total-label">Total:</span>
+        <span class="total-amount" id="totalReserva">S/ 0.00</span>
+      </div>
+
+      <!-- Formulario de reserva -->
+      <form id="formReserva">
+        <div class="form-group">
+          <label class="form-label required" for="nombreEstudiante">Nombre Completo</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="nombreEstudiante" 
+            placeholder="Ej: Juan Pérez García"
+            required
+            maxlength="100"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label required" for="codigoEstudiante">Código de Estudiante</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="codigoEstudiante" 
+            placeholder="Ej: 2024001"
+            required
+            pattern="[A-Za-z0-9]{5,10}"
+            maxlength="10"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="emailEstudiante">Email (opcional)</label>
+          <input 
+            type="email" 
+            class="form-input" 
+            id="emailEstudiante" 
+            placeholder="correo@estudiante.edu"
+          >
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="notasReserva">Notas adicionales</label>
+          <textarea 
+            class="form-input" 
+            id="notasReserva" 
+            placeholder="Ej: Sin ají, extra arroz..."
+            maxlength="200"
+          ></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="btnConfirmarReserva" disabled>
+          ✅ Confirmar Reserva
+        </button>
+      </form>
+    </aside>
+
+  </div>
+
+  <!-- LOADER -->
+  <div class="loader" id="loader">
+    <div class="spinner"></div>
+  </div>
+
+  <!-- MODAL DE CONFIRMACIÓN -->
+  <div class="modal" id="modalConfirmacion">
+    <div class="modal-content" id="confirmacionContent">
+      <!-- Contenido dinámico -->
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+
+  <script>
+    // Mostrar día actual
+    document.getElementById('diaActual').textContent = `📅 ${Utils.getDiaSemana()}, ${Utils.getFechaHoy()}`;
+  </script>
+
+</body>
+</html>
