@@ -1,63 +1,33 @@
 /**
  * API - Capa de abstracción para comunicación con el backend
- * Usa JSONP para evitar problemas de CORS con Google Apps Script
+ * Usa GET simple para evitar problemas CORS (sin preflight)
  */
 
 class API {
   constructor() {
     this.baseURL = CONFIG.API_URL;
-    this.cache = {
-      menu: null,
-      horaLimite: null
-    };
+    this.cache = {};
   }
 
   /**
-   * Realizar petición usando JSONP (solución para CORS de Google Apps Script)
-   */
-  async jsonp(action, params = {}) {
-    return new Promise((resolve, reject) => {
-      const callbackName = `jsonp_callback_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
-      
-      window[callbackName] = (data) => {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        resolve(data);
-      };
-
-      const queryParams = new URLSearchParams({
-        action: action,
-        callback: callbackName,
-        ...params
-      });
-
-      const script = document.createElement('script');
-      script.src = `${this.baseURL}?${queryParams.toString()}`;
-      script.onerror = () => {
-        delete window[callbackName];
-        document.body.removeChild(script);
-        reject(new Error('Error al cargar el script JSONP'));
-      };
-
-      document.body.appendChild(script);
-
-      // Timeout de 30 segundos
-      setTimeout(() => {
-        if (window[callbackName]) {
-          delete window[callbackName];
-          document.body.removeChild(script);
-          reject(new Error('Timeout de la petición'));
-        }
-      }, 30000);
-    });
-  }
-
-  /**
-   * Realizar petición GET al servidor
+   * Realizar petición GET simple (sin preflight CORS)
    */
   async get(action, params = {}) {
     try {
-      const data = await this.jsonp(action, params);
+      const queryParams = new URLSearchParams({
+        action: action,
+        ...params
+      });
+
+      const url = `${this.baseURL}?${queryParams.toString()}`;
+      
+      // Fetch simple sin headers personalizados (no activa preflight)
+      const response = await fetch(url, {
+        method: 'GET',
+        cache: 'no-cache'
+      });
+
+      const data = await response.json();
       
       if (!data.success && data.error) {
         throw new Error(data.error);
@@ -66,28 +36,21 @@ class API {
       return data;
 
     } catch (error) {
-      console.error('Error en petición GET:', error);
+      console.error('Error en petición:', error);
       throw error;
     }
   }
 
   /**
-   * Realizar petición POST al servidor
+   * POST usando GET (enviando datos en URL)
    */
   async post(action, postData) {
     try {
-      // Para POST, agregamos los datos como parámetros en la URL
       const params = {
         postData: JSON.stringify(postData)
       };
       
-      const data = await this.jsonp(action, params);
-      
-      if (!data.success && data.error) {
-        throw new Error(data.error);
-      }
-      
-      return data;
+      return await this.get(action, params);
 
     } catch (error) {
       console.error('Error en petición POST:', error);
@@ -142,10 +105,7 @@ class API {
    * Limpiar caché
    */
   clearCache() {
-    this.cache = {
-      menu: null,
-      horaLimite: null
-    };
+    this.cache = {};
     console.log('🗑️ Caché limpiado');
   }
 }
