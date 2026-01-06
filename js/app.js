@@ -6,11 +6,10 @@
 class ComedorApp {
   constructor() {
     this.menu = [];
-    this.menusSeleccionados = []; // Array para múltiples selecciones
-    this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
+    this.menusSeleccionados = []; // Array para múltiples selecciones con cantidad
+    this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos totales por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
-    this.procesandoSeleccion = false; // Flag para evitar llamadas simultáneas
     this.initTheme();
     this.init();
   }
@@ -304,7 +303,8 @@ class ComedorApp {
     card.dataset.platoId = plato.id; // Agregar data attribute para debug
     
     // Verificar si este plato está en el array de seleccionados
-    const esSeleccionado = this.menusSeleccionados.some(p => p.id === plato.id);
+    const platoSeleccionado = this.menusSeleccionados.find(p => p.id === plato.id);
+    const esSeleccionado = !!platoSeleccionado;
     if (esSeleccionado) {
       card.classList.add('selected');
     }
@@ -326,10 +326,23 @@ class ComedorApp {
         <p class="menu-description">${Utils.sanitizeHTML(plato.descripcion)}</p>
         <div class="menu-footer">
           <span class="menu-price">${Utils.formatPrice(plato.precio)}</span>
-          <button class="btn-select-menu ${esSeleccionado ? 'selected' : ''}" data-id="${plato.id}" ${!this.puedeReservar ? 'disabled' : ''}>
-            ${esSeleccionado ? '✓ Seleccionado' : (this.puedeReservar ? 'Seleccionar' : '🔒 Cerrado')}
-          </button>
+          <div class="cantidad-control" style="display: flex; align-items: center; gap: 8px;">
+            <label style="font-size: 0.85rem; color: var(--text-light);">Cant:</label>
+            <input 
+              type="number" 
+              class="input-cantidad" 
+              data-id="${plato.id}" 
+              min="1" 
+              max="2" 
+              value="${esSeleccionado ? platoSeleccionado.cantidad : 1}"
+              style="width: 50px; padding: 5px; border: 1px solid #ddd; border-radius: 5px; text-align: center;"
+              ${!this.puedeReservar ? 'disabled' : ''}
+            >
+          </div>
         </div>
+        <button class="btn-select-menu ${esSeleccionado ? 'selected' : ''}" data-id="${plato.id}" ${!this.puedeReservar ? 'disabled' : ''}>
+          ${esSeleccionado ? '✓ Seleccionado' : (this.puedeReservar ? 'Agregar al Carrito' : '🔒 Cerrado')}
+        </button>
       </div>
     `;
 
@@ -398,65 +411,50 @@ class ComedorApp {
   }
 
   /**
-   * Seleccionar menú del día (permite múltiples selecciones)
+   * Seleccionar menú del día - Versión simplificada con cantidad manual
    */
   seleccionarMenu(plato) {
-    // Prevenir ejecución simultánea
-    if (this.procesandoSeleccion) {
-      console.log('🚫 Ya se está procesando una selección, ignorando...');
-      return;
-    }
+    console.log('🎯 Agregar/Remover plato:', plato.nombre);
     
-    this.procesandoSeleccion = true;
-    
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🎯 INICIO seleccionarMenu()');
-    console.log('   Plato clickeado:', plato.nombre, '| ID:', plato.id);
-    console.log('   Seleccionados ANTES:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', ') || 'NINGUNO');
-    
-    // Verificar disponibilidad antes de permitir selección
+    // Verificar disponibilidad
     if (!this.puedeReservar) {
-      Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
-      this.procesandoSeleccion = false;
+      Utils.showToast('⏰ Reservas cerradas para este turno.', 'error');
       return;
     }
 
-    // Verificar si el plato ya está seleccionado (deseleccionar)
+    // Verificar si ya está seleccionado (remover)
     const index = this.menusSeleccionados.findIndex(p => p.id === plato.id);
     
-    console.log('   Índice en array:', index);
-    
     if (index !== -1) {
-      // Ya está seleccionado, remover (deseleccionar)
+      // Remover del carrito
       const removido = this.menusSeleccionados.splice(index, 1)[0];
-      console.log('   ❌ ACCIÓN: REMOVER plato', removido.nombre);
-      console.log('   Seleccionados DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', ') || 'NINGUNO');
-      Utils.showToast(`${plato.nombre} removido`, 'info');
+      console.log('❌ Removido:', removido.nombre);
+      Utils.showToast(`${plato.nombre} removido del carrito`, 'info');
     } else {
-      // No está seleccionado, agregar si no se alcanzó el límite
-      if (this.menusSeleccionados.length >= this.maxSelecciones) {
-        console.log('   ⚠️ LÍMITE ALCANZADO:', this.menusSeleccionados.length, '/', this.maxSelecciones);
-        Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
-        this.procesandoSeleccion = false;
+      // Obtener cantidad del input
+      const inputCantidad = document.querySelector(`.input-cantidad[data-id="${plato.id}"]`);
+      const cantidad = inputCantidad ? parseInt(inputCantidad.value) || 1 : 1;
+      
+      // Verificar si supera el límite total
+      const cantidadActual = this.menusSeleccionados.reduce((sum, p) => sum + p.cantidad, 0);
+      if (cantidadActual + cantidad > this.maxSelecciones) {
+        Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos en total por persona`, 'error');
         return;
       }
-      this.menusSeleccionados.push(plato);
-      console.log('   ✅ ACCIÓN: AGREGAR plato', plato.nombre);
-      console.log('   Seleccionados DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', '));
-      Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
+      
+      // Agregar al carrito con cantidad
+      const platoConCantidad = {
+        ...plato,
+        cantidad: cantidad
+      };
+      
+      this.menusSeleccionados.push(platoConCantidad);
+      console.log('✅ Agregado:', plato.nombre, 'x', cantidad);
+      Utils.showToast(`${plato.nombre} agregado (${cantidad}x)`, 'success');
     }
 
-    // En lugar de re-renderizar todo, solo actualiza los estados visuales
     this.actualizarEstadosVisuales();
     this.actualizarResumen();
-    
-    console.log('🏁 FIN seleccionarMenu()');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-    
-    // Liberar el flag después de 300ms
-    setTimeout(() => {
-      this.procesandoSeleccion = false;
-    }, 300);
   }
 
   /**
@@ -464,14 +462,15 @@ class ComedorApp {
    */
   actualizarEstadosVisuales() {
     console.log('🎨 Actualizando estados visuales...');
-    console.log('🎨 Platos seleccionados actualmente:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
     
     document.querySelectorAll('.menu-card').forEach(card => {
       const btn = card.querySelector('.btn-select-menu');
+      const inputCantidad = card.querySelector('.input-cantidad');
       if (!btn) return;
       
       const platoId = btn.dataset.id;
-      const esSeleccionado = this.menusSeleccionados.some(p => p.id === platoId);
+      const platoSeleccionado = this.menusSeleccionados.find(p => p.id === platoId);
+      const esSeleccionado = !!platoSeleccionado;
       
       console.log(`🎨 Card ID ${platoId}: ${esSeleccionado ? 'SELECCIONADO' : 'NO seleccionado'}`);
       
@@ -479,10 +478,17 @@ class ComedorApp {
         card.classList.add('selected');
         btn.classList.add('selected');
         btn.innerHTML = '✓ Seleccionado';
+        if (inputCantidad) {
+          inputCantidad.value = platoSeleccionado.cantidad;
+          inputCantidad.disabled = true; // Deshabilitar cuando está en carrito
+        }
       } else {
         card.classList.remove('selected');
         btn.classList.remove('selected');
-        btn.innerHTML = 'Seleccionar';
+        btn.innerHTML = 'Agregar al Carrito';
+        if (inputCantidad) {
+          inputCantidad.disabled = false; // Habilitar para editar
+        }
       }
     });
   }
@@ -501,7 +507,7 @@ class ComedorApp {
           <div class="empty-resumen">
             <i class="icon-empty">🍽️</i>
             <p>Selecciona tu menú para continuar</p>
-            <small>Máximo ${this.maxSelecciones} platos</small>
+            <small>Máximo ${this.maxSelecciones} platos en total</small>
           </div>
         `;
       }
@@ -512,29 +518,52 @@ class ComedorApp {
 
     if (resumenContainer) {
       let html = '';
+      let totalCantidad = 0;
+      
       this.menusSeleccionados.forEach((plato, index) => {
+        const subtotal = plato.precio * plato.cantidad;
+        totalCantidad += plato.cantidad;
+        
         html += `
           <div class="resumen-item">
             <div class="resumen-info">
-              <h4>${index + 1}. ${Utils.sanitizeHTML(plato.nombre)}</h4>
-              <p>${Utils.sanitizeHTML(plato.descripcion)}</p>
+              <span class="resumen-numero">${index + 1}.</span>
+              <div class="resumen-details">
+                <strong>${plato.nombre}</strong>
+                <small>${Utils.formatPrice(plato.precio)} x ${plato.cantidad}</small>
+              </div>
             </div>
             <div class="resumen-precio">
-              ${Utils.formatPrice(plato.precio)}
+              <span>${Utils.formatPrice(subtotal)}</span>
+              <button class="btn-remove-item" data-id="${plato.id}" title="Eliminar">×</button>
             </div>
           </div>
         `;
       });
+      
+      html += `<div class="resumen-total-items">Total: ${totalCantidad} plato${totalCantidad !== 1 ? 's' : ''}</div>`;
       resumenContainer.innerHTML = html;
+
+      // Event listeners para botones de eliminar
+      resumenContainer.querySelectorAll('.btn-remove-item').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const platoId = btn.dataset.id;
+          const plato = this.menu.find(p => p.id === platoId);
+          if (plato) {
+            this.seleccionarMenu(plato); // Reutilizar la misma función
+          }
+        });
+      });
     }
 
     // Calcular total
-    const total = this.menusSeleccionados.reduce((sum, plato) => sum + plato.precio, 0);
-    
+    const total = this.menusSeleccionados.reduce((sum, plato) => sum + (plato.precio * plato.cantidad), 0);
     if (totalElement) {
       totalElement.textContent = Utils.formatPrice(total);
     }
 
+    // Habilitar/deshabilitar botón confirmar
     if (btnConfirmar) {
       btnConfirmar.disabled = false;
     }
@@ -556,9 +585,11 @@ class ComedorApp {
       return;
     }
 
-    // Crear lista de platos seleccionados
+    // Crear lista de platos seleccionados con cantidades
+    const platosDetalle = this.menusSeleccionados.map(p => `${p.nombre} (${p.cantidad}x)`).join(', ');
     const platosNombres = this.menusSeleccionados.map(p => p.nombre).join(', ');
-    const precioTotal = this.menusSeleccionados.reduce((sum, p) => sum + p.precio, 0);
+    const cantidadTotal = this.menusSeleccionados.reduce((sum, p) => sum + p.cantidad, 0);
+    const precioTotal = this.menusSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
 
     const formData = {
       turno: this.turnoActual,
@@ -567,7 +598,7 @@ class ComedorApp {
       email: document.getElementById('emailEstudiante').value.trim(),
       notas: document.getElementById('notasReserva').value.trim(),
       plato: platosNombres,
-      cantidad: this.menusSeleccionados.length,
+      cantidad: cantidadTotal,
       precioTotal: precioTotal
     };
 
@@ -702,10 +733,6 @@ class ComedorApp {
     // Event delegation para botones de selección de menú
     const menuContainer = document.getElementById('menuContainer');
     if (menuContainer) {
-      // Variables para control de clicks
-      let ultimoClickTimestamp = 0;
-      let ultimoPlatoId = null;
-      
       menuContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-select-menu');
         if (!btn || btn.disabled) return;
@@ -713,23 +740,8 @@ class ComedorApp {
         e.preventDefault();
         e.stopPropagation();
         
-        const ahora = Date.now();
         const platoId = btn.dataset.id;
-        
-        // Si es el MISMO botón y fue hace menos de 1 segundo, ignorar
-        if (platoId === ultimoPlatoId && (ahora - ultimoClickTimestamp) < 1000) {
-          console.log('🚫 Click duplicado ignorado - mismo botón en <1s');
-          return;
-        }
-        
-        // Actualizar tracking
-        ultimoClickTimestamp = ahora;
-        ultimoPlatoId = platoId;
-        
-        // Buscar el plato correspondiente por ID
         const plato = this.menu.find(p => p.id === platoId);
-        
-        console.log('🔸 Click válido en botón ID:', platoId, 'Plato:', plato?.nombre);
         
         if (plato) {
           this.seleccionarMenu(plato);
