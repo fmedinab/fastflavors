@@ -338,6 +338,13 @@
         const estadisticasHoy = await api.getEstadisticas();
         console.log('📊 Estadísticas de hoy:', estadisticasHoy);
         const dataHoy = estadisticasHoy.data || estadisticasHoy;
+        console.log('🔍 Datos detallados:', {
+          totalReservas: dataHoy.totalReservas,
+          totalPlatos: dataHoy.totalPlatos,
+          totalIngresos: dataHoy.totalIngresos,
+          reservasPorTurno: dataHoy.reservasPorTurno,
+          cantidadReservasDetalle: dataHoy.reservasDetalle?.length
+        });
 
         // Actualizar cards de resumen con animación
         animarNumero('totalHoy', dataHoy.totalReservas || 0);
