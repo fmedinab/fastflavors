@@ -168,55 +168,35 @@ button {
 
 /* ========== BANNER DE TURNO ========== */
 
-.turno-banner {
-  background: var(--secondary-color);
-  padding: var(--spacing-md);
-  border-bottom: 2px solid var(--border-color);
-}
-
-.turno-info {
-  max-width: 1200px;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-}
-
-.turno-info.abierto {
-  color: var(--success-color);
-}
-
-.turno-info.cerrado {
-  color: var(--error-color);
-}
-
-.turno-dia {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  font-size: var(--font-size-lg);
-}
-
-.turno-detalle {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
+/* Alerta de turno cerrado */
+.alerta-cerrada {
+  background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  color: #78350f;
+  padding: var(--spacing-md) var(--spacing-lg);
+  text-align: center;
   font-weight: 600;
+  font-size: var(--font-size-md);
+  border-bottom: 2px solid #d97706;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+  animation: slideDown 0.3s ease;
 }
 
-.turno-horario {
-  display: flex;
-  gap: var(--spacing-lg);
-  font-size: var(--font-size-sm);
+@keyframes slideDown {
+  from {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* ========== SELECTOR DE TURNOS ========== */
 
 .turnos-container {
   background: var(--card-background);
-  padding: var(--spacing-lg) 0;
+  padding: var(--spacing-md);
   border-bottom: 1px solid var(--border-color);
   position: sticky;
   top: 80px;
@@ -227,25 +207,25 @@ button {
 .turnos {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 var(--spacing-md);
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: var(--spacing-md);
-  justify-content: center;
+  padding: 0 var(--spacing-md);
 }
 
 .btn-turno {
-  flex: 1;
-  max-width: 300px;
   background: var(--background-color);
   color: var(--text-color);
-  padding: var(--spacing-md) var(--spacing-lg);
+  padding: var(--spacing-md);
   border-radius: var(--border-radius);
   font-weight: 600;
   transition: var(--transition);
   border: 3px solid transparent;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: var(--spacing-md);
+  min-height: 70px;
 }
 
 .btn-turno:hover {
@@ -277,6 +257,30 @@ button {
 .btn-turno:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.turno-icon {
+  font-size: 2rem;
+  line-height: 1;
+}
+
+.turno-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+}
+
+.turno-text strong {
+  font-size: var(--font-size-md);
+  display: block;
+}
+
+.turno-text small {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+  font-weight: 500;
 }
 
 .turno-icon {
@@ -883,21 +887,26 @@ textarea.form-input {
   }
 
   .turnos {
-    flex-direction: column;
+    grid-template-columns: 1fr;
+    gap: var(--spacing-sm);
   }
 
   .btn-turno {
-    max-width: none;
+    padding: var(--spacing-sm) var(--spacing-md);
   }
 
-  .turno-info {
-    flex-direction: column;
-    gap: var(--spacing-sm);
+  .turno-icon {
+    font-size: 1.5rem;
   }
 
-  .turno-horario {
+  .main-container {
     flex-direction: column;
-    gap: var(--spacing-sm);
+  }
+
+  .reserva-sidebar {
+    position: static;
+    width: 100%;
+    max-width: 100%;
   }
 }
 
