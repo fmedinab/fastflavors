@@ -141,6 +141,21 @@ class API {
   }
 
   /**
+   * Obtener estadísticas de reservas por fecha
+   */
+  async getEstadisticas(fecha = null) {
+    const params = fecha ? { fecha } : {};
+    return await this.get('getEstadisticas', params);
+  }
+
+  /**
+   * Obtener resumen de estadísticas (últimos 7 días)
+   */
+  async getEstadisticasResumen() {
+    return await this.get('getEstadisticasResumen');
+  }
+
+  /**
    * Limpiar caché
    */
   clearCache() {
