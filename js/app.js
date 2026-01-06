@@ -87,8 +87,11 @@ class ComedorApp {
       Utils.showLoader();
       const response = await api.checkDisponibilidad(turno);
       
-      this.puedeReservar = response.puedeReservar;
-      this.actualizarBannerTurno(response);
+      // El backend envía los datos en response.data
+      const data = response.data || response;
+      
+      this.puedeReservar = data.puedeReservar;
+      this.actualizarBannerTurno(data);
       
       const alerta = document.getElementById('alertaTurnoCerrado');
       if (!this.puedeReservar && alerta) {
@@ -114,17 +117,20 @@ class ComedorApp {
       Utils.showLoader();
       const response = await api.getMenuDelDia(turno);
       
-      this.menu = response.menu || [];
+      // El backend envía los datos en response.data
+      const data = response.data || response;
+      
+      this.menu = data.menu || [];
       
       // Verificar si el día no está disponible
-      if (response.diaDisponible === false) {
-        this.mostrarDiaNoDisponible(response.mensaje);
+      if (data.diaDisponible === false) {
+        this.mostrarDiaNoDisponible(data.mensaje);
         return;
       }
       
       this.renderMenu();
       
-      console.log(`📋 Menú ${response.nombreTurno} cargado: ${this.menu.length} platos`);
+      console.log(`📋 Menú ${data.nombreTurno} cargado: ${this.menu.length} platos`);
       
     } catch (error) {
       console.error('Error al cargar el menú:', error);
