@@ -10,7 +10,6 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
-    this.ultimoClick = {}; // Timestamp del último click por plato
     this.initTheme();
     this.init();
   }
@@ -401,20 +400,10 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
-    const ahora = Date.now();
-    const claveUnica = `${plato.id}_${plato.nombre}`;
-    const ultimoClickPlato = this.ultimoClick[claveUnica] || 0;
-    
-    // Prevenir clicks duplicados del mismo plato en menos de 500ms
-    if (ahora - ultimoClickPlato < 500) {
-      console.log('🚫 Click duplicado bloqueado - menos de 500ms desde el último');
-      return;
-    }
-    
-    this.ultimoClick[claveUnica] = ahora;
-    
-    console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
-    console.log('🔹 Platos actuales seleccionados ANTES:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🎯 INICIO seleccionarMenu()');
+    console.log('   Plato clickeado:', plato.nombre, '| ID:', plato.id);
+    console.log('   Seleccionados ANTES:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', ') || 'NINGUNO');
     
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
@@ -425,21 +414,24 @@ class ComedorApp {
     // Verificar si el plato ya está seleccionado (deseleccionar)
     const index = this.menusSeleccionados.findIndex(p => p.id === plato.id);
     
-    console.log('🔹 Índice encontrado:', index, 'para plato ID:', plato.id);
+    console.log('   Índice en array:', index);
     
     if (index !== -1) {
       // Ya está seleccionado, remover (deseleccionar)
-      this.menusSeleccionados.splice(index, 1);
-      console.log('❌ Plato removido. Nuevos seleccionados:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
+      const removido = this.menusSeleccionados.splice(index, 1)[0];
+      console.log('   ❌ ACCIÓN: REMOVER plato', removido.nombre);
+      console.log('   Seleccionados DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', ') || 'NINGUNO');
       Utils.showToast(`${plato.nombre} removido`, 'info');
     } else {
       // No está seleccionado, agregar si no se alcanzó el límite
       if (this.menusSeleccionados.length >= this.maxSelecciones) {
+        console.log('   ⚠️ LÍMITE ALCANZADO:', this.menusSeleccionados.length, '/', this.maxSelecciones);
         Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
         return;
       }
       this.menusSeleccionados.push(plato);
-      console.log('✅ Plato agregado. Nuevos seleccionados:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
+      console.log('   ✅ ACCIÓN: AGREGAR plato', plato.nombre);
+      console.log('   Seleccionados DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`).join(', '));
       Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
     }
 
@@ -447,7 +439,8 @@ class ComedorApp {
     this.actualizarEstadosVisuales();
     this.actualizarResumen();
     
-    console.log('🔹 Platos finales DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
+    console.log('🏁 FIN seleccionarMenu()');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
   }
 
   /**
@@ -693,36 +686,37 @@ class ComedorApp {
     // Event delegation para botones de selección de menú
     const menuContainer = document.getElementById('menuContainer');
     if (menuContainer) {
-      // Usar debouncing robusto
+      // Variables para control de clicks
       let ultimoClickTimestamp = 0;
-      let ultimoPlatoIdClickeado = null;
+      let ultimoPlatoId = null;
       
       menuContainer.addEventListener('click', (e) => {
         const btn = e.target.closest('.btn-select-menu');
-        if (btn && !btn.disabled) {
-          e.preventDefault();
-          e.stopPropagation();
-          
-          const ahora = Date.now();
-          const platoId = btn.dataset.id;
-          
-          // Prevenir clicks duplicados del MISMO botón en menos de 800ms
-          if (platoId === ultimoPlatoIdClickeado && (ahora - ultimoClickTimestamp) < 800) {
-            console.log('🚫 Click duplicado ignorado (mismo botón, <800ms)');
-            return;
-          }
-          
-          ultimoClickTimestamp = ahora;
-          ultimoPlatoIdClickeado = platoId;
-          
-          // Buscar el plato correspondiente por ID
-          const plato = this.menu.find(p => p.id === platoId);
-          
-          console.log('🔸 Click en botón ID:', platoId, 'Plato encontrado:', plato?.nombre);
-          
-          if (plato) {
-            this.seleccionarMenu(plato);
-          }
+        if (!btn || btn.disabled) return;
+        
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const ahora = Date.now();
+        const platoId = btn.dataset.id;
+        
+        // Si es el MISMO botón y fue hace menos de 1 segundo, ignorar
+        if (platoId === ultimoPlatoId && (ahora - ultimoClickTimestamp) < 1000) {
+          console.log('🚫 Click duplicado ignorado - mismo botón en <1s');
+          return;
+        }
+        
+        // Actualizar tracking
+        ultimoClickTimestamp = ahora;
+        ultimoPlatoId = platoId;
+        
+        // Buscar el plato correspondiente por ID
+        const plato = this.menu.find(p => p.id === platoId);
+        
+        console.log('🔸 Click válido en botón ID:', platoId, 'Plato:', plato?.nombre);
+        
+        if (plato) {
+          this.seleccionarMenu(plato);
         }
       }, false);
     }
