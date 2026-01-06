@@ -84,20 +84,27 @@ class API {
    * Verificar disponibilidad de todos los turnos
    */
   async checkTodosLosTurnos() {
+    console.log('🔎 Iniciando verificación de todos los turnos...');
     const turnos = Object.keys(CONFIG.TURNOS);
+    console.log('📝 Turnos a verificar:', turnos);
     const resultados = {};
     
     for (const turno of turnos) {
       try {
+        console.log(`⏳ Verificando turno: ${turno}`);
         const response = await this.checkDisponibilidad(turno);
+        console.log(`📦 Respuesta para ${turno}:`, response);
+        
         const data = response.data || response;
         resultados[turno] = {
           disponible: data.puedeReservar || false,
           mensaje: data.mensaje || '',
           horaLimite: data.horaLimite || ''
         };
+        
+        console.log(`✔️ ${turno} procesado:`, resultados[turno]);
       } catch (error) {
-        console.error(`Error verificando turno ${turno}:`, error);
+        console.error(`❌ Error verificando turno ${turno}:`, error);
         resultados[turno] = {
           disponible: false,
           mensaje: 'Error al verificar',
@@ -106,6 +113,7 @@ class API {
       }
     }
     
+    console.log('✅ Resultados finales de disponibilidad:', resultados);
     return resultados;
   }
 
