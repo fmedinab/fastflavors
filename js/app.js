@@ -165,9 +165,12 @@ class ComedorApp {
       card.classList.add('selected');
     }
     
+    // Seleccionar ícono según el nombre del plato
+    const icono = this.obtenerIconoPlato(plato.nombre);
+    
     card.innerHTML = `
-      <div class="menu-image" style="background-color: var(--secondary-color); display: flex; align-items: center; justify-content: center; font-size: 4rem;">
-        🍽️
+      <div class="menu-image" style="background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(245, 235, 220, 0.5) 100%); display: flex; align-items: center; justify-content: center; font-size: 5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));">
+        ${icono}
       </div>
       <div class="menu-info">
         <h3 class="menu-name">${Utils.sanitizeHTML(plato.nombre)}</h3>
@@ -185,6 +188,66 @@ class ComedorApp {
     btnSelect.addEventListener('click', () => this.seleccionarMenu(plato));
 
     return card;
+  }
+
+  /**
+   * Obtener ícono según el nombre del plato
+   */
+  obtenerIconoPlato(nombrePlato) {
+    const nombre = nombrePlato.toLowerCase();
+    
+    // Arroz y pollo
+    if (nombre.includes('arroz') && nombre.includes('pollo')) return '🍗';
+    if (nombre.includes('pollo')) return '🍗';
+    
+    // Carnes
+    if (nombre.includes('lomo') || nombre.includes('bistec')) return '🥩';
+    if (nombre.includes('carne')) return '🥩';
+    if (nombre.includes('res')) return '🥩';
+    
+    // Pescados y mariscos
+    if (nombre.includes('pescado') || nombre.includes('trucha') || nombre.includes('atún')) return '🐟';
+    if (nombre.includes('ceviche') || nombre.includes('camarón') || nombre.includes('mariscos')) return '🦐';
+    
+    // Pasta
+    if (nombre.includes('pasta') || nombre.includes('spaguetti') || nombre.includes('tallarín')) return '🍝';
+    if (nombre.includes('lasagna') || nombre.includes('lasaña')) return '🍝';
+    
+    // Arroz
+    if (nombre.includes('arroz')) return '🍚';
+    if (nombre.includes('chaufa')) return '🍛';
+    
+    // Sopas
+    if (nombre.includes('sopa') || nombre.includes('caldo')) return '🍲';
+    
+    // Ensaladas
+    if (nombre.includes('ensalada')) return '🥗';
+    
+    // Sándwiches y hamburguesas
+    if (nombre.includes('hamburguesa')) return '🍔';
+    if (nombre.includes('sandwich') || nombre.includes('sándwich')) return '🥪';
+    
+    // Pizza
+    if (nombre.includes('pizza')) return '🍕';
+    
+    // Tacos y mexicana
+    if (nombre.includes('taco') || nombre.includes('burrito')) return '🌮';
+    
+    // Milanesa
+    if (nombre.includes('milanesa')) return '🍖';
+    
+    // Guisos y estofados
+    if (nombre.includes('estofado') || nombre.includes('guiso')) return '🍲';
+    
+    // Postres
+    if (nombre.includes('postre') || nombre.includes('torta') || nombre.includes('pastel')) return '🍰';
+    
+    // Desayunos
+    if (nombre.includes('huevo') || nombre.includes('tortilla')) return '🍳';
+    if (nombre.includes('pan')) return '🥖';
+    
+    // Por defecto - platillo genérico
+    return '🍽️';
   }
 
   /**
