@@ -400,7 +400,9 @@ class ComedorApp {
       const response = await api.crearReserva(formData);
 
       if (response.success) {
-        this.mostrarConfirmacionReserva(response);
+        // El backend envía los datos en response.data
+        const data = response.data || response;
+        this.mostrarConfirmacionReserva(data);
         this.limpiarFormulario();
         this.menuSeleccionado = null;
         this.actualizarResumen();
@@ -417,12 +419,12 @@ class ComedorApp {
   /**
    * Mostrar confirmación de reserva
    */
-  mostrarConfirmacionReserva(response) {
+  mostrarConfirmacionReserva(data) {
     const modal = document.getElementById('modalConfirmacion');
     const content = document.getElementById('confirmacionContent');
 
     if (modal && content) {
-      const reserva = response.reserva;
+      const reserva = data.reserva;
       content.innerHTML = `
         <div class="success-icon">✅</div>
         <h2>¡Reserva Confirmada!</h2>
@@ -433,12 +435,12 @@ class ComedorApp {
           <p><strong>Estudiante:</strong> ${reserva.estudiante}</p>
           <p><strong>Menú:</strong> ${reserva.plato}</p>
         </div>
-        <p class="message">${response.mensaje}</p>
+        <p class="message">${data.mensaje}</p>
         <button class="btn btn-primary" onclick="app.cerrarModal()">Aceptar</button>
       `;
       modal.style.display = 'flex';
     } else {
-      Utils.showToast(response.mensaje, 'success');
+      Utils.showToast(data.mensaje, 'success');
     }
   }
 
