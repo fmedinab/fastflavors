@@ -34,6 +34,25 @@
       border-radius: 10px;
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+    }
+
+    [data-theme="dark"] .stat-card {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .stat-card h3 {
+      color: #ff6b35;
+    }
+
+    [data-theme="dark"] .stat-number {
+      color: #ffa500;
     }
 
     .stat-card h3 {
@@ -47,6 +66,19 @@
       font-weight: bold;
       color: var(--secondary-color);
       margin: 10px 0;
+      transition: all 0.5s ease;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
     }
 
     .stat-label {
@@ -61,6 +93,23 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       overflow-x: auto;
       margin-bottom: 30px;
+    }
+
+    [data-theme="dark"] .table-container {
+      background: #2d2d2d;
+      color: #e0e0e0;
+    }
+
+    [data-theme="dark"] .stats-table th {
+      background: #1a1a1a;
+    }
+
+    [data-theme="dark"] .stats-table tr:hover {
+      background: #3a3a3a;
+    }
+
+    [data-theme="dark"] .stats-table td {
+      border-bottom-color: #444;
     }
 
     .stats-table {
@@ -274,22 +323,31 @@
     async function cargarEstadisticas() {
       try {
         Utils.showLoader();
+        console.log('📊 Cargando estadísticas...');
 
         // Obtener resumen general
         const resumen = await api.getEstadisticasResumen();
+        console.log('📦 Resumen:', resumen);
         const dataResumen = resumen.data || resumen;
 
         // Obtener estadísticas de hoy
+        const hoy = new Date();
+        const fechaHoy = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`;
+        console.log('📅 Buscando datos para:', fechaHoy);
+        
         const estadisticasHoy = await api.getEstadisticas();
+        console.log('📊 Estadísticas de hoy:', estadisticasHoy);
         const dataHoy = estadisticasHoy.data || estadisticasHoy;
 
-        // Actualizar cards de resumen
-        document.getElementById('totalHoy').textContent = dataHoy.totalReservas || 0;
-        document.getElementById('totalPlatos').textContent = dataHoy.totalPlatos || 0;
+        // Actualizar cards de resumen con animación
+        animarNumero('totalHoy', dataHoy.totalReservas || 0);
+        animarNumero('totalPlatos', dataHoy.totalPlatos || 0);
         document.getElementById('totalIngresos').textContent = 'S/ ' + (dataHoy.totalIngresos || 0).toFixed(2);
-        document.getElementById('totalManana').textContent = dataHoy.reservasPorTurno?.MANANA || 0;
-        document.getElementById('totalTarde').textContent = dataHoy.reservasPorTurno?.TARDE || 0;
-        document.getElementById('totalGeneral').textContent = dataResumen.totalGeneral || 0;
+        animarNumero('totalManana', dataHoy.reservasPorTurno?.MANANA || 0);
+        animarNumero('totalTarde', dataHoy.reservasPorTurno?.TARDE || 0);
+        animarNumero('totalGeneral', dataResumen.totalGeneral || 0);
+        
+        console.log('✅ Estadísticas actualizadas');
 
         // Renderizar tabla de últimos 7 días
         renderTabla7Dias(dataResumen.ultimos7Dias);
@@ -372,6 +430,26 @@
           <td>${plato.porcentaje}%</td>
         </tr>
       `).join('');
+    }
+
+    // Función para animar números
+    function animarNumero(elementId, valorFinal) {
+      const elemento = document.getElementById(elementId);
+      if (!elemento) return;
+      
+      const duracion = 1000; // 1 segundo
+      const incremento = valorFinal / (duracion / 16); // 60 FPS
+      let valorActual = 0;
+      
+      const intervalo = setInterval(() => {
+        valorActual += incremento;
+        if (valorActual >= valorFinal) {
+          elemento.textContent = Math.round(valorFinal);
+          clearInterval(intervalo);
+        } else {
+          elemento.textContent = Math.round(valorActual);
+        }
+      }, 16);
     }
   </script>
 </body>
