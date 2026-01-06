@@ -400,6 +400,9 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
+    console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
+    console.log('🔹 Platos actuales seleccionados:', this.menusSeleccionados.map(p => p.nombre));
+    
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
       Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
@@ -409,9 +412,12 @@ class ComedorApp {
     // Verificar si el plato ya está seleccionado (deseleccionar)
     const index = this.menusSeleccionados.findIndex(p => p.id === plato.id);
     
+    console.log('🔹 Índice encontrado:', index);
+    
     if (index !== -1) {
       // Ya está seleccionado, remover (deseleccionar)
       this.menusSeleccionados.splice(index, 1);
+      console.log('❌ Plato removido. Nuevos seleccionados:', this.menusSeleccionados.map(p => p.nombre));
       Utils.showToast(`${plato.nombre} removido`, 'info');
     } else {
       // No está seleccionado, agregar si no se alcanzó el límite
@@ -420,6 +426,7 @@ class ComedorApp {
         return;
       }
       this.menusSeleccionados.push(plato);
+      console.log('✅ Plato agregado. Nuevos seleccionados:', this.menusSeleccionados.map(p => p.nombre));
       Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
     }
 
