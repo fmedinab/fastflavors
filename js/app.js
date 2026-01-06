@@ -386,7 +386,7 @@ class ComedorApp {
     }
 
     if (!Utils.validarCodigo(formData.codigoEstudiante)) {
-      Utils.showToast('Código de estudiante no válido (5-10 caracteres)', 'error');
+      Utils.showToast('Aula no válida (2-10 caracteres)', 'error');
       return;
     }
 
