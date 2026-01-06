@@ -260,6 +260,25 @@ button {
   box-shadow: var(--box-shadow-lg);
 }
 
+.btn-turno.cerrado {
+  background: var(--border-color);
+  color: var(--text-light);
+  opacity: 0.6;
+  cursor: not-allowed;
+  border-color: transparent;
+}
+
+.btn-turno.cerrado:hover {
+  background: var(--border-color);
+  transform: none;
+  border-color: transparent;
+}
+
+.btn-turno:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
 .turno-icon {
   font-size: var(--font-size-2xl);
 }
