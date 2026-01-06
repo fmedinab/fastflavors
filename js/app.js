@@ -632,9 +632,12 @@ class ComedorApp {
 
     try {
       Utils.showLoader();
+      console.log('📤 Enviando reserva al backend...');
       const response = await api.crearReserva(formData);
+      console.log('📥 Respuesta del backend:', response);
 
       if (response.success) {
+        console.log('✅ Reserva exitosa');
         // El backend envía los datos en response.data
         const data = response.data || response;
         this.mostrarConfirmacionReserva(data);
@@ -642,10 +645,13 @@ class ComedorApp {
         this.menusSeleccionados = []; // Limpiar selecciones
         this.renderMenu(); // Re-renderizar para quitar selecciones visuales
         this.actualizarResumen();
+      } else {
+        console.error('❌ Backend respondió con error:', response.mensaje);
+        Utils.showToast(response.mensaje || 'Error al crear reserva', 'error');
       }
 
     } catch (error) {
-      console.error('Error al crear reserva:', error);
+      console.error('❌ Error al crear reserva:', error);
       Utils.showToast(error.message || CONFIG.MENSAJES.ERROR_CONEXION, 'error');
     } finally {
       Utils.hideLoader();
