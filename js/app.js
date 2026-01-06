@@ -57,9 +57,52 @@ class ComedorApp {
     }
     
     this.setupEventListeners();
+    await this.verificarDisponibilidadTurnos();
     await this.cambiarTurno(this.turnoActual);
     
     console.log('✅ Aplicación lista');
+  }
+
+  /**
+   * Verificar disponibilidad de todos los turnos y actualizar botones
+   */
+  async verificarDisponibilidadTurnos() {
+    try {
+      const disponibilidad = await api.checkTodosLosTurnos();
+      
+      document.querySelectorAll('.btn-turno').forEach(btn => {
+        const turno = btn.dataset.turno;
+        const info = disponibilidad[turno];
+        
+        if (info && !info.disponible) {
+          btn.classList.add('cerrado');
+          btn.disabled = true;
+          btn.title = info.mensaje;
+          
+          // Agregar indicador visual
+          const turnoIcon = btn.querySelector('.turno-icon');
+          if (turnoIcon) {
+            turnoIcon.textContent = '🔒';
+          }
+        } else {
+          btn.classList.remove('cerrado');
+          btn.disabled = false;
+          btn.title = info ? info.mensaje : '';
+        }
+      });
+      
+      // Si el turno actual está cerrado, cambiar al primero disponible
+      const turnoActualInfo = disponibilidad[this.turnoActual];
+      if (turnoActualInfo && !turnoActualInfo.disponible) {
+        const turnoDisponible = Object.keys(disponibilidad).find(t => disponibilidad[t].disponible);
+        if (turnoDisponible) {
+          this.turnoActual = turnoDisponible;
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error al verificar disponibilidad de turnos:', error);
+    }
   }
 
   /**
