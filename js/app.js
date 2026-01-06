@@ -111,10 +111,13 @@ class ComedorApp {
             turnoIcon.textContent = btn.dataset.iconoOriginal;
           }
           
-          // Actualizar texto con hora límite
+          // Actualizar texto con hora límite (solo formato HH:mm)
           if (turnoSmall && info && info.horaLimite) {
-            const configTurno = CONFIG.TURNOS[turno];
-            turnoSmall.textContent = `Reserva hasta ${info.horaLimite}`;
+            // Extraer solo HH:mm del string de hora límite
+            const horaLimiteFormato = info.horaLimite.includes(':') 
+              ? info.horaLimite.split(':').slice(0, 2).join(':')
+              : info.horaLimite;
+            turnoSmall.textContent = `Reserva hasta ${horaLimiteFormato}`;
           }
           
           console.log(`✅ Turno ${turno} DISPONIBLE`);
