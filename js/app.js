@@ -76,6 +76,7 @@ class ComedorApp {
         const turno = btn.dataset.turno;
         const info = disponibilidad[turno];
         const turnoIcon = btn.querySelector('.turno-icon');
+        const turnoSmall = btn.querySelector('.turno-text small');
         
         // Guardar icono original si no existe
         if (!btn.dataset.iconoOriginal && turnoIcon) {
@@ -94,6 +95,11 @@ class ComedorApp {
             turnoIcon.textContent = '🔒';
           }
           
+          // Actualizar texto de hora límite
+          if (turnoSmall) {
+            turnoSmall.textContent = 'Cerrado';
+          }
+          
           console.log(`❌ Turno ${turno} CERRADO`);
         } else {
           btn.classList.remove('cerrado');
@@ -103,6 +109,12 @@ class ComedorApp {
           // Restaurar icono original
           if (turnoIcon && btn.dataset.iconoOriginal) {
             turnoIcon.textContent = btn.dataset.iconoOriginal;
+          }
+          
+          // Actualizar texto con hora límite
+          if (turnoSmall && info && info.horaLimite) {
+            const configTurno = CONFIG.TURNOS[turno];
+            turnoSmall.textContent = `Reserva hasta ${info.horaLimite}`;
           }
           
           console.log(`✅ Turno ${turno} DISPONIBLE`);
