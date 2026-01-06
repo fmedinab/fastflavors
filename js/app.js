@@ -301,6 +301,7 @@ class ComedorApp {
   crearCardPlato(plato) {
     const card = document.createElement('div');
     card.className = 'menu-card';
+    card.dataset.platoId = plato.id; // Agregar data attribute para debug
     
     // Verificar si este plato está en el array de seleccionados
     const esSeleccionado = this.menusSeleccionados.some(p => p.id === plato.id);
@@ -401,18 +402,19 @@ class ComedorApp {
    */
   seleccionarMenu(plato) {
     const ahora = Date.now();
-    const ultimoClickPlato = this.ultimoClick[plato.id] || 0;
+    const claveUnica = `${plato.id}_${plato.nombre}`;
+    const ultimoClickPlato = this.ultimoClick[claveUnica] || 0;
     
-    // Prevenir clicks duplicados del mismo plato en menos de 1 segundo
-    if (ahora - ultimoClickPlato < 1000) {
-      console.log('🚫 Click duplicado bloqueado - menos de 1 segundo desde el último');
+    // Prevenir clicks duplicados del mismo plato en menos de 500ms
+    if (ahora - ultimoClickPlato < 500) {
+      console.log('🚫 Click duplicado bloqueado - menos de 500ms desde el último');
       return;
     }
     
-    this.ultimoClick[plato.id] = ahora;
+    this.ultimoClick[claveUnica] = ahora;
     
     console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
-    console.log('🔹 Platos actuales seleccionados ANTES:', this.menusSeleccionados.map(p => p.nombre));
+    console.log('🔹 Platos actuales seleccionados ANTES:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
     
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
@@ -423,12 +425,12 @@ class ComedorApp {
     // Verificar si el plato ya está seleccionado (deseleccionar)
     const index = this.menusSeleccionados.findIndex(p => p.id === plato.id);
     
-    console.log('🔹 Índice encontrado:', index);
+    console.log('🔹 Índice encontrado:', index, 'para plato ID:', plato.id);
     
     if (index !== -1) {
       // Ya está seleccionado, remover (deseleccionar)
       this.menusSeleccionados.splice(index, 1);
-      console.log('❌ Plato removido. Nuevos seleccionados:', this.menusSeleccionados.map(p => p.nombre));
+      console.log('❌ Plato removido. Nuevos seleccionados:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
       Utils.showToast(`${plato.nombre} removido`, 'info');
     } else {
       // No está seleccionado, agregar si no se alcanzó el límite
@@ -437,7 +439,7 @@ class ComedorApp {
         return;
       }
       this.menusSeleccionados.push(plato);
-      console.log('✅ Plato agregado. Nuevos seleccionados:', this.menusSeleccionados.map(p => p.nombre));
+      console.log('✅ Plato agregado. Nuevos seleccionados:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
       Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
     }
 
@@ -445,19 +447,24 @@ class ComedorApp {
     this.actualizarEstadosVisuales();
     this.actualizarResumen();
     
-    console.log('🔹 Platos finales DESPUÉS:', this.menusSeleccionados.map(p => p.nombre));
+    console.log('🔹 Platos finales DESPUÉS:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
   }
 
   /**
    * Actualizar estados visuales de las tarjetas sin re-renderizar todo
    */
   actualizarEstadosVisuales() {
+    console.log('🎨 Actualizando estados visuales...');
+    console.log('🎨 Platos seleccionados actualmente:', this.menusSeleccionados.map(p => `${p.nombre}(${p.id})`));
+    
     document.querySelectorAll('.menu-card').forEach(card => {
       const btn = card.querySelector('.btn-select-menu');
       if (!btn) return;
       
       const platoId = btn.dataset.id;
       const esSeleccionado = this.menusSeleccionados.some(p => p.id === platoId);
+      
+      console.log(`🎨 Card ID ${platoId}: ${esSeleccionado ? 'SELECCIONADO' : 'NO seleccionado'}`);
       
       if (esSeleccionado) {
         card.classList.add('selected');
@@ -686,21 +693,41 @@ class ComedorApp {
     // Event delegation para botones de selección de menú
     const menuContainer = document.getElementById('menuContainer');
     if (menuContainer) {
+      // Usar una vez para evitar duplicados
+      let procesandoClick = false;
+      
       menuContainer.addEventListener('click', (e) => {
+        // Prevenir procesamiento simultáneo
+        if (procesandoClick) {
+          console.log('🚫 Ya se está procesando un click');
+          e.preventDefault();
+          e.stopPropagation();
+          return;
+        }
+        
         const btn = e.target.closest('.btn-select-menu');
         if (btn && !btn.disabled) {
           e.preventDefault();
-          e.stopImmediatePropagation(); // Detener TODOS los eventos
+          e.stopPropagation();
+          
+          procesandoClick = true;
           
           // Buscar el plato correspondiente por ID
           const platoId = btn.dataset.id;
           const plato = this.menu.find(p => p.id === platoId);
           
+          console.log('🔸 Click en botón ID:', platoId, 'Plato encontrado:', plato?.nombre);
+          
           if (plato) {
             this.seleccionarMenu(plato);
           }
+          
+          // Liberar después de 300ms
+          setTimeout(() => {
+            procesandoClick = false;
+          }, 300);
         }
-      }, true); // Usar capture phase
+      }, false); // No usar capture phase
     }
   }
 }
