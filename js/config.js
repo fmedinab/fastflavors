@@ -38,6 +38,8 @@ const CONFIG = {
   MENSAJES: {
     RESERVA_EXITOSA: '¡Reserva confirmada! No olvides recoger tu comida a la hora indicada.',
     RESERVA_CERRADA: 'Lo sentimos, ya no se aceptan reservas para este turno.',
+    DIA_FERIADO: '🎉 Hoy es feriado, no hay servicio de comedor',
+    DIA_DESACTIVADO: '⚠️ El servicio no está disponible hoy',
     ERROR_CONEXION: 'Error de conexión con el servidor. Por favor, intenta nuevamente.',
     CAMPOS_REQUERIDOS: 'Por favor, completa todos los campos obligatorios.',
     SIN_MENU: 'Selecciona tu menú para continuar.',
