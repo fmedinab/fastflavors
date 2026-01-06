@@ -115,6 +115,13 @@ class ComedorApp {
       const response = await api.getMenuDelDia(turno);
       
       this.menu = response.menu || [];
+      
+      // Verificar si el día no está disponible
+      if (response.diaDisponible === false) {
+        this.mostrarDiaNoDisponible(response.mensaje);
+        return;
+      }
+      
       this.renderMenu();
       
       console.log(`📋 Menú ${response.nombreTurno} cargado: ${this.menu.length} platos`);
@@ -125,6 +132,38 @@ class ComedorApp {
     } finally {
       Utils.hideLoader();
     }
+  }
+
+  /**
+   * Mostrar alerta de día no disponible
+   */
+  mostrarDiaNoDisponible(mensaje) {
+    const menuContainer = document.getElementById('menuContainer');
+    if (menuContainer) {
+      const iconos = {
+        'feriado': '🎉',
+        'semana': '🏖️',
+        'desactivado': '⚠️'
+      };
+      
+      let icono = '📅';
+      if (mensaje.toLowerCase().includes('feriado')) icono = iconos.feriado;
+      else if (mensaje.toLowerCase().includes('semana')) icono = iconos.semana;
+      else if (mensaje.toLowerCase().includes('desactivado') || mensaje.toLowerCase().includes('disponible')) icono = iconos.desactivado;
+      
+      menuContainer.innerHTML = `
+        <div class="empty-state">
+          <div class="icon-empty">${icono}</div>
+          <h3>Servicio no disponible</h3>
+          <p>${mensaje}</p>
+        </div>
+      `;
+    }
+    
+    // Actualizar resumen
+    this.menu = [];
+    this.menuSeleccionado = null;
+    this.actualizarResumen();
   }
 
   /**
