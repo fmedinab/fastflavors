@@ -131,6 +131,16 @@ class ComedorApp {
         if (turnoDisponible) {
           console.log(`🔄 Cambiando de ${this.turnoActual} a ${turnoDisponible}`);
           this.turnoActual = turnoDisponible;
+          // Actualizar el botón activo visualmente
+          document.querySelectorAll('.btn-turno').forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.dataset.turno === turnoDisponible) {
+              btn.classList.add('active');
+            }
+          });
+        } else {
+          // Si no hay turnos disponibles, mostrar mensaje
+          console.log('⚠️ No hay turnos disponibles');
         }
       }
       
@@ -287,6 +297,11 @@ class ComedorApp {
       card.classList.add('selected');
     }
     
+    // Deshabilitar tarjeta si no se puede reservar
+    if (!this.puedeReservar) {
+      card.classList.add('disabled');
+    }
+    
     // Seleccionar ícono según el nombre del plato
     const icono = this.obtenerIconoPlato(plato.nombre);
     
@@ -299,8 +314,8 @@ class ComedorApp {
         <p class="menu-description">${Utils.sanitizeHTML(plato.descripcion)}</p>
         <div class="menu-footer">
           <span class="menu-price">${Utils.formatPrice(plato.precio)}</span>
-          <button class="btn-select-menu ${esSeleccionado ? 'selected' : ''}" data-id="${plato.id}">
-            ${esSeleccionado ? '✓ Seleccionado' : 'Seleccionar'}
+          <button class="btn-select-menu ${esSeleccionado ? 'selected' : ''}" data-id="${plato.id}" ${!this.puedeReservar ? 'disabled' : ''}>
+            ${esSeleccionado ? '✓ Seleccionado' : (this.puedeReservar ? 'Seleccionar' : '🔒 Cerrado')}
           </button>
         </div>
       </div>
@@ -376,8 +391,9 @@ class ComedorApp {
    * Seleccionar menú del día
    */
   seleccionarMenu(plato) {
+    // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
-      Utils.showToast(CONFIG.MENSAJES.RESERVA_CERRADA, 'error');
+      Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
       return;
     }
 
