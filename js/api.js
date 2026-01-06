@@ -27,12 +27,14 @@ class API {
         cache: 'no-cache'
       });
 
-      const data = await response.json();
-      
-      if (!data.success && data.error) {
-        throw new Error(data.error);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
+
+      const data = await response.json();
+      console.log('📦 API Response:', data);
       
+      // No lanzar error aquí, dejar que el caller maneje success/failure
       return data;
 
     } catch (error) {
