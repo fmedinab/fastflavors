@@ -68,26 +68,44 @@ class ComedorApp {
    */
   async verificarDisponibilidadTurnos() {
     try {
+      console.log('🔍 Verificando disponibilidad de turnos...');
       const disponibilidad = await api.checkTodosLosTurnos();
+      console.log('📊 Disponibilidad obtenida:', disponibilidad);
       
       document.querySelectorAll('.btn-turno').forEach(btn => {
         const turno = btn.dataset.turno;
         const info = disponibilidad[turno];
+        const turnoIcon = btn.querySelector('.turno-icon');
+        
+        // Guardar icono original si no existe
+        if (!btn.dataset.iconoOriginal && turnoIcon) {
+          btn.dataset.iconoOriginal = turnoIcon.textContent;
+        }
+        
+        console.log(`🔸 Turno ${turno}:`, info);
         
         if (info && !info.disponible) {
           btn.classList.add('cerrado');
           btn.disabled = true;
           btn.title = info.mensaje;
           
-          // Agregar indicador visual
-          const turnoIcon = btn.querySelector('.turno-icon');
+          // Cambiar icono a cerrado
           if (turnoIcon) {
             turnoIcon.textContent = '🔒';
           }
+          
+          console.log(`❌ Turno ${turno} CERRADO`);
         } else {
           btn.classList.remove('cerrado');
           btn.disabled = false;
           btn.title = info ? info.mensaje : '';
+          
+          // Restaurar icono original
+          if (turnoIcon && btn.dataset.iconoOriginal) {
+            turnoIcon.textContent = btn.dataset.iconoOriginal;
+          }
+          
+          console.log(`✅ Turno ${turno} DISPONIBLE`);
         }
       });
       
@@ -96,12 +114,13 @@ class ComedorApp {
       if (turnoActualInfo && !turnoActualInfo.disponible) {
         const turnoDisponible = Object.keys(disponibilidad).find(t => disponibilidad[t].disponible);
         if (turnoDisponible) {
+          console.log(`🔄 Cambiando de ${this.turnoActual} a ${turnoDisponible}`);
           this.turnoActual = turnoDisponible;
         }
       }
       
     } catch (error) {
-      console.error('Error al verificar disponibilidad de turnos:', error);
+      console.error('❌ Error al verificar disponibilidad de turnos:', error);
     }
   }
 
