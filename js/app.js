@@ -187,12 +187,13 @@ class ComedorApp {
       const data = response.data || response;
       
       this.puedeReservar = data.puedeReservar;
-      this.actualizarBannerTurno(data);
       
       const alerta = document.getElementById('alertaTurnoCerrado');
       if (!this.puedeReservar && alerta) {
         alerta.style.display = 'block';
-        alerta.textContent = `⚠️ ${response.mensaje}`;
+        alerta.textContent = data.razon === 'turno_no_iniciado' 
+          ? `⏳ ${response.mensaje}`
+          : `⚠️ ${response.mensaje}`;
       } else if (alerta) {
         alerta.style.display = 'none';
       }
@@ -637,22 +638,6 @@ class ComedorApp {
     if (form) {
       form.reset();
     }
-  }
-
-  /**
-   * Actualizar banner de turno
-   */
-  actualizarBannerTurno(info) {
-    const banner = document.getElementById('turnoBanner');
-    if (!banner) return;
-
-    const configTurno = CONFIG.TURNOS[this.turnoActual];
-    banner.innerHTML = `
-      <div class="turno-info ${info.puedeReservar ? 'abierto' : 'cerrado'}">
-        <span class="hora-icon">${info.puedeReservar ? '✅' : '⏰'}</span>
-        <span class="hora-texto">${info.mensaje}</span>
-      </div>
-    `;
   }
 
   /**
