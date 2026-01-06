@@ -430,8 +430,32 @@ class ComedorApp {
       Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
     }
 
-    this.renderMenu();
+    // En lugar de re-renderizar todo, solo actualiza los estados visuales
+    this.actualizarEstadosVisuales();
     this.actualizarResumen();
+  }
+
+  /**
+   * Actualizar estados visuales de las tarjetas sin re-renderizar todo
+   */
+  actualizarEstadosVisuales() {
+    document.querySelectorAll('.menu-card').forEach(card => {
+      const btn = card.querySelector('.btn-select-menu');
+      if (!btn) return;
+      
+      const platoId = btn.dataset.id;
+      const esSeleccionado = this.menusSeleccionados.some(p => p.id === platoId);
+      
+      if (esSeleccionado) {
+        card.classList.add('selected');
+        btn.classList.add('selected');
+        btn.innerHTML = '✓ Seleccionado';
+      } else {
+        card.classList.remove('selected');
+        btn.classList.remove('selected');
+        btn.innerHTML = 'Seleccionar';
+      }
+    });
   }
 
   /**
