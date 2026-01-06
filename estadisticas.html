@@ -283,12 +283,12 @@
         const estadisticasHoy = await api.getEstadisticas();
         const dataHoy = estadisticasHoy.data || estadisticasHoy;
 
-        // Actualizar cards de resumenPlatos').textContent = dataHoy.totalPlatos || 0;
+        // Actualizar cards de resumen
+        document.getElementById('totalHoy').textContent = dataHoy.totalReservas || 0;
+        document.getElementById('totalPlatos').textContent = dataHoy.totalPlatos || 0;
         document.getElementById('totalIngresos').textContent = 'S/ ' + (dataHoy.totalIngresos || 0).toFixed(2);
-        document.getElementById('total
-        document.getElementById('totalHoy').textContent = dataResumen.hoy.total || 0;
-        document.getElementById('totalManana').textContent = dataResumen.hoy.manana || 0;
-        document.getElementById('totalTarde').textContent = dataResumen.hoy.tarde || 0;
+        document.getElementById('totalManana').textContent = dataHoy.reservasPorTurno?.MANANA || 0;
+        document.getElementById('totalTarde').textContent = dataHoy.reservasPorTurno?.TARDE || 0;
         document.getElementById('totalGeneral').textContent = dataResumen.totalGeneral || 0;
 
         // Renderizar tabla de últimos 7 días
@@ -329,7 +329,9 @@
 
     function renderDetalleHoy(reservas) {
       const tbody = document.getElementById('tablaDetalleHoy');
-      7" class="empty-state"><div class="icon-empty">📭</div><p>No hay reservas para hoy</p></td></tr>';
+      
+      if (!reservas || reservas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon-empty">📭</div><p>No hay reservas para hoy</p></td></tr>';
         return;
       }
 
@@ -341,9 +343,7 @@
           <td>${r.codigo}</td>
           <td>${r.plato}</td>
           <td><strong>${r.cantidad || 1}</strong></td>
-          <td>S/ ${(r.precioTotal || 0).toFixed(2)iante}</td>
-          <td>${r.codigo}</td>
-          <td>${r.plato}</td>
+          <td>S/ ${(r.precioTotal || 0).toFixed(2)}</td>
         </tr>
       `).join('');
     }
