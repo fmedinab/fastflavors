@@ -6,7 +6,8 @@
 class ComedorApp {
   constructor() {
     this.menu = [];
-    this.menuSeleccionado = null;
+    this.menusSeleccionados = []; // Array para múltiples selecciones
+    this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
     this.initTheme();
@@ -262,7 +263,7 @@ class ComedorApp {
     
     // Actualizar resumen
     this.menu = [];
-    this.menuSeleccionado = null;
+    this.menusSeleccionados = [];
     this.actualizarResumen();
   }
 
@@ -299,7 +300,8 @@ class ComedorApp {
     const card = document.createElement('div');
     card.className = 'menu-card';
     
-    const esSeleccionado = this.menuSeleccionado && this.menuSeleccionado.id === plato.id;
+    // Verificar si este plato está en el array de seleccionados
+    const esSeleccionado = this.menusSeleccionados.some(p => p.id === plato.id);
     if (esSeleccionado) {
       card.classList.add('selected');
     }
@@ -395,7 +397,7 @@ class ComedorApp {
   }
 
   /**
-   * Seleccionar menú del día
+   * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
     // Verificar disponibilidad antes de permitir selección
@@ -404,10 +406,25 @@ class ComedorApp {
       return;
     }
 
-    this.menuSeleccionado = plato;
+    // Verificar si el plato ya está seleccionado (deseleccionar)
+    const index = this.menusSeleccionados.findIndex(p => p.id === plato.id);
+    
+    if (index !== -1) {
+      // Ya está seleccionado, remover (deseleccionar)
+      this.menusSeleccionados.splice(index, 1);
+      Utils.showToast(`${plato.nombre} removido`, 'info');
+    } else {
+      // No está seleccionado, agregar si no se alcanzó el límite
+      if (this.menusSeleccionados.length >= this.maxSelecciones) {
+        Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
+        return;
+      }
+      this.menusSeleccionados.push(plato);
+      Utils.showToast(`${plato.nombre} seleccionado (${this.menusSeleccionados.length}/${this.maxSelecciones})`, 'success');
+    }
+
     this.renderMenu();
     this.actualizarResumen();
-    Utils.showToast(`${plato.nombre} seleccionado`, 'success');
   }
 
   /**
@@ -418,12 +435,13 @@ class ComedorApp {
     const totalElement = document.getElementById('totalReserva');
     const btnConfirmar = document.getElementById('btnConfirmarReserva');
 
-    if (!this.menuSeleccionado) {
+    if (this.menusSeleccionados.length === 0) {
       if (resumenContainer) {
         resumenContainer.innerHTML = `
           <div class="empty-resumen">
             <i class="icon-empty">🍽️</i>
             <p>Selecciona tu menú para continuar</p>
+            <small>Máximo ${this.maxSelecciones} platos</small>
           </div>
         `;
       }
@@ -433,21 +451,28 @@ class ComedorApp {
     }
 
     if (resumenContainer) {
-      resumenContainer.innerHTML = `
-        <div class="resumen-item">
-          <div class="resumen-info">
-            <h4>${Utils.sanitizeHTML(this.menuSeleccionado.nombre)}</h4>
-            <p>${Utils.sanitizeHTML(this.menuSeleccionado.descripcion)}</p>
+      let html = '';
+      this.menusSeleccionados.forEach((plato, index) => {
+        html += `
+          <div class="resumen-item">
+            <div class="resumen-info">
+              <h4>${index + 1}. ${Utils.sanitizeHTML(plato.nombre)}</h4>
+              <p>${Utils.sanitizeHTML(plato.descripcion)}</p>
+            </div>
+            <div class="resumen-precio">
+              ${Utils.formatPrice(plato.precio)}
+            </div>
           </div>
-          <div class="resumen-precio">
-            ${Utils.formatPrice(this.menuSeleccionado.precio)}
-          </div>
-        </div>
-      `;
+        `;
+      });
+      resumenContainer.innerHTML = html;
     }
 
+    // Calcular total
+    const total = this.menusSeleccionados.reduce((sum, plato) => sum + plato.precio, 0);
+    
     if (totalElement) {
-      totalElement.textContent = Utils.formatPrice(this.menuSeleccionado.precio);
+      totalElement.textContent = Utils.formatPrice(total);
     }
 
     if (btnConfirmar) {
@@ -466,10 +491,14 @@ class ComedorApp {
       return;
     }
 
-    if (!this.menuSeleccionado) {
-      Utils.showToast('Por favor selecciona un menú', 'error');
+    if (this.menusSeleccionados.length === 0) {
+      Utils.showToast('Por favor selecciona al menos un menú', 'error');
       return;
     }
+
+    // Crear lista de platos seleccionados
+    const platosNombres = this.menusSeleccionados.map(p => p.nombre).join(', ');
+    const precioTotal = this.menusSeleccionados.reduce((sum, p) => sum + p.precio, 0);
 
     const formData = {
       turno: this.turnoActual,
@@ -477,7 +506,9 @@ class ComedorApp {
       codigoEstudiante: document.getElementById('codigoEstudiante').value.trim(),
       email: document.getElementById('emailEstudiante').value.trim(),
       notas: document.getElementById('notasReserva').value.trim(),
-      plato: this.menuSeleccionado.nombre
+      plato: platosNombres,
+      cantidad: this.menusSeleccionados.length,
+      precioTotal: precioTotal
     };
 
     if (!formData.nombreEstudiante || !formData.codigoEstudiante) {
@@ -504,7 +535,8 @@ class ComedorApp {
         const data = response.data || response;
         this.mostrarConfirmacionReserva(data);
         this.limpiarFormulario();
-        this.menuSeleccionado = null;
+        this.menusSeleccionados = []; // Limpiar selecciones
+        this.renderMenu(); // Re-renderizar para quitar selecciones visuales
         this.actualizarResumen();
       }
 
