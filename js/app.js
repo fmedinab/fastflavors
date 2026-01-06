@@ -406,7 +406,7 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
-    // Prevenir clicks múltiples rápidos
+    // Prevenir clicks múltiples rápidos con debounce más agresivo
     if (this.procesandoClick) {
       console.log('🚫 Click bloqueado - procesando anterior');
       return;
@@ -415,7 +415,7 @@ class ComedorApp {
     this.procesandoClick = true;
     
     console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
-    console.log('🔹 Platos actuales seleccionados:', this.menusSeleccionados.map(p => p.nombre));
+    console.log('🔹 Platos actuales seleccionados ANTES:', this.menusSeleccionados.map(p => p.nombre));
     
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
@@ -450,10 +450,13 @@ class ComedorApp {
     this.actualizarEstadosVisuales();
     this.actualizarResumen();
     
-    // Liberar el flag después de un pequeño delay
+    console.log('🔹 Platos finales DESPUÉS:', this.menusSeleccionados.map(p => p.nombre));
+    
+    // Liberar el flag después de 500ms (más tiempo para prevenir clicks rápidos)
     setTimeout(() => {
       this.procesandoClick = false;
-    }, 200);
+      console.log('✅ Flag liberado - puede hacer click de nuevo');
+    }, 500);
   }
 
   /**
