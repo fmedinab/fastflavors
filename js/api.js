@@ -99,7 +99,9 @@ class API {
         resultados[turno] = {
           disponible: data.puedeReservar || false,
           mensaje: data.mensaje || '',
-          horaLimite: data.horaLimite || ''
+          horaLimite: data.horaLimite || '',
+          razon: data.razon || null,
+          horaInicio: data.horaInicio || null
         };
         
         console.log(`✔️ ${turno} procesado:`, resultados[turno]);
