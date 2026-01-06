@@ -127,7 +127,7 @@ class ComedorApp {
             turnoSmall.textContent = `Reserva hasta ${horaLimiteFormato}`;
           }
           
-          console.log(`✅ Turno ${turno} DISPONIBLE`);
+          console.log(`✅ Turno ${turno} DISPONIBLE (hasta ${info.horaLimite})`);
         }
       });
       
