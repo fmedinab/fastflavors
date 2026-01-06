@@ -81,6 +81,35 @@ class API {
   }
 
   /**
+   * Verificar disponibilidad de todos los turnos
+   */
+  async checkTodosLosTurnos() {
+    const turnos = Object.keys(CONFIG.TURNOS);
+    const resultados = {};
+    
+    for (const turno of turnos) {
+      try {
+        const response = await this.checkDisponibilidad(turno);
+        const data = response.data || response;
+        resultados[turno] = {
+          disponible: data.puedeReservar || false,
+          mensaje: data.mensaje || '',
+          horaLimite: data.horaLimite || ''
+        };
+      } catch (error) {
+        console.error(`Error verificando turno ${turno}:`, error);
+        resultados[turno] = {
+          disponible: false,
+          mensaje: 'Error al verificar',
+          horaLimite: ''
+        };
+      }
+    }
+    
+    return resultados;
+  }
+
+  /**
    * Obtener menú semanal completo (para admin)
    */
   async getMenuSemanal() {
