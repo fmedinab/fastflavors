@@ -331,14 +331,7 @@ class ComedorApp {
       </div>
     `;
 
-    const btnSelect = card.querySelector('.btn-select-menu');
-    // Usar addEventListener con once:false pero guardando referencia
-    btnSelect.onclick = (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      this.seleccionarMenu(plato);
-    };
-
+    // NO agregar listener aquí - se maneja por event delegation en setupEventListeners
     return card;
   }
 
@@ -708,6 +701,26 @@ class ComedorApp {
     const btnTheme = document.getElementById('btnTheme');
     if (btnTheme) {
       btnTheme.addEventListener('click', () => this.toggleTheme());
+    }
+
+    // Event delegation para botones de selección de menú
+    const menuContainer = document.getElementById('menuContainer');
+    if (menuContainer) {
+      menuContainer.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-select-menu');
+        if (btn && !btn.disabled) {
+          e.preventDefault();
+          e.stopPropagation();
+          
+          // Buscar el plato correspondiente por ID
+          const platoId = btn.dataset.id;
+          const plato = this.menu.find(p => p.id === platoId);
+          
+          if (plato) {
+            this.seleccionarMenu(plato);
+          }
+        }
+      });
     }
   }
 }
