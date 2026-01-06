@@ -10,6 +10,7 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
+    this.procesandoClick = false; // Flag para prevenir clicks múltiples
     this.initTheme();
     this.init();
   }
@@ -331,7 +332,12 @@ class ComedorApp {
     `;
 
     const btnSelect = card.querySelector('.btn-select-menu');
-    btnSelect.addEventListener('click', () => this.seleccionarMenu(plato));
+    // Usar addEventListener con once:false pero guardando referencia
+    btnSelect.onclick = (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.seleccionarMenu(plato);
+    };
 
     return card;
   }
@@ -400,12 +406,21 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
+    // Prevenir clicks múltiples rápidos
+    if (this.procesandoClick) {
+      console.log('🚫 Click bloqueado - procesando anterior');
+      return;
+    }
+    
+    this.procesandoClick = true;
+    
     console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
     console.log('🔹 Platos actuales seleccionados:', this.menusSeleccionados.map(p => p.nombre));
     
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
       Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
+      this.procesandoClick = false;
       return;
     }
 
@@ -423,6 +438,7 @@ class ComedorApp {
       // No está seleccionado, agregar si no se alcanzó el límite
       if (this.menusSeleccionados.length >= this.maxSelecciones) {
         Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
+        this.procesandoClick = false;
         return;
       }
       this.menusSeleccionados.push(plato);
@@ -433,6 +449,11 @@ class ComedorApp {
     // En lugar de re-renderizar todo, solo actualiza los estados visuales
     this.actualizarEstadosVisuales();
     this.actualizarResumen();
+    
+    // Liberar el flag después de un pequeño delay
+    setTimeout(() => {
+      this.procesandoClick = false;
+    }, 200);
   }
 
   /**
