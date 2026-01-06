@@ -90,17 +90,24 @@ class ComedorApp {
           btn.disabled = true;
           btn.title = info.mensaje;
           
-          // Cambiar icono a cerrado
+          // Diferentes iconos según la razón
           if (turnoIcon) {
-            turnoIcon.textContent = '🔒';
+            // Si es porque aún no inicia (turno tarde antes de que cierre mañana)
+            if (info.razon === 'turno_no_iniciado') {
+              turnoIcon.textContent = '⏳';
+              if (turnoSmall) {
+                turnoSmall.textContent = `Inicia ${info.horaInicio || ''}`;
+              }
+            } else {
+              // Ya pasó la hora límite
+              turnoIcon.textContent = '🔒';
+              if (turnoSmall) {
+                turnoSmall.textContent = 'Cerrado';
+              }
+            }
           }
           
-          // Actualizar texto de hora límite
-          if (turnoSmall) {
-            turnoSmall.textContent = 'Cerrado';
-          }
-          
-          console.log(`❌ Turno ${turno} CERRADO`);
+          console.log(`❌ Turno ${turno} CERRADO/INACTIVO - Razón: ${info.razon || 'hora_limite'}`);
         } else {
           btn.classList.remove('cerrado');
           btn.disabled = false;
