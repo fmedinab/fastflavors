@@ -10,7 +10,7 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
-    this.procesandoClick = false; // Flag para prevenir clicks múltiples
+    this.ultimoClick = {}; // Timestamp del último click por plato
     this.initTheme();
     this.init();
   }
@@ -399,13 +399,16 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
-    // Prevenir clicks múltiples rápidos con debounce más agresivo
-    if (this.procesandoClick) {
-      console.log('🚫 Click bloqueado - procesando anterior');
+    const ahora = Date.now();
+    const ultimoClickPlato = this.ultimoClick[plato.id] || 0;
+    
+    // Prevenir clicks duplicados del mismo plato en menos de 1 segundo
+    if (ahora - ultimoClickPlato < 1000) {
+      console.log('🚫 Click duplicado bloqueado - menos de 1 segundo desde el último');
       return;
     }
     
-    this.procesandoClick = true;
+    this.ultimoClick[plato.id] = ahora;
     
     console.log('🔹 Seleccionando plato:', plato.nombre, 'ID:', plato.id);
     console.log('🔹 Platos actuales seleccionados ANTES:', this.menusSeleccionados.map(p => p.nombre));
@@ -413,7 +416,6 @@ class ComedorApp {
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
       Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
-      this.procesandoClick = false;
       return;
     }
 
@@ -431,7 +433,6 @@ class ComedorApp {
       // No está seleccionado, agregar si no se alcanzó el límite
       if (this.menusSeleccionados.length >= this.maxSelecciones) {
         Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
-        this.procesandoClick = false;
         return;
       }
       this.menusSeleccionados.push(plato);
@@ -444,12 +445,6 @@ class ComedorApp {
     this.actualizarResumen();
     
     console.log('🔹 Platos finales DESPUÉS:', this.menusSeleccionados.map(p => p.nombre));
-    
-    // Liberar el flag después de 500ms (más tiempo para prevenir clicks rápidos)
-    setTimeout(() => {
-      this.procesandoClick = false;
-      console.log('✅ Flag liberado - puede hacer click de nuevo');
-    }, 500);
   }
 
   /**
@@ -710,7 +705,7 @@ class ComedorApp {
         const btn = e.target.closest('.btn-select-menu');
         if (btn && !btn.disabled) {
           e.preventDefault();
-          e.stopPropagation();
+          e.stopImmediatePropagation(); // Detener TODOS los eventos
           
           // Buscar el plato correspondiente por ID
           const platoId = btn.dataset.id;
@@ -720,7 +715,7 @@ class ComedorApp {
             this.seleccionarMenu(plato);
           }
         }
-      });
+      }, true); // Usar capture phase
     }
   }
 }
