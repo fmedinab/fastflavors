@@ -693,27 +693,29 @@ class ComedorApp {
     // Event delegation para botones de selección de menú
     const menuContainer = document.getElementById('menuContainer');
     if (menuContainer) {
-      // Usar una vez para evitar duplicados
-      let procesandoClick = false;
+      // Usar debouncing robusto
+      let ultimoClickTimestamp = 0;
+      let ultimoPlatoIdClickeado = null;
       
       menuContainer.addEventListener('click', (e) => {
-        // Prevenir procesamiento simultáneo
-        if (procesandoClick) {
-          console.log('🚫 Ya se está procesando un click');
-          e.preventDefault();
-          e.stopPropagation();
-          return;
-        }
-        
         const btn = e.target.closest('.btn-select-menu');
         if (btn && !btn.disabled) {
           e.preventDefault();
           e.stopPropagation();
           
-          procesandoClick = true;
+          const ahora = Date.now();
+          const platoId = btn.dataset.id;
+          
+          // Prevenir clicks duplicados del MISMO botón en menos de 800ms
+          if (platoId === ultimoPlatoIdClickeado && (ahora - ultimoClickTimestamp) < 800) {
+            console.log('🚫 Click duplicado ignorado (mismo botón, <800ms)');
+            return;
+          }
+          
+          ultimoClickTimestamp = ahora;
+          ultimoPlatoIdClickeado = platoId;
           
           // Buscar el plato correspondiente por ID
-          const platoId = btn.dataset.id;
           const plato = this.menu.find(p => p.id === platoId);
           
           console.log('🔸 Click en botón ID:', platoId, 'Plato encontrado:', plato?.nombre);
@@ -721,13 +723,8 @@ class ComedorApp {
           if (plato) {
             this.seleccionarMenu(plato);
           }
-          
-          // Liberar después de 300ms
-          setTimeout(() => {
-            procesandoClick = false;
-          }, 300);
         }
-      }, false); // No usar capture phase
+      }, false);
     }
   }
 }
