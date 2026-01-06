@@ -657,6 +657,8 @@ class ComedorApp {
           <p><strong>Turno:</strong> ${reserva.turno}</p>
           <p><strong>Estudiante:</strong> ${reserva.estudiante}</p>
           <p><strong>Menú:</strong> ${reserva.plato}</p>
+          <p><strong>Cantidad:</strong> ${reserva.cantidad || 1} plato${reserva.cantidad !== 1 ? 's' : ''}</p>
+          <p><strong>Total:</strong> ${Utils.formatPrice(reserva.precioTotal || 0)}</p>
         </div>
         <p class="message">${data.mensaje}</p>
         <button class="btn btn-primary" onclick="app.cerrarModal()">Aceptar</button>
