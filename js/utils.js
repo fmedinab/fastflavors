@@ -58,28 +58,20 @@ const Utils = {
 
   /**
    * Obtener día de la semana actual
-   * MODO TEST: Simula que es Lunes
    */
   getDiaSemana() {
     const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    // const hoy = new Date();
-    // return dias[hoy.getDay()];
-    
-    // 🧪 MODO TEST: Simular Lunes
-    return 'Lunes';
+    const hoy = new Date();
+    return dias[hoy.getDay()];
   },
 
   /**
    * Verificar si es día hábil (Lunes a Viernes)
-   * MODO TEST: Simula que siempre es día hábil
    */
   esDiaHabil() {
-    // const hoy = new Date();
-    // const dia = hoy.getDay();
-    // return dia >= 1 && dia <= 5; // 1 = Lunes, 5 = Viernes
-    
-    // 🧪 MODO TEST: Simular día hábil
-    return true;
+    const hoy = new Date();
+    const dia = hoy.getDay();
+    return dia >= 1 && dia <= 5; // 1 = Lunes, 5 = Viernes
   },
 
   /**
