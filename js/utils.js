@@ -49,10 +49,10 @@ const Utils = {
   },
 
   /**
-   * Validar código de estudiante (5-10 caracteres alfanuméricos)
+   * Validar código de aula (2-10 caracteres alfanuméricos, puede incluir guiones)
    */
   validarCodigo(codigo) {
-    const regex = /^[A-Za-z0-9]{5,10}$/;
+    const regex = /^[A-Za-z0-9-]{2,10}$/;
     return regex.test(codigo);
   },
 
