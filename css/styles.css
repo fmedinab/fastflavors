@@ -137,6 +137,41 @@ button {
   font-size: var(--font-size-sm);
 }
 
+.btn-stats {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-stats:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(245, 87, 108, 0.5);
+  background: linear-gradient(135deg, #f5576c 0%, #f093fb 100%);
+}
+
+.btn-stats:active {
+  transform: translateY(0);
+}
+
+[data-theme="dark"] .btn-stats {
+  background: linear-gradient(135deg, #ed8936 0%, #e53e3e 100%);
+  box-shadow: 0 4px 15px rgba(237, 137, 54, 0.3);
+}
+
+[data-theme="dark"] .btn-stats:hover {
+  background: linear-gradient(135deg, #e53e3e 0%, #ed8936 100%);
+  box-shadow: 0 6px 20px rgba(237, 137, 54, 0.5);
+}
+
 .btn-theme {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
