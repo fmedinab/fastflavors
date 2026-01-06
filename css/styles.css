@@ -373,6 +373,18 @@ button {
   box-shadow: 0 0 0 3px rgba(214, 35, 0, 0.2);
 }
 
+.menu-card.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.menu-card.disabled:hover {
+  transform: none;
+  box-shadow: var(--box-shadow);
+  border-color: transparent;
+}
+
 .menu-image {
   width: 100%;
   height: 220px;
@@ -442,6 +454,18 @@ button {
 
 .btn-select-menu:active {
   transform: scale(0.95);
+}
+
+.btn-select-menu:disabled {
+  background: var(--text-light);
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none;
+}
+
+.btn-select-menu:disabled:hover {
+  background: var(--text-light);
+  transform: none;
 }
 
 /* ========== SIDEBAR CARRITO ========== */
