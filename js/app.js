@@ -10,6 +10,7 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
+    this.procesandoSeleccion = false; // Flag para evitar llamadas simultáneas
     this.initTheme();
     this.init();
   }
@@ -400,6 +401,14 @@ class ComedorApp {
    * Seleccionar menú del día (permite múltiples selecciones)
    */
   seleccionarMenu(plato) {
+    // Prevenir ejecución simultánea
+    if (this.procesandoSeleccion) {
+      console.log('🚫 Ya se está procesando una selección, ignorando...');
+      return;
+    }
+    
+    this.procesandoSeleccion = true;
+    
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🎯 INICIO seleccionarMenu()');
     console.log('   Plato clickeado:', plato.nombre, '| ID:', plato.id);
@@ -408,6 +417,7 @@ class ComedorApp {
     // Verificar disponibilidad antes de permitir selección
     if (!this.puedeReservar) {
       Utils.showToast('⏰ Reservas cerradas para este turno. Hora límite superada.', 'error');
+      this.procesandoSeleccion = false;
       return;
     }
 
@@ -427,6 +437,7 @@ class ComedorApp {
       if (this.menusSeleccionados.length >= this.maxSelecciones) {
         console.log('   ⚠️ LÍMITE ALCANZADO:', this.menusSeleccionados.length, '/', this.maxSelecciones);
         Utils.showToast(`⚠️ Máximo ${this.maxSelecciones} platos por persona`, 'error');
+        this.procesandoSeleccion = false;
         return;
       }
       this.menusSeleccionados.push(plato);
@@ -441,6 +452,11 @@ class ComedorApp {
     
     console.log('🏁 FIN seleccionarMenu()');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    // Liberar el flag después de 300ms
+    setTimeout(() => {
+      this.procesandoSeleccion = false;
+    }, 300);
   }
 
   /**
