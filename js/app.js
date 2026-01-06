@@ -218,6 +218,12 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
+      // DEBUG: Verificar que los precios están cargados
+      console.log('🍽️ Menú cargado con precios:');
+      this.menu.forEach(plato => {
+        console.log(`   - ${plato.nombre}: S/ ${plato.precio} (tipo: ${typeof plato.precio})`);
+      });
+      
       // Verificar si el día no está disponible
       if (data.diaDisponible === false) {
         this.mostrarDiaNoDisponible(data.mensaje);
@@ -591,6 +597,11 @@ class ComedorApp {
     const cantidadTotal = this.menusSeleccionados.reduce((sum, p) => sum + p.cantidad, 0);
     const precioTotal = this.menusSeleccionados.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
 
+    console.log('📊 DEBUG - Calculando totales:');
+    console.log('   - Platos seleccionados:', this.menusSeleccionados);
+    console.log('   - Cantidad total:', cantidadTotal);
+    console.log('   - Precio total:', precioTotal);
+
     const formData = {
       turno: this.turnoActual,
       nombreEstudiante: document.getElementById('nombreEstudiante').value.trim(),
@@ -601,6 +612,8 @@ class ComedorApp {
       cantidad: cantidadTotal,
       precioTotal: precioTotal
     };
+
+    console.log('📤 Enviando al backend:', formData);
 
     if (!formData.nombreEstudiante || !formData.codigoEstudiante) {
       Utils.showToast(CONFIG.MENSAJES.CAMPOS_REQUERIDOS, 'error');
@@ -660,6 +673,7 @@ class ComedorApp {
           <p><strong>Cantidad:</strong> ${reserva.cantidad || 1} plato${reserva.cantidad !== 1 ? 's' : ''}</p>
           <p><strong>Total:</strong> ${Utils.formatPrice(reserva.precioTotal || 0)}</p>
         </div>
+        <p class="message">${data.mensaje}</p>
         <button class="btn btn-primary" onclick="app.cerrarModal()">Aceptar</button>
       `;
       modal.style.display = 'flex';
@@ -757,4 +771,3 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
   app = new ComedorApp();
 });
-
