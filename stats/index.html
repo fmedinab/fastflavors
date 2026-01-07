@@ -1,0 +1,761 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas de Reservas - Fast Flavors</title>
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* Variables de colores */
+    :root {
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      --gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --gradient-danger: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 15px rgba(0,0,0,0.15);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.2);
+    }
+
+    [data-theme="dark"] {
+      --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+      --gradient-success: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+      --gradient-danger: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 15px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Animaciones */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    body {
+      transition: background-color 0.3s ease;
+    }
+
+    [data-theme="dark"] body {
+      background: #1a1a1a;
+    }
+
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .stats-header {
+      text-align: center;
+      margin-bottom: 40px;
+      padding: 30px;
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: 20px;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.4s ease;
+    }
+
+    .stats-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 3s infinite;
+    }
+
+    .stats-header h1 {
+      margin: 0 0 10px 0;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      background: #2d3748;
+      color: #ffd700;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(180deg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease backwards;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    .stat-card:nth-child(5) { animation-delay: 0.5s; }
+    .stat-card:nth-child(6) { animation-delay: 0.6s; }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--gradient-primary);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: var(--shadow-lg);
+    }
+
+    [data-theme="dark"] .stat-card {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+
+    .stat-card h3 {
+      color: var(--primary-color);
+      margin: 0 0 15px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    [data-theme="dark"] .stat-card h3 {
+      color: #ed8936;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin: 15px 0;
+      transition: all 0.5s ease;
+      animation: pulse 2s infinite;
+    }
+
+    [data-theme="dark"] .stat-number {
+      background: var(--gradient-warning);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .stat-label {
+      color: #718096;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    [data-theme="dark"] .stat-label {
+      color: #a0aec0;
+    }
+
+    .table-container {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 30px;
+      animation: slideInLeft 0.6s ease;
+      transition: all 0.3s ease;
+    }
+
+    .table-container:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    [data-theme="dark"] .table-container {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+
+    .table-container h2 {
+      margin: 0 0 20px 0;
+      color: var(--primary-color);
+      font-size: 1.5rem;
+      border-bottom: 3px solid var(--primary-color);
+      padding-bottom: 10px;
+    }
+
+    [data-theme="dark"] .table-container h2 {
+      color: #ed8936;
+      border-bottom-color: #ed8936;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .stats-table th,
+    .stats-table td {
+      padding: 15px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] .stats-table th,
+    [data-theme="dark"] .stats-table td {
+      border-bottom-color: #4a5568;
+    }
+
+    .stats-table th {
+      background: var(--gradient-primary);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    .stats-table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .stats-table tbody tr:hover {
+      background: #f7fafc;
+      transform: scale(1.01);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="dark"] .stats-table tbody tr:hover {
+      background: #1a202c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+
+    .badge:hover {
+      transform: scale(1.1);
+    }
+
+    .badge-manana {
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+      color: #d63031;
+      box-shadow: 0 2px 8px rgba(253, 203, 110, 0.4);
+    }
+
+    .badge-tarde {
+      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(9, 132, 227, 0.4);
+    }
+
+    [data-theme="dark"] .badge-manana {
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+    }
+
+    [data-theme="dark"] .badge-tarde {
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+    }
+
+    .btn-refresh {
+      background: var(--gradient-success);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px 5px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-refresh::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-refresh:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-refresh:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .btn-refresh:active {
+      transform: translateY(0);
+    }
+
+    .btn-back {
+      background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px 5px;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background: linear-gradient(135deg, #2d3436 0%, #000 100%);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-light);
+      animation: pulse 1.5s infinite;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .empty-state .icon-empty {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .stats-header h1 {
+        font-size: 1.8rem;
+      }
+      
+      .stat-number {
+        font-size: 2.5rem;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 10px 8px;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Toggle de tema -->
+  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+    <span id="themeIcon">🌙</span>
+  </button>
+
+  <div class="stats-container">
+    <div class="stats-header">
+      <h1>📊 Estadísticas de Reservas</h1>
+      <p>Panel de control para administradores</p>
+      <div>
+        <button class="btn-refresh" onclick="cargarEstadisticas()">
+          <span id="refreshIcon">🔄</span> Actualizar
+        </button>
+        <a href="../index.html" class="btn-back">← Volver al menú</a>
+      </div>
+    </div>
+
+    <!-- Estadísticas de HOY -->
+    <div id="estadisticasHoy" class="stats-grid">
+      <div class="stat-card">
+        <h3>🍽️ Reservas Hoy</h3>
+        <div class="stat-number" id="totalHoy">-</div>
+        <div class="stat-label">Estudiantes</div>
+      </div>
+      <div class="stat-card">
+        <h3>📦 Platos Totales</h3>
+        <div class="stat-number" id="totalPlatos">-</div>
+        <div class="stat-label">Platos reservados</div>
+      </div>
+      <div class="stat-card">
+        <h3>💰 Ingresos Hoy</h3>
+        <div class="stat-number" id="totalIngresos">-</div>
+        <div class="stat-label">Soles</div>
+      </div>
+      <div class="stat-card">
+        <h3>🌅 Turno Mañana</h3>
+        <div class="stat-number" id="totalManana">-</div>
+        <div class="stat-label">Reservas</div>
+      </div>
+      <div class="stat-card">
+        <h3>🌆 Turno Tarde</h3>
+        <div class="stat-number" id="totalTarde">-</div>
+        <div class="stat-label">Reservas</div>
+      </div>
+      <div class="stat-card">
+        <h3>📈 Total General</h3>
+        <div class="stat-number" id="totalGeneral">-</div>
+        <div class="stat-label">Todas las reservas</div>
+      </div>
+    </div>
+
+    <!-- Tabla de últimos 7 días -->
+    <div class="table-container">
+      <h2>📅 Últimos 7 Días</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Día</th>
+            <th>🌅 Mañana</th>
+            <th>🌆 Tarde</th>
+            <th>📊 Total</th>
+          </tr>
+        </thead>
+        <tbody id="tabla7Dias">
+          <tr>
+            <td colspan="5" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detalle de reservas de HOY -->
+    <div class="table-container">
+      <h2>📋 Detalle de Reservas de Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Turno</th>
+            <th>Estudiante</th>
+            <th>Código</th>
+            <th>Plato</th>
+            <th>Cant.</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDetalleHoy">
+          <tr>
+            <td colspan="7" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Platos más solicitados HOY -->
+    <div class="table-container">
+      <h2>🏆 Platos Más Solicitados Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Plato</th>
+            <th>Cantidad</th>
+            <th>Porcentaje</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPlatosPopulares">
+          <tr>
+            <td colspan="3" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script>
+    // Inicializar tema
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      setTheme(theme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+    }
+
+    // Cargar estadísticas al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      cargarEstadisticas();
+    });
+
+    async function cargarEstadisticas() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      if (refreshIcon) {
+        refreshIcon.style.animation = 'rotate 1s linear infinite';
+      }
+
+      try {
+        Utils.showLoader();
+        console.log('📊 Cargando estadísticas...');
+
+        // Obtener resumen general
+        const resumen = await api.getEstadisticasResumen();
+        console.log('📦 Resumen:', resumen);
+        const dataResumen = resumen.data || resumen;
+
+        // Obtener estadísticas de hoy
+        const hoy = new Date();
+        const fechaHoy = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`;
+        console.log('📅 Buscando datos para:', fechaHoy);
+        
+        const estadisticasHoy = await api.getEstadisticas();
+        console.log('📊 Estadísticas de hoy:', estadisticasHoy);
+        const dataHoy = estadisticasHoy.data || estadisticasHoy;
+        console.log('🔍 Datos detallados:', {
+          totalReservas: dataHoy.totalReservas,
+          totalPlatos: dataHoy.totalPlatos,
+          totalIngresos: dataHoy.totalIngresos,
+          reservasPorTurno: dataHoy.reservasPorTurno,
+          cantidadReservasDetalle: dataHoy.reservasDetalle?.length
+        });
+
+        // Actualizar cards de resumen con animación
+        animarNumero('totalHoy', dataHoy.totalReservas || 0);
+        animarNumero('totalPlatos', dataHoy.totalPlatos || 0);
+        document.getElementById('totalIngresos').textContent = 'S/ ' + (dataHoy.totalIngresos || 0).toFixed(2);
+        animarNumero('totalManana', dataHoy.reservasPorTurno?.MANANA || 0);
+        animarNumero('totalTarde', dataHoy.reservasPorTurno?.TARDE || 0);
+        animarNumero('totalGeneral', dataResumen.totalGeneral || 0);
+        
+        console.log('✅ Estadísticas actualizadas');
+
+        // Renderizar tabla de últimos 7 días
+        renderTabla7Dias(dataResumen.ultimos7Dias);
+
+        // Renderizar detalle de hoy
+        renderDetalleHoy(dataHoy.reservasDetalle);
+
+        // Renderizar platos populares
+        renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
+
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error);
+        Utils.showToast('Error al cargar estadísticas', 'error');
+      } finally {
+        Utils.hideLoader();
+        const refreshIcon = document.getElementById('refreshIcon');
+        if (refreshIcon) {
+          refreshIcon.style.animation = '';
+        }
+      }
+    }
+
+    function renderTabla7Dias(datos) {
+      const tbody = document.getElementById('tabla7Dias');
+      
+      if (!datos || datos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay datos disponibles</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = datos.map(dia => `
+        <tr>
+          <td><strong>${dia.fecha}</strong></td>
+          <td>${dia.dia}</td>
+          <td><span class="badge badge-manana">${dia.manana}</span></td>
+          <td><span class="badge badge-tarde">${dia.tarde}</span></td>
+          <td><strong>${dia.total}</strong></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDetalleHoy(reservas) {
+      const tbody = document.getElementById('tablaDetalleHoy');
+      
+      if (!reservas || reservas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon-empty">📭</div><p>No hay reservas para hoy</p></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = reservas.map(r => `
+        <tr>
+          <td>${r.hora}</td>
+          <td><span class="badge badge-${r.turno.toLowerCase()}">${r.turno}</span></td>
+          <td>${r.estudiante}</td>
+          <td>${r.codigo}</td>
+          <td>${r.plato}</td>
+          <td><strong>${r.cantidad || 1}</strong></td>
+          <td>S/ ${(r.precioTotal || 0).toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPlatosPopulares(platos, total) {
+      const tbody = document.getElementById('tablaPlatosPopulares');
+      
+      if (!platos || Object.keys(platos).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay datos disponibles</td></tr>';
+        return;
+      }
+
+      // Convertir objeto a array y ordenar por cantidad
+      const platosArray = Object.entries(platos)
+        .map(([nombre, cantidad]) => ({
+          nombre,
+          cantidad,
+          porcentaje: total > 0 ? ((cantidad / total) * 100).toFixed(1) : 0
+        }))
+        .sort((a, b) => b.cantidad - a.cantidad);
+
+      tbody.innerHTML = platosArray.map((plato, index) => `
+        <tr>
+          <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📌'} ${plato.nombre}</td>
+          <td><strong>${plato.cantidad}</strong></td>
+          <td>${plato.porcentaje}%</td>
+        </tr>
+      `).join('');
+    }
+
+    // Función para animar números
+    function animarNumero(elementId, valorFinal) {
+      const elemento = document.getElementById(elementId);
+      if (!elemento) return;
+      
+      const duracion = 1000; // 1 segundo
+      const incremento = valorFinal / (duracion / 16); // 60 FPS
+      let valorActual = 0;
+      
+      const intervalo = setInterval(() => {
+        valorActual += incremento;
+        if (valorActual >= valorFinal) {
+          elemento.textContent = Math.round(valorFinal);
+          clearInterval(intervalo);
+        } else {
+          elemento.textContent = Math.round(valorActual);
+        }
+      }, 16);
+    }
+  </script>
+</body>
+</html>
