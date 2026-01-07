@@ -6,22 +6,26 @@
   <title>Estadísticas de Reservas - Fast Flavors</title>
   <link rel="stylesheet" href="../css/styles.css">
   <style>
-    /* Variables de colores */
+    /* Variables de colores - Alineados con página principal */
     :root {
-      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
-      --gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
-      --gradient-danger: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+      --primary-color: #d62300;
+      --primary-dark: #a01c00;
+      --secondary-color: #f5ebdc;
+      --accent-color: #ff9500;
+      --success-color: #27ae60;
+      --warning-color: #f39c12;
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
       --shadow-md: 0 4px 15px rgba(0,0,0,0.15);
       --shadow-lg: 0 8px 30px rgba(0,0,0,0.2);
     }
 
     [data-theme="dark"] {
-      --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
-      --gradient-success: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
-      --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
-      --gradient-danger: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+      --primary-color: #ff6b35;
+      --primary-dark: #d62300;
+      --secondary-color: #3a3a3a;
+      --accent-color: #ffa500;
+      --success-color: #48bb78;
+      --warning-color: #ed8936;
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
       --shadow-md: 0 4px 15px rgba(0,0,0,0.4);
       --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
@@ -59,15 +63,6 @@
       }
     }
 
-    @keyframes shimmer {
-      0% {
-        background-position: -1000px 0;
-      }
-      100% {
-        background-position: 1000px 0;
-      }
-    }
-
     @keyframes rotate {
       from {
         transform: rotate(0deg);
@@ -96,24 +91,13 @@
       text-align: center;
       margin-bottom: 40px;
       padding: 30px;
-      background: var(--gradient-primary);
+      background: var(--primary-color);
       color: white;
       border-radius: 20px;
       box-shadow: var(--shadow-lg);
       position: relative;
       overflow: hidden;
       animation: fadeInUp 0.4s ease;
-    }
-
-    .stats-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      animation: shimmer 3s infinite;
     }
 
     .stats-header h1 {
@@ -184,7 +168,7 @@
       left: 0;
       width: 100%;
       height: 4px;
-      background: var(--gradient-primary);
+      background: var(--primary-color);
       transform: scaleX(0);
       transition: transform 0.3s ease;
     }
@@ -220,20 +204,14 @@
     .stat-number {
       font-size: 3.5rem;
       font-weight: 800;
-      background: var(--gradient-primary);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--primary-color);
       margin: 15px 0;
       transition: all 0.5s ease;
       animation: pulse 2s infinite;
     }
 
     [data-theme="dark"] .stat-number {
-      background: var(--gradient-warning);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+      color: var(--accent-color);
     }
 
     .stat-label {
@@ -300,7 +278,7 @@
     }
 
     .stats-table th {
-      background: var(--gradient-primary);
+      background: var(--primary-color);
       color: white;
       font-weight: 600;
       text-transform: uppercase;
@@ -338,27 +316,29 @@
     }
 
     .badge-manana {
-      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
-      color: #d63031;
-      box-shadow: 0 2px 8px rgba(253, 203, 110, 0.4);
+      background: #ffd93d;
+      color: #6c4a00;
+      box-shadow: 0 2px 8px rgba(255, 217, 61, 0.4);
     }
 
     .badge-tarde {
-      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
+      background: #4dabf7;
       color: white;
-      box-shadow: 0 2px 8px rgba(9, 132, 227, 0.4);
+      box-shadow: 0 2px 8px rgba(77, 171, 247, 0.4);
     }
 
     [data-theme="dark"] .badge-manana {
-      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+      background: #f39c12;
+      color: white;
     }
 
     [data-theme="dark"] .badge-tarde {
-      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+      background: #3498db;
+      color: white;
     }
 
     .btn-refresh {
-      background: var(--gradient-success);
+      background: var(--success-color);
       color: white;
       border: none;
       padding: 12px 24px;
@@ -394,6 +374,7 @@
     .btn-refresh:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
+      background: #229954;
     }
 
     .btn-refresh:active {
@@ -401,7 +382,7 @@
     }
 
     .btn-back {
-      background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
+      background: #636e72;
       color: white;
       border: none;
       padding: 12px 24px;
@@ -417,7 +398,7 @@
     }
 
     .btn-back:hover {
-      background: linear-gradient(135deg, #2d3436 0%, #000 100%);
+      background: #2d3436;
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
@@ -474,7 +455,7 @@
         <button class="btn-refresh" onclick="cargarEstadisticas()">
           <span id="refreshIcon">🔄</span> Actualizar
         </button>
-        <a href="../index.html" class="btn-back">← Volver al menú</a>
+        <a href="../" class="btn-back">← Volver al menú</a>
       </div>
     </div>
 
