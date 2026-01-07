@@ -160,6 +160,16 @@
     </div>
   </div>
 
+  <!-- Reproductor de Radio Flotante -->
+  <div id="radioPlayer" class="radio-player">
+    <button id="radioToggle" class="radio-toggle" title="Radio 538 - Electronic Music">
+      🎵
+    </button>
+    <audio id="radioStream" preload="none">
+      <source src="https://22593.live.streamtheworld.com/RADIO538.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+
   <!-- Scripts -->
   <script src="js/config.js"></script>
   <script src="js/utils.js"></script>
@@ -169,6 +179,28 @@
   <script>
     // Mostrar día actual
     document.getElementById('diaActual').textContent = `📅 ${Utils.getDiaSemana()}, ${Utils.getFechaHoy()}`;
+
+    // Radio Player
+    const radioToggle = document.getElementById('radioToggle');
+    const radioStream = document.getElementById('radioStream');
+    let isPlaying = false;
+
+    radioToggle.addEventListener('click', () => {
+      if (isPlaying) {
+        radioStream.pause();
+        radioToggle.textContent = '🎵';
+        radioToggle.style.animation = 'none';
+        isPlaying = false;
+      } else {
+        radioStream.play().catch(err => {
+          console.error('Error al reproducir radio:', err);
+          Utils.showToast('Error al cargar la radio', 'error');
+        });
+        radioToggle.textContent = '🔊';
+        radioToggle.style.animation = 'pulse 1.5s infinite';
+        isPlaying = true;
+      }
+    });
   </script>
 
 </body>
