@@ -172,6 +172,54 @@ button {
   box-shadow: 0 6px 20px rgba(237, 137, 54, 0.5);
 }
 
+/* Reproductor de Radio Flotante */
+.radio-player {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+.radio-toggle {
+  width: 60px;
+  height: 60px;
+  background: var(--primary-color);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(214, 35, 0, 0.3);
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radio-toggle:hover {
+  transform: translateY(-5px) scale(1.05);
+  box-shadow: 0 6px 20px rgba(214, 35, 0, 0.5);
+}
+
+.radio-toggle:active {
+  transform: translateY(-2px) scale(0.95);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@media (max-width: 768px) {
+  .radio-player {
+    bottom: 90px;
+  }
+}
+
 .btn-theme {
   background: rgba(255, 255, 255, 0.2);
   border: 2px solid rgba(255, 255, 255, 0.3);
