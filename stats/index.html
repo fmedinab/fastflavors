@@ -4,28 +4,24 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estadísticas de Reservas - Fast Flavors</title>
-  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="../css/styles.css">
   <style>
-    /* Variables de colores - Alineados con página principal */
+    /* Variables de colores */
     :root {
-      --primary-color: #d62300;
-      --primary-dark: #a01c00;
-      --secondary-color: #f5ebdc;
-      --accent-color: #ff9500;
-      --success-color: #27ae60;
-      --warning-color: #f39c12;
+      --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      --gradient-success: linear-gradient(135deg, #84fab0 0%, #8fd3f4 100%);
+      --gradient-warning: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      --gradient-danger: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
       --shadow-md: 0 4px 15px rgba(0,0,0,0.15);
       --shadow-lg: 0 8px 30px rgba(0,0,0,0.2);
     }
 
     [data-theme="dark"] {
-      --primary-color: #ff6b35;
-      --primary-dark: #d62300;
-      --secondary-color: #3a3a3a;
-      --accent-color: #ffa500;
-      --success-color: #48bb78;
-      --warning-color: #ed8936;
+      --gradient-primary: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+      --gradient-success: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      --gradient-warning: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+      --gradient-danger: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
       --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
       --shadow-md: 0 4px 15px rgba(0,0,0,0.4);
       --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
@@ -63,6 +59,15 @@
       }
     }
 
+    @keyframes shimmer {
+      0% {
+        background-position: -1000px 0;
+      }
+      100% {
+        background-position: 1000px 0;
+      }
+    }
+
     @keyframes rotate {
       from {
         transform: rotate(0deg);
@@ -91,13 +96,24 @@
       text-align: center;
       margin-bottom: 40px;
       padding: 30px;
-      background: var(--primary-color);
+      background: var(--gradient-primary);
       color: white;
       border-radius: 20px;
       box-shadow: var(--shadow-lg);
       position: relative;
       overflow: hidden;
       animation: fadeInUp 0.4s ease;
+    }
+
+    .stats-header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      animation: shimmer 3s infinite;
     }
 
     .stats-header h1 {
@@ -168,7 +184,7 @@
       left: 0;
       width: 100%;
       height: 4px;
-      background: var(--primary-color);
+      background: var(--gradient-primary);
       transform: scaleX(0);
       transition: transform 0.3s ease;
     }
@@ -204,14 +220,20 @@
     .stat-number {
       font-size: 3.5rem;
       font-weight: 800;
-      color: var(--primary-color);
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
       margin: 15px 0;
       transition: all 0.5s ease;
       animation: pulse 2s infinite;
     }
 
     [data-theme="dark"] .stat-number {
-      color: var(--accent-color);
+      background: var(--gradient-warning);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
     }
 
     .stat-label {
@@ -278,7 +300,7 @@
     }
 
     .stats-table th {
-      background: var(--primary-color);
+      background: var(--gradient-primary);
       color: white;
       font-weight: 600;
       text-transform: uppercase;
@@ -316,29 +338,27 @@
     }
 
     .badge-manana {
-      background: #ffd93d;
-      color: #6c4a00;
-      box-shadow: 0 2px 8px rgba(255, 217, 61, 0.4);
+      background: linear-gradient(135deg, #ffeaa7 0%, #fdcb6e 100%);
+      color: #d63031;
+      box-shadow: 0 2px 8px rgba(253, 203, 110, 0.4);
     }
 
     .badge-tarde {
-      background: #4dabf7;
+      background: linear-gradient(135deg, #74b9ff 0%, #0984e3 100%);
       color: white;
-      box-shadow: 0 2px 8px rgba(77, 171, 247, 0.4);
+      box-shadow: 0 2px 8px rgba(9, 132, 227, 0.4);
     }
 
     [data-theme="dark"] .badge-manana {
-      background: #f39c12;
-      color: white;
+      background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
     }
 
     [data-theme="dark"] .badge-tarde {
-      background: #3498db;
-      color: white;
+      background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
     }
 
     .btn-refresh {
-      background: var(--success-color);
+      background: var(--gradient-success);
       color: white;
       border: none;
       padding: 12px 24px;
@@ -374,7 +394,6 @@
     .btn-refresh:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
-      background: #229954;
     }
 
     .btn-refresh:active {
@@ -382,7 +401,7 @@
     }
 
     .btn-back {
-      background: #636e72;
+      background: linear-gradient(135deg, #636e72 0%, #2d3436 100%);
       color: white;
       border: none;
       padding: 12px 24px;
@@ -398,7 +417,7 @@
     }
 
     .btn-back:hover {
-      background: #2d3436;
+      background: linear-gradient(135deg, #2d3436 0%, #000 100%);
       transform: translateY(-2px);
       box-shadow: var(--shadow-md);
     }
@@ -455,7 +474,7 @@
         <button class="btn-refresh" onclick="cargarEstadisticas()">
           <span id="refreshIcon">🔄</span> Actualizar
         </button>
-        <a href="./" class="btn-back">← Volver al menú</a>
+        <a href="../index.html" class="btn-back">← Volver al menú</a>
       </div>
     </div>
 
@@ -557,9 +576,9 @@
     </div>
   </div>
 
-  <script src="js/config.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/api.js"></script>
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
   <script>
     // Inicializar tema
     function initTheme() {
