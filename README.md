@@ -454,7 +454,52 @@ El script creará automáticamente estas hojas:
 - [ ] Modo oscuro
 - [ ] Multiidioma
 
-## 📞 Soporte
+## � Seguridad - Acceso a Estadísticas
+
+El panel de estadísticas está protegido con autenticación PIN de 4 dígitos.
+
+### Configuración del PIN
+
+El PIN por defecto es: **2026**
+
+Para cambiarlo, edita la línea 724 en `stats/index.html`:
+```javascript
+const PIN_CORRECTO = '2026'; // Cambiar aquí
+```
+
+### Características de Seguridad
+
+- ✅ **PIN de 4 dígitos** numéricos
+- ✅ **Sesión de 1 hora** (se mantiene autenticado durante 60 minutos)
+- ✅ **Solo números permitidos** (otras teclas son ignoradas)
+- ✅ **Navegación con teclado** (Enter para validar, Tab para avanzar, Backspace para retroceder)
+- ✅ **Feedback visual** (animación de error si PIN incorrecto)
+- ✅ **Sin botón visible** - Solo accesible mediante URL directa: `/stats`
+
+### Acceso al Panel
+
+1. Navega a: `https://tu-dominio.github.io/repo/stats`
+2. Ingresa el PIN de 4 dígitos
+3. Click en "Desbloquear" o presiona Enter
+4. La sesión se mantendrá activa por 1 hora
+
+### Cambiar Duración de Sesión
+
+Edita la línea 725 en `stats/index.html`:
+```javascript
+const SESSION_DURATION = 3600000; // 1 hora en ms (3600000)
+// Para 30 min: 1800000
+// Para 2 horas: 7200000
+```
+
+### Cerrar Sesión
+
+Para cerrar la sesión manualmente:
+1. Abre la consola del navegador (F12)
+2. Ejecuta: `localStorage.removeItem('stats_authenticated')`
+3. Recarga la página
+
+## �📞 Soporte
 
 Si encuentras algún problema:
 1. Revisa los logs en Apps Script (Ver > Registros)
