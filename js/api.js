@@ -169,6 +169,13 @@ class API {
   }
 
   /**
+   * Obtener anuncios dinámicos
+   */
+  async getAnuncios() {
+    return await this.get('getAnuncios');
+  }
+
+  /**
    * Crear nueva reserva
    */
   async crearReserva(datosReserva) {
