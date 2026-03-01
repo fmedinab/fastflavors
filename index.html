@@ -211,6 +211,28 @@
     </div>
   </div>
 
+  <!-- SLIDER DE ANUNCIOS/PROMOCIONES (FOOTER) -->
+  <footer class="anuncios-slider-container">
+    <div class="anuncios-slider" id="anunciosSlider">
+      <!-- Los anuncios se cargan dinámicamente aquí -->
+      <div class="anuncio-card loading">
+        <div class="anuncio-spinner"></div>
+        <p>Cargando anuncios...</p>
+      </div>
+    </div>
+    
+    <!-- Controles del slider -->
+    <button class="slider-nav slider-prev" id="sliderPrev" title="Anterior" style="display: none;">
+      ❮
+    </button>
+    <button class="slider-nav slider-next" id="sliderNext" title="Siguiente" style="display: none;">
+      ❯
+    </button>
+    
+    <!-- Indicadores (dots) -->
+    <div class="slider-dots" id="sliderDots"></div>
+  </footer>
+
   <!-- Reproductor de Radio Flotante -->
   <div id="radioPlayer" class="radio-player">
     <button id="radioToggle" class="radio-toggle" title="Radio 538 - Electronic Music">
