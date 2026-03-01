@@ -90,8 +90,14 @@
         <span class="total-amount" id="totalReserva">S/ 0.00</span>
       </div>
 
-      <!-- Formulario de reserva -->
-      <form id="formReserva">
+      <!-- TABS de Reserva vs Cancelar -->
+      <div class="reserva-tabs">
+        <button class="tab-btn active" data-tab="reservar">📝 Reservar</button>
+        <button class="tab-btn" data-tab="cancelar">❌ Cancelar</button>
+      </div>
+
+      <!-- TAB 1: Formulario de reserva -->
+      <form id="formReserva" class="tab-content active" data-tab="reservar">
         <div class="form-group">
           <label class="form-label required" for="codigoEstudiante">Código de Estudiante</label>
           <input 
@@ -140,6 +146,49 @@
 
         <button type="submit" class="btn btn-primary btn-block" id="btnConfirmarReserva" disabled>
           ✅ Confirmar Reserva
+        </button>
+      </form>
+
+      <!-- TAB 2: Formulario de cancelación -->
+      <form id="formCancelar" class="tab-content" data-tab="cancelar">
+        <div class="form-group">
+          <label class="form-label required" for="codigoCancelar">Código de Estudiante</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="codigoCancelar" 
+            placeholder="Ej: 3, 5, 8"
+            required
+            maxlength="10"
+            autocomplete="off"
+          >
+          <small class="form-hint" id="cancelarHint"></small>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="nombreCancelar">Nombre Completo</label>
+          <input 
+            type="text" 
+            class="form-input" 
+            id="nombreCancelar" 
+            placeholder="Se completará automáticamente"
+            readonly
+            style="background-color: #f0f0f0; cursor: not-allowed;"
+          >
+        </div>
+
+        <div id="reservacionEncontrada" style="display: none; margin-bottom: 15px; padding: 12px; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
+          <strong>📋 Tu Reserva:</strong>
+          <div id="detalleReserva"></div>
+        </div>
+
+        <div id="reservacionNoEncontrada" style="display: none; margin-bottom: 15px; padding: 12px; background: #fadbd8; border-left: 4px solid #e74c3c; border-radius: 4px;">
+          <strong>⚠️ Sin reserva hoy</strong>
+          <p>No tienes una reserva para cancelar hoy.</p>
+        </div>
+
+        <button type="submit" class="btn btn-danger btn-block" id="btnConfirmarCancelacion" disabled style="display: none;">
+          ⚠️ Cancelar Reserva
         </button>
       </form>
     </aside>
