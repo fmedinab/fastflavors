@@ -388,10 +388,9 @@ button {
 
 .anuncio-descripcion {
   font-size: 12px;
-  margin: 0;
+  margin: 0 0 4px 0;
   opacity: 0.95;
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
-  display: none;
 }
 
 .anuncio-precio {
