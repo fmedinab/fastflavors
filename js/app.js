@@ -569,9 +569,83 @@ class ComedorApp {
       totalElement.textContent = Utils.formatPrice(total);
     }
 
-    // Habilitar/deshabilitar botón confirmar
+    // Actualizar estado del botón según validaciones
+    this.actualizarBotonConfirmar();
+  }
+
+  /**
+   * Procesar reserva
+   */
+  /**
+   * Buscar estudiante por código y autocomplete datos
+   */
+  async buscarEstudiantePorCodigo() {
+    const codigoInput = document.getElementById('codigoEstudiante');
+    const nombreInput = document.getElementById('nombreEstudiante');
+    const emailInput = document.getElementById('emailEstudiante');
+    const codigoHint = document.getElementById('codigoHint');
+    const btnConfirmar = document.getElementById('btnConfirmarReserva');
+    
+    const codigo = codigoInput.value.trim();
+    
+    // Limpiar si está vacío
+    if (!codigo) {
+      nombreInput.value = '';
+      emailInput.value = '';
+      codigoHint.textContent = '';
+      codigoHint.style.color = '#666';
+      this.actualizarBotonConfirmar();
+      return;
+    }
+    
+    try {
+      console.log('🔍 Buscando estudiante con código:', codigo);
+      const response = await api.request('buscarEstudiante', { codigo: codigo });
+      
+      console.log('📥 Respuesta:', response);
+      
+      if (response.success) {
+        // Autocompletar datos
+        const estudiante = response.data;
+        nombreInput.value = estudiante.nombre;
+        emailInput.value = estudiante.email || '';
+        codigoHint.textContent = `✅ Estudiante encontrado: ${estudiante.nombre}`;
+        codigoHint.style.color = '#27ae60';
+        console.log('✅ Datos autocompleted:', estudiante);
+      } else {
+        // Código no válido
+        nombreInput.value = '';
+        emailInput.value = '';
+        codigoHint.textContent = `❌ ${response.message}`;
+        codigoHint.style.color = '#e74c3c';
+        console.error('❌ Estudiante no encontrado');
+      }
+      
+      this.actualizarBotonConfirmar();
+      
+    } catch (error) {
+      console.error('❌ Error al buscar estudiante:', error);
+      nombreInput.value = '';
+      emailInput.value = '';
+      codigoHint.textContent = '❌ Error al validar código';
+      codigoHint.style.color = '#e74c3c';
+      this.actualizarBotonConfirmar();
+    }
+  }
+
+  /**
+   * Actualizar estado del botón confirmar según validaciones
+   */
+  actualizarBotonConfirmar() {
+    const codigoInput = document.getElementById('codigoEstudiante');
+    const nombreInput = document.getElementById('nombreEstudiante');
+    const platoSelected = this.menusSeleccionados.length > 0;
+    const codigoValido = codigoInput.value.trim().length > 0;
+    const nombreValido = nombreInput.value.trim().length > 0;
+    const btnConfirmar = document.getElementById('btnConfirmarReserva');
+    
     if (btnConfirmar) {
-      btnConfirmar.disabled = false;
+      btnConfirmar.disabled = !(codigoValido && nombreValido && platoSelected);
     }
   }
 
@@ -604,7 +678,6 @@ class ComedorApp {
 
     const formData = {
       turno: this.turnoActual,
-      nombreEstudiante: document.getElementById('nombreEstudiante').value.trim(),
       codigoEstudiante: document.getElementById('codigoEstudiante').value.trim(),
       email: document.getElementById('emailEstudiante').value.trim(),
       notas: document.getElementById('notasReserva').value.trim(),
@@ -615,13 +688,8 @@ class ComedorApp {
 
     console.log('📤 Enviando al backend:', formData);
 
-    if (!formData.nombreEstudiante || !formData.codigoEstudiante) {
-      Utils.showToast(CONFIG.MENSAJES.CAMPOS_REQUERIDOS, 'error');
-      return;
-    }
-
-    if (!Utils.validarCodigo(formData.codigoEstudiante)) {
-      Utils.showToast('Aula no válida (2-10 caracteres)', 'error');
+    if (!formData.codigoEstudiante) {
+      Utils.showToast('Por favor ingresa tu código de estudiante', 'error');
       return;
     }
 
@@ -736,6 +804,13 @@ class ComedorApp {
     const form = document.getElementById('formReserva');
     if (form) {
       form.addEventListener('submit', (e) => this.procesarReserva(e));
+    }
+
+    // Buscar estudiante cuando completa el código
+    const codigoInput = document.getElementById('codigoEstudiante');
+    if (codigoInput) {
+      codigoInput.addEventListener('blur', () => this.buscarEstudiantePorCodigo());
+      codigoInput.addEventListener('change', () => this.buscarEstudiantePorCodigo());
     }
 
     document.querySelectorAll('.btn-turno').forEach(btn => {
