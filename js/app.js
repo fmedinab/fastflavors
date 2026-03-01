@@ -10,6 +10,12 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos totales por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
+    
+    // Anuncios/Slider
+    this.anuncios = [];
+    this.indiceAnuncioActual = 0;
+    this.timerAutoRotacion = null;
+    
     this.initTheme();
     this.init();
   }
@@ -56,7 +62,10 @@ class ComedorApp {
       this.mostrarAlertaFinDeSemana();
       return;
     }
-    
+
+    // Cargar anuncios dinámicos
+    await this.cargarAnuncios();
+
     this.setupEventListeners();
     await this.verificarDisponibilidadTurnos();
     await this.cambiarTurno(this.turnoActual);
@@ -1032,6 +1041,159 @@ class ComedorApp {
           this.seleccionarMenu(plato);
         }
       }, false);
+    }
+  }
+
+  /**
+   * Cargar anuncios dinámicos desde el backend
+   */
+  async cargarAnuncios() {
+    try {
+      console.log('📢 Cargando anuncios...');
+      const response = await api.request('getAnuncios');
+      
+      if (response.success && response.data.anuncios.length > 0) {
+        this.anuncios = response.data.anuncios;
+        console.log('✅ Anuncios cargados:', this.anuncios.length);
+        this.renderizarSlider();
+      } else {
+        console.log('⚠️ Sin anuncios disponibles');
+        this.ocultarSlider();
+      }
+    } catch (error) {
+      console.error('❌ Error al cargar anuncios:', error);
+      this.ocultarSlider();
+    }
+  }
+
+  /**
+   * Renderizar slider de anuncios
+   */
+  renderizarSlider() {
+    const sliderContainer = document.getElementById('anunciosSlider');
+    const sliderDots = document.getElementById('sliderDots');
+    
+    if (!sliderContainer || !this.anuncios || this.anuncios.length === 0) return;
+    
+    // Limpiar slider
+    sliderContainer.innerHTML = '';
+    sliderDots.innerHTML = '';
+    
+    // Crear tarjetas de anuncios
+    this.anuncios.forEach((anuncio, index) => {
+      // Tarjeta del anuncio
+      const card = document.createElement('div');
+      card.className = 'anuncio-card';
+      card.setAttribute('data-color', anuncio.color || '#d62300');
+      card.setAttribute('data-index', index);
+      
+      card.innerHTML = `
+        <div class="anuncio-emoji">${anuncio.emoji || '🎉'}</div>
+        <div class="anuncio-content">
+          <h2 class="anuncio-titulo">${anuncio.titulo}</h2>
+          ${anuncio.descripcion ? `<p class="anuncio-descripcion">${anuncio.descripcion}</p>` : ''}
+          ${anuncio.precio ? `<div class="anuncio-precio">S/ ${anuncio.precio}</div>` : ''}
+        </div>
+      `;
+      
+      sliderContainer.appendChild(card);
+      
+      // Dots (indicadores)
+      const dot = document.createElement('button');
+      dot.className = `slider-dot ${index === 0 ? 'active' : ''}`;
+      dot.setAttribute('data-index', index);
+      dot.addEventListener('click', () => this.irAlAnuncio(index));
+      sliderDots.appendChild(dot);
+    });
+    
+    // Mostrar controles solo si hay más de 1 anuncio
+    if (this.anuncios.length > 1) {
+      document.getElementById('sliderPrev').style.display = 'block';
+      document.getElementById('sliderNext').style.display = 'block';
+      
+      document.getElementById('sliderPrev').addEventListener('click', () => this.sliderAnterior());
+      document.getElementById('sliderNext').addEventListener('click', () => this.sliderSiguiente());
+      
+      // Auto-rotación cada 5 segundos
+      this.iniciarAutoRotacion();
+    }
+    
+    this.indiceAnuncioActual = 0;
+  }
+
+  /**
+   * Ir a un anuncio específico
+   */
+  irAlAnuncio(index) {
+    if (index < 0 || index >= this.anuncios.length) return;
+    
+    this.indiceAnuncioActual = index;
+    this.mostrarAnuncio(index);
+    this.detenerAutoRotacion();
+    this.iniciarAutoRotacion(); // Reiniciar temporizador
+  }
+
+  /**
+   * Mostrar anuncio específico
+   */
+  mostrarAnuncio(index) {
+    const cards = document.querySelectorAll('.anuncio-card');
+    const dots = document.querySelectorAll('.slider-dot');
+    
+    cards.forEach((card, i) => {
+      card.style.display = i === index ? 'flex' : 'none';
+    });
+    
+    dots.forEach((dot, i) => {
+      dot.classList.toggle('active', i === index);
+    });
+  }
+
+  /**
+   * Slider anterior
+   */
+  sliderAnterior() {
+    this.indiceAnuncioActual = (this.indiceAnuncioActual - 1 + this.anuncios.length) % this.anuncios.length;
+    this.mostrarAnuncio(this.indiceAnuncioActual);
+    this.detenerAutoRotacion();
+    this.iniciarAutoRotacion();
+  }
+
+  /**
+   * Slider siguiente
+   */
+  sliderSiguiente() {
+    this.indiceAnuncioActual = (this.indiceAnuncioActual + 1) % this.anuncios.length;
+    this.mostrarAnuncio(this.indiceAnuncioActual);
+    this.detenerAutoRotacion();
+    this.iniciarAutoRotacion();
+  }
+
+  /**
+   * Iniciar auto-rotación del slider
+   */
+  iniciarAutoRotacion() {
+    this.timerAutoRotacion = setInterval(() => {
+      this.sliderSiguiente();
+    }, 5000); // Rotación cada 5 segundos
+  }
+
+  /**
+   * Detener auto-rotación
+   */
+  detenerAutoRotacion() {
+    if (this.timerAutoRotacion) {
+      clearInterval(this.timerAutoRotacion);
+    }
+  }
+
+  /**
+   * Ocultar slider si no hay anuncios
+   */
+  ocultarSlider() {
+    const container = document.querySelector('.anuncios-slider-container');
+    if (container) {
+      container.style.display = 'none';
     }
   }
 }
