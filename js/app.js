@@ -650,6 +650,175 @@ class ComedorApp {
   }
 
   /**
+   * Cambiar entre tabs (Reservar vs Cancelar)
+   */
+  cambiarTab(tabName) {
+    console.log('📑 Cambiando a tab:', tabName);
+    
+    // Actualizar botones
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+    
+    // Actualizar contenido
+    document.querySelectorAll('.tab-content').forEach(content => {
+      content.classList.remove('active');
+    });
+    document.querySelector(`[data-tab="${tabName}"].tab-content`).classList.add('active');
+    
+    // Limpiar campos si es necesario
+    if (tabName === 'cancelar') {
+      document.getElementById('codigoCancelar').value = '';
+      document.getElementById('nombreCancelar').value = '';
+      document.getElementById('cancelarHint').textContent = '';
+      document.getElementById('reservacionEncontrada').style.display = 'none';
+      document.getElementById('reservacionNoEncontrada').style.display = 'none';
+      document.getElementById('btnConfirmarCancelacion').style.display = 'none';
+      document.getElementById('codigoCancelar').focus();
+    }
+  }
+
+  /**
+   * Buscar reserva para cancelar
+   */
+  async buscarReservaParaCancelar() {
+    const codigoInput = document.getElementById('codigoCancelar');
+    const nombreInput = document.getElementById('nombreCancelar');
+    const cancelarHint = document.getElementById('cancelarHint');
+    const reservacionEncontrada = document.getElementById('reservacionEncontrada');
+    const reservacionNoEncontrada = document.getElementById('reservacionNoEncontrada');
+    const btnCancelar = document.getElementById('btnConfirmarCancelacion');
+    
+    const codigo = codigoInput.value.trim();
+    
+    // Limpiar si está vacío
+    if (!codigo) {
+      nombreInput.value = '';
+      cancelarHint.textContent = '';
+      reservacionEncontrada.style.display = 'none';
+      reservacionNoEncontrada.style.display = 'none';
+      btnCancelar.style.display = 'none';
+      return;
+    }
+    
+    try {
+      console.log('🔍 Buscando reserva para cancelar, código:', codigo);
+      const response = await api.request('buscarReservaParaCancelar', { codigo: codigo });
+      
+      console.log('📥 Respuesta:', response);
+      
+      if (response.success) {
+        // Reserva encontrada
+        const reserva = response.data;
+        nombreInput.value = reserva.nombre;
+        cancelarHint.textContent = `✅ Reserva encontrada para hoy`;
+        cancelarHint.style.color = '#27ae60';
+        
+        // Mostrar detalles de la reserva
+        document.getElementById('detalleReserva').innerHTML = `
+          <p>🍽️ <strong>${reserva.plato}</strong></p>
+          <p>📍 Turno: <strong>${reserva.turno}</strong></p>
+          <p>📦 Cantidad: <strong>${reserva.cantidad} plato${reserva.cantidad !== 1 ? 's' : ''}</strong></p>
+        `;
+        
+        // Guardar rowNumber para cancelar
+        codigoInput.dataset.rowNumber = reserva.rowNumber;
+        
+        reservacionEncontrada.style.display = 'block';
+        reservacionNoEncontrada.style.display = 'none';
+        btnCancelar.style.display = 'block';
+        btnCancelar.disabled = false;
+        
+      } else {
+        // No hay reserva
+        nombreInput.value = '';
+        cancelarHint.textContent = `❌ ${response.message}`;
+        cancelarHint.style.color = '#e74c3c';
+        
+        reservacionEncontrada.style.display = 'none';
+        reservacionNoEncontrada.style.display = 'block';
+        btnCancelar.style.display = 'none';
+        console.log('❌ Sin reserva para cancelar');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al buscar reserva:', error);
+      nombreInput.value = '';
+      cancelarHint.textContent = '❌ Error al validar código';
+      cancelarHint.style.color = '#e74c3c';
+      reservacionEncontrada.style.display = 'none';
+      reservacionNoEncontrada.style.display = 'block';
+      btnCancelar.style.display = 'none';
+    }
+  }
+
+  /**
+   * Procesar cancelación de reserva
+   */
+  async procesarCancelacion(event) {
+    event.preventDefault();
+    
+    const codigoInput = document.getElementById('codigoCancelar');
+    const codigo = codigoInput.value.trim();
+    const rowNumber = codigoInput.dataset.rowNumber;
+    
+    if (!codigo || !rowNumber) {
+      Utils.showToast('Error: falta información de la reserva', 'error');
+      return;
+    }
+    
+    // Confirmar cancelación
+    const confirmado = confirm('⚠️ ¿Estás seguro de que deseas cancelar tu reserva?\n\nEsta acción no se puede deshacer.');
+    
+    if (!confirmado) {
+      console.log('❌ Cancelación abortada por el usuario');
+      return;
+    }
+    
+    try {
+      Utils.showLoader();
+      console.log('📤 Enviando cancelación...');
+      
+      const response = await api.request('cancelarReserva', { 
+        codigo: codigo,
+        rowNumber: parseInt(rowNumber)
+      });
+      
+      console.log('📥 Respuesta:', response);
+      
+      if (response.success) {
+        console.log('✅ Reserva cancelada');
+        Utils.showToast('✅ Tu reserva ha sido cancelada exitosamente', 'success');
+        
+        // Limpiar formulario y volver a tab de reservar
+        setTimeout(() => {
+          document.getElementById('formCancelar').reset();
+          document.getElementById('codigoCancelar').value = '';
+          document.getElementById('nombreCancelar').value = '';
+          document.getElementById('cancelarHint').textContent = '';
+          document.getElementById('reservacionEncontrada').style.display = 'none';
+          document.getElementById('reservacionNoEncontrada').style.display = 'none';
+          document.getElementById('btnConfirmarCancelacion').style.display = 'none';
+          
+          // Cambiar a tab de reservar
+          this.cambiarTab('reservar');
+        }, 1500);
+        
+      } else {
+        console.error('❌ Error en cancelación:', response.message);
+        Utils.showToast(response.message || 'Error al cancelar reserva', 'error');
+      }
+      
+    } catch (error) {
+      console.error('❌ Error al cancelar:', error);
+      Utils.showToast(error.message || 'Error de conexión', 'error');
+    } finally {
+      Utils.hideLoader();
+    }
+  }
+
+  /**
    * Procesar reserva
    */
   async procesarReserva(event) {
@@ -806,11 +975,32 @@ class ComedorApp {
       form.addEventListener('submit', (e) => this.procesarReserva(e));
     }
 
-    // Buscar estudiante cuando completa el código
+    // TABS: Cambiar entre Reservar y Cancelar
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const tabName = e.currentTarget.dataset.tab;
+        this.cambiarTab(tabName);
+      });
+    });
+
+    // Buscar estudiante cuando completa el código (RESERVAR)
     const codigoInput = document.getElementById('codigoEstudiante');
     if (codigoInput) {
       codigoInput.addEventListener('blur', () => this.buscarEstudiantePorCodigo());
       codigoInput.addEventListener('change', () => this.buscarEstudiantePorCodigo());
+    }
+
+    // Buscar reserva para cancelar cuando completa el código (CANCELAR)
+    const codigoCancelarInput = document.getElementById('codigoCancelar');
+    if (codigoCancelarInput) {
+      codigoCancelarInput.addEventListener('blur', () => this.buscarReservaParaCancelar());
+      codigoCancelarInput.addEventListener('change', () => this.buscarReservaParaCancelar());
+    }
+
+    // Formulario de cancelación
+    const formCancelar = document.getElementById('formCancelar');
+    if (formCancelar) {
+      formCancelar.addEventListener('submit', (e) => this.procesarCancelacion(e));
     }
 
     document.querySelectorAll('.btn-turno').forEach(btn => {
