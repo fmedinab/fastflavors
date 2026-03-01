@@ -61,6 +61,46 @@ class API {
   }
 
   /**
+   * Petición genérica para cualquier acción
+   */
+  async request(action, params = {}) {
+    try {
+      // Si es una acción de escritura (POST), usar post
+      const accionesPost = ['crearReserva', 'cancelarReserva', 'actualizarMenu'];
+      
+      if (accionesPost.includes(action)) {
+        return await this.post(action, params);
+      } else {
+        return await this.get(action, params);
+      }
+    } catch (error) {
+      console.error(`Error en petición ${action}:`, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Buscar estudiante por código
+   */
+  async buscarEstudiante(codigo) {
+    return await this.get('buscarEstudiante', { codigo });
+  }
+
+  /**
+   * Buscar reserva para cancelar
+   */
+  async buscarReservaParaCancelar(codigo) {
+    return await this.get('buscarReservaParaCancelar', { codigo });
+  }
+
+  /**
+   * Cancelar una reserva
+   */
+  async cancelarReserva(codigo, rowNumber) {
+    return await this.post('cancelarReserva', { codigo, rowNumber });
+  }
+
+  /**
    * Obtener el menú del día según el turno
    */
   async getMenuDelDia(turno, forceRefresh = false) {
