@@ -411,10 +411,10 @@ button {
   border: 3px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
+  animation: spinSlider 1s linear infinite;
 }
 
-@keyframes spin {
+@keyframes spinSlider {
   to { transform: rotate(360deg); }
 }
 
