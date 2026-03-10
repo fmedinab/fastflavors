@@ -211,6 +211,50 @@ class API {
     this.cache = {};
     console.log('🗑️ Caché limpiado');
   }
+
+  // ========== SISTEMA DE PRÉSTAMOS ==========
+
+  /**
+   * Obtener todos los estudiantes
+   */
+  async getEstudiantes() {
+    return await this.get('getEstudiantes');
+  }
+
+  /**
+   * Buscar estudiante por código o nombre (para préstamos)
+   */
+  async buscarEstudianteParaPrestamo(filtro) {
+    return await this.get('buscarEstudianteParaPrestamo', { filtro });
+  }
+
+  /**
+   * Registrar un nuevo préstamo
+   */
+  async registrarPrestamo(datos) {
+    return await this.post('registrarPrestamo', datos);
+  }
+
+  /**
+   * Obtener préstamos de un estudiante
+   */
+  async getPrestamosEstudiante(codigoEstudiante) {
+    return await this.get('getPrestamosEstudiante', { codigoEstudiante });
+  }
+
+  /**
+   * Registrar un pago
+   */
+  async registrarPago(datos) {
+    return await this.post('registrarPago', datos);
+  }
+
+  /**
+   * Obtener resumen de deudas de todos los estudiantes
+   */
+  async getResumenDeudas() {
+    return await this.get('getResumenDeudas');
+  }
 }
 
 // Crear instancia global del API
