@@ -75,6 +75,19 @@
       display: block;
     }
 
+    @media (prefers-color-scheme: dark) {
+      .card {
+        background: #2d2d2d;
+        color: #e0e0e0;
+      }
+      .card h2 {
+        color: #FF7043;
+      }
+      .card p {
+        color: #b0b0b0;
+      }
+    }
+
     .card:hover {
       transform: translateY(-10px);
       box-shadow: 0 30px 80px rgba(0,0,0,0.4);
@@ -127,6 +140,12 @@
       padding: 30px;
       color: white;
       text-align: center;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .footer {
+        background: rgba(0,0,0,0.4);
+      }
     }
 
     .footer h3 {
@@ -244,7 +263,7 @@
     <div class="cards-grid">
       
       <!-- Admin Card -->
-      <a href="admin/" class="card admin">
+      <a href="../admin/" class="card admin">
         <div class="card-icon">👨‍💼</div>
         <h2>Administrador</h2>
         <p>Punto de venta (POS) para registrar préstamos de productos a estudiantes</p>
@@ -252,7 +271,7 @@
       </a>
 
       <!-- Student Card -->
-      <a href="study/" class="card student">
+      <a href="../study/" class="card student">
         <div class="card-icon">🎓</div>
         <h2>Estudiantes</h2>
         <p>Consulta tu historial de préstamos y deuda pendiente de forma fácil</p>
@@ -261,24 +280,7 @@
 
     </div>
 
-    <!-- Footer -->
-    <div class="footer">
-      <h3>✨ Características del Sistema</h3>
-      <div class="features">
-        <div class="feature">📦 20+ Productos</div>
-        <div class="feature">🎓 Gestión Estudiantes</div>
-        <div class="feature">💰 Control de Deuda</div>
-        <div class="feature">📊 Historial Detallado</div>
-        <div class="feature">📱 100% Responsive</div>
-        <div class="feature">☁️ Google Sheets</div>
-      </div>
-      <div class="footer-links">
-        <a href="../SISTEMA_PRESTAMOS.md" class="footer-link">📖 Documentación</a>
-      </div>
-      <p style="margin-top: 25px; opacity: 0.9;">
-        🍔 Perfecto para kioskos escolares, cafeterías y comedores
-      </p>
-    </div>
+
 
   </div>
 
