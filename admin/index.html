@@ -1341,15 +1341,20 @@
           signal: searchAbortController.signal
         });
         const data = await response.json();
+        
+        console.log('🔍 Búsqueda de estudiante:', query);
+        console.log('📦 Respuesta completa:', data);
+        console.log('📋 Data.data:', data.data);
 
         if (data.success) {
           showSearchResults(data.data || data, query);
         } else {
+          console.warn('⚠️ Búsqueda sin éxito:', data.message);
           hideSearchSuggestions();
         }
       } catch (error) {
         if (error.name !== 'AbortError') {
-          console.error('Error searching student:', error);
+          console.error('❌ Error searching student:', error);
           hideSearchSuggestions();
         }
       }
@@ -1358,12 +1363,25 @@
     function showSearchResults(searchData, query) {
       const suggestionsDiv = document.getElementById('searchSuggestions');
       
-      if (searchData.found && searchData.results && searchData.results.length > 0) {
+      console.log('📊 showSearchResults llamado con:', searchData);
+      
+      // Compatibilidad: el backend devuelve 'students', no 'results'
+      const students = searchData.students || searchData.results || [];
+      
+      console.log('👥 Estudiantes encontrados:', students);
+      console.log('✅ searchData.found:', searchData.found);
+      
+      if (searchData.found && students.length > 0) {
         // Show found students
+        console.log(`✅ Mostrando ${students.length} estudiante(s)`);
         let html = '';
-        searchData.results.forEach(student => {
+        students.forEach((student, index) => {
+          // Guardar el estudiante en una variable temporal accesible globalmente
+          if (!window.tempStudents) window.tempStudents = {};
+          window.tempStudents[index] = student;
+          
           html += `
-            <div class="search-suggestion-item" onclick='selectStudentFromSearch(${JSON.stringify(student)})'>
+            <div class="search-suggestion-item" onclick="selectStudentFromSearch(window.tempStudents[${index}])">
               <div class="name">${student.nombre}</div>
               <div class="details">📝 ${student.codigo} | 🎓 ${student.grado || 'N/A'} - ${student.seccion || 'N/A'}</div>
             </div>
@@ -1373,6 +1391,7 @@
         suggestionsDiv.classList.add('show');
       } else if (!searchData.found && searchData.suggestion) {
         // Show create new student option
+        console.log('➕ Mostrando opción de crear nuevo estudiante');
         const suggestion = searchData.suggestion;
         suggestionsDiv.innerHTML = `
           <div class="search-suggestion-create" onclick='openStudentModal("${query}")'>
@@ -1385,6 +1404,7 @@
         `;
         suggestionsDiv.classList.add('show');
       } else {
+        console.log('❌ Sin resultados para mostrar');
         hideSearchSuggestions();
       }
     }
@@ -1393,9 +1413,15 @@
       const suggestionsDiv = document.getElementById('searchSuggestions');
       suggestionsDiv.classList.remove('show');
       suggestionsDiv.innerHTML = '';
+      
+      // Limpiar datos temporales
+      if (window.tempStudents) {
+        window.tempStudents = {};
+      }
     }
 
     function selectStudentFromSearch(student) {
+      console.log('🎯 Estudiante seleccionado desde búsqueda:', student);
       hideSearchSuggestions();
       document.getElementById('studentSearch').value = student.nombre;
       selectStudent(student);
@@ -1413,6 +1439,7 @@
     }
 
     async function selectStudent(student) {
+      console.log('👤 Seleccionando estudiante:', student);
       state.currentStudent = student;
       
       // Get student debt
@@ -1433,6 +1460,8 @@
       const studentInfo = document.getElementById('studentInfo');
       document.getElementById('studentName').textContent = student.nombre;
       document.getElementById('studentCode').textContent = `📝 Código: ${student.codigo}`;
+      
+      console.log('✅ Estudiante actualizado en la UI');
       
       // Show grade/section or additional info if available
       let gradeText = '';
