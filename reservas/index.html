@@ -107,30 +107,31 @@
 
       <!-- TAB 1: Formulario de reserva -->
       <form id="formReserva" class="tab-content active" data-tab="reservar">
-        <div class="form-group">
-          <label class="form-label required" for="codigoEstudiante">Código de Estudiante</label>
+        <div class="form-group search-section">
+          <label class="form-label required" for="codigoEstudiante">Buscar Estudiante</label>
           <input 
             type="text" 
             class="form-input" 
             id="codigoEstudiante" 
-            placeholder="Ej: 3, 5, 8"
+            placeholder="🔍 Buscar por código o nombre..."
             required
-            maxlength="10"
+            maxlength="50"
             autocomplete="off"
           >
+          <div class="search-suggestions" id="searchSuggestions"></div>
           <small class="form-hint" id="codigoHint"></small>
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="nombreEstudiante">Nombre Completo</label>
+          <label class="form-label required" for="nombreEstudiante">Nombre Completo</label>
           <input 
             type="text" 
             class="form-input" 
             id="nombreEstudiante" 
-            placeholder="Se completará automáticamente"
-            readonly
-            style="background-color: #f0f0f0; cursor: not-allowed;"
+            placeholder="Ingresar nombre o se completará automáticamente"
+            required
           >
+          <small class="form-hint" style="color: #7f8c8d;">💡 Puedes escribir el nombre manualmente si no está registrado</small>
         </div>
 
         <div class="form-group">
@@ -160,17 +161,18 @@
 
       <!-- TAB 2: Formulario de cancelación -->
       <form id="formCancelar" class="tab-content" data-tab="cancelar">
-        <div class="form-group">
-          <label class="form-label required" for="codigoCancelar">Código de Estudiante</label>
+        <div class="form-group search-section">
+          <label class="form-label required" for="codigoCancelar">Buscar Estudiante</label>
           <input 
             type="text" 
             class="form-input" 
             id="codigoCancelar" 
-            placeholder="Ej: 3, 5, 8"
+            placeholder="🔍 Buscar por código o nombre..."
             required
-            maxlength="10"
+            maxlength="50"
             autocomplete="off"
           >
+          <div class="search-suggestions" id="searchSuggestionsCancelar"></div>
           <small class="form-hint" id="cancelarHint"></small>
         </div>
 
@@ -180,9 +182,7 @@
             type="text" 
             class="form-input" 
             id="nombreCancelar" 
-            placeholder="Se completará automáticamente"
-            readonly
-            style="background-color: #f0f0f0; cursor: not-allowed;"
+            placeholder="Ingresar nombre o se completará automáticamente"
           >
         </div>
 
