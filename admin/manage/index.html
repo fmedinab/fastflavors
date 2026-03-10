@@ -80,7 +80,9 @@
       text-decoration: none;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
+      min-height: 44px; /* Touch-friendly minimum */
     }
 
     .btn-primary {
@@ -197,6 +199,8 @@
       cursor: pointer;
       transition: all 0.3s;
       font-size: 0.95rem;
+      font-weight: 600;
+      white-space: nowrap;
     }
 
     .filter-btn:hover {
@@ -206,6 +210,7 @@
     .filter-btn.active {
       background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
       border-color: var(--secondary);
+      box-shadow: 0 3px 10px rgba(255, 87, 34, 0.4);
     }
 
     /* Table */
@@ -473,32 +478,288 @@
     }
 
     /* Responsive */
+    @media (max-width: 1024px) {
+      .container {
+        padding: 20px 15px;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .table-container {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      table {
+        min-width: 800px;
+      }
+    }
+
     @media (max-width: 768px) {
+      body {
+        padding-bottom: 20px;
+      }
+
+      /* Header */
       .header {
+        padding: 15px 15px;
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
+      }
+
+      .header-left {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+        width: 100%;
+      }
+
+      .logo {
+        font-size: 1.5rem;
+      }
+
+      .header-title h1 {
+        font-size: 1.3rem;
+      }
+
+      .header-title p {
+        font-size: 0.85rem;
       }
 
       .header-actions {
         width: 100%;
+        gap: 10px;
+        flex-direction: column;
+      }
+
+      .header-actions .btn {
+        width: 100%;
         justify-content: center;
+      }
+
+      /* Container */
+      .container {
+        padding: 15px 10px;
+      }
+
+      /* Stats */
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        padding: 15px;
+      }
+
+      .stat-card h3 {
+        font-size: 0.75rem;
+      }
+
+      .stat-card .value {
+        font-size: 1.8rem;
+      }
+
+      /* Products Section */
+      .products-section {
+        padding: 20px 15px;
+        border-radius: 15px;
       }
 
       .section-header {
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
       }
 
+      .section-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .section-header .btn {
+        width: 100%;
+      }
+
+      /* Filter Bar */
+      .filter-bar {
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+
+      .filter-btn {
+        padding: 10px 16px;
+        font-size: 0.9rem;
+        flex: 1;
+        min-width: fit-content;
+      }
+
+      /* Table to Cards */
       .table-container {
+        overflow-x: visible;
+      }
+
+      table {
+        display: block;
+      }
+
+      thead {
+        display: none;
+      }
+
+      tbody {
+        display: block;
+      }
+
+      tbody tr {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 15px;
+        padding: 15px;
+        background: var(--dark-bg);
+        border-radius: 12px;
+        border: 2px solid #333;
+        border-bottom: 2px solid #333;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+      }
+
+      tbody tr:hover {
+        border-color: var(--secondary);
+        box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+      }
+
+      td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 10px 0;
+        border: none;
+      }
+
+      td:not(:last-child) {
+        border-bottom: 1px solid #333;
+      }
+
+      td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: var(--accent);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+      }
+
+      .product-emoji {
+        font-size: 3rem;
+        justify-content: center;
+        padding: 15px 0;
+      }
+
+      .product-emoji::before {
+        display: none;
+      }
+
+      .product-name {
+        font-size: 1.2rem;
+      }
+
+      .category-badge {
+        padding: 8px 18px;
         font-size: 0.9rem;
       }
 
-      th, td {
-        padding: 10px 8px;
+      .price {
+        font-size: 1.5rem;
       }
 
       .action-buttons {
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        width: 100%;
+      }
+
+      .action-buttons::before {
+        display: none;
+      }
+
+      .btn-icon {
+        padding: 10px 15px;
+        font-size: 1rem;
+      }
+
+      /* Modal */
+      .modal {
+        padding: 0;
+      }
+
+      .modal-content {
+        max-width: 100%;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        padding: 20px 15px;
+      }
+
+      .modal-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      .form-control {
+        padding: 12px;
+        font-size: 16px; /* Prevent zoom on iOS */
+      }
+
+      .emoji-picker {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 8px;
+        max-height: 180px;
+      }
+
+      .emoji-option {
+        font-size: 1.5rem;
+        padding: 8px;
+      }
+
+      .form-actions {
         flex-direction: column;
+        gap: 10px;
+      }
+
+      .form-actions button {
+        width: 100%;
+        padding: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .filter-bar {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+      }
+
+      .filter-btn {
+        flex: none;
+        width: 100%;
+      }
+
+      .emoji-picker {
+        grid-template-columns: repeat(5, 1fr);
+      }
+
+      .action-buttons {
+        gap: 6px;
+      }
+
+      .btn-icon {
+        flex: 1;
       }
     }
   </style>
@@ -730,14 +991,14 @@
 
       tbody.innerHTML = productsToRender.map(product => `
         <tr>
-          <td class="product-emoji">${product.emoji}</td>
-          <td class="product-name">${product.name}</td>
-          <td><span class="category-badge">${product.category}</span></td>
-          <td class="price">S/ ${product.price.toFixed(2)}</td>
-          <td class="${product.active ? 'status-active' : 'status-inactive'}">
+          <td class="product-emoji" data-label="">${product.emoji}</td>
+          <td class="product-name" data-label="Nombre">${product.name}</td>
+          <td data-label="Categoría"><span class="category-badge">${product.category}</span></td>
+          <td class="price" data-label="Precio">S/ ${product.price.toFixed(2)}</td>
+          <td class="${product.active ? 'status-active' : 'status-inactive'}" data-label="Estado">
             ${product.active ? '✅ Activo' : '❌ Inactivo'}
           </td>
-          <td>
+          <td data-label="Acciones">
             <div class="action-buttons">
               <button class="btn-icon btn-edit" onclick="editProduct(${product.id})" title="Editar">✏️</button>
               <button class="btn-icon btn-toggle" onclick="toggleProduct(${product.id})" title="Activar/Desactivar">👁️</button>
