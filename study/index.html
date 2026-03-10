@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mis Préstamos - Sistema Estudiantil</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .header .brand {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    .header .brand-name {
+      color: var(--primary);
+    }
+
+    .header .brand-text {
+      color: var(--accent);
+    }
+
+    .header p {
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    /* Search Section */
+    .search-section {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+
+    .search-label {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 15px;
+      display: block;
+      font-weight: bold;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 20px;
+      font-size: 1.3rem;
+      border: 3px solid #e0e0e0;
+      border-radius: 15px;
+      transition: all 0.3s;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      transform: scale(1.02);
+    }
+
+    .search-hint {
+      margin-top: 15px;
+      color: #999;
+      font-size: 1rem;
+      text-align: center;
+    }
+
+    /* Student Info Card */
+    .student-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      margin-bottom: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: none;
+    }
+
+    .student-header {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 25px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .student-header h2 {
+      font-size: 2rem;
+      margin-bottom: 10px;
+    }
+
+    .student-header p {
+      font-size: 1.2rem;
+      opacity: 0.9;
+      margin: 5px 0;
+    }
+
+    /* Debt Summary */
+    .debt-summary {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .debt-item {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 15px;
+      text-align: center;
+    }
+
+    .debt-item-label {
+      font-size: 0.95rem;
+      color: #666;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .debt-item-value {
+      font-size: 2rem;
+      font-weight: bold;
+      color: var(--secondary);
+    }
+
+    .debt-item.total {
+      background: linear-gradient(135deg, #D32F2F20 0%, #FF572220 100%);
+    }
+
+    .debt-item.total .debt-item-value {
+      font-size: 2.5rem;
+      color: var(--primary-dark);
+    }
+
+    /* Loans List */
+    .loans-section h3 {
+      font-size: 1.5rem;
+      color: #333;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 3px solid var(--secondary);
+    }
+
+    .loan-card {
+      background: #f8f9fa;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 15px;
+      border-left: 5px solid var(--secondary);
+      transition: all 0.3s;
+    }
+
+    .loan-card:hover {
+      transform: translateX(5px);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    }
+
+    .loan-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .loan-date {
+      font-size: 1rem;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .loan-total {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary-dark);
+    }
+
+    .loan-items {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .loan-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px;
+      background: white;
+      border-radius: 8px;
+    }
+
+    .loan-item-name {
+      font-size: 1.1rem;
+      color: #333;
+    }
+
+    .loan-item-price {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--secondary);
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      color: #666;
+    }
+
+    .empty-state p {
+      font-size: 1.1rem;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      font-size: 1.3rem;
+      color: #667eea;
+    }
+
+    /* Back Button */
+    .back-btn {
+      background: white;
+      color: var(--primary);
+      border: 3px solid var(--primary);
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      display: block;
+      margin: 20px auto 0;
+    }
+
+    .back-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .search-input {
+        font-size: 1.1rem;
+        padding: 15px;
+      }
+
+      .student-header h2 {
+        font-size: 1.5rem;
+      }
+
+      .debt-item-value {
+        font-size: 1.5rem;
+      }
+
+      .loan-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+      }
+    }
+
+    /* Animation */
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .student-card, .loan-card {
+      animation: fadeIn 0.5s ease-out;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <div class="header">
+      <div class="brand"><span class="brand-name">Fast</span> <span class="brand-text">Flavors</span></div>
+      <h1>💰 Mis Préstamos</h1>
+      <p>Consulta tus compras y deuda pendiente</p>
+    </div>
+
+    <!-- Search Section -->
+    <div class="search-section">
+      <label class="search-label">🔍 Ingresa tu código de estudiante</label>
+      <input 
+        type="text" 
+        class="search-input" 
+        id="studentCode" 
+        placeholder="Ejemplo: EST001"
+        autocomplete="off"
+      >
+      <p class="search-hint">💡 Encuentra tu código en tu carnet estudiantil</p>
+    </div>
+
+    <!-- Student Info Card -->
+    <div class="student-card" id="studentCard">
+      
+      <!-- Student Header -->
+      <div class="student-header">
+        <h2 id="studentName">Nombre del Estudiante</h2>
+        <p id="studentGrade">🎓 Grado y Sección</p>
+        <p id="studentCode2">📝 Código</p>
+      </div>
+
+      <!-- Debt Summary -->
+      <div class="debt-summary">
+        <div class="debt-item">
+          <div class="debt-item-label">📦 Préstamos</div>
+          <div class="debt-item-value" id="totalLoans">0</div>
+        </div>
+        <div class="debt-item">
+          <div class="debt-item-label">🧾 Productos</div>
+          <div class="debt-item-value" id="totalItems">0</div>
+        </div>
+        <div class="debt-item total">
+          <div class="debt-item-label">💳 Deuda Total</div>
+          <div class="debt-item-value">S/ <span id="totalDebt">0.00</span></div>
+        </div>
+      </div>
+
+      <!-- Loans List -->
+      <div class="loans-section">
+        <h3>📋 Historial de Préstamos</h3>
+        <div id="loansList">
+          <div class="loading">⏳ Cargando préstamos...</div>
+        </div>
+      </div>
+
+      <button class="back-btn" onclick="resetSearch()">← Buscar otro estudiante</button>
+    </div>
+
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    let currentStudent = null;
+
+    // Search functionality
+    document.getElementById('studentCode').addEventListener('input', (e) => {
+      const code = e.target.value.trim().toUpperCase();
+      
+      if (code.length >= 3) {
+        searchStudent(code);
+      }
+    });
+
+    document.getElementById('studentCode').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        const code = e.target.value.trim().toUpperCase();
+        searchStudent(code);
+      }
+    });
+
+    async function searchStudent(code) {
+      try {
+        // Get student info
+        const studentsResponse = await fetch(`${CONFIG.API_URL}?action=getStudents`);
+        const studentsData = await studentsResponse.json();
+
+        if (!studentsData.success) {
+          alert('❌ Error al buscar estudiante');
+          return;
+        }
+
+        const student = studentsData.students.find(s => 
+          s.codigo.toUpperCase() === code.toUpperCase()
+        );
+
+        if (!student) {
+          alert('⚠️ Estudiante no encontrado. Verifica tu código.');
+          return;
+        }
+
+        currentStudent = student;
+        await loadStudentData(student);
+
+      } catch (error) {
+        console.error('Error searching student:', error);
+        alert('❌ Error al buscar estudiante. Verifica tu conexión.');
+      }
+    }
+
+    async function loadStudentData(student) {
+      try {
+        // Show student card
+        document.getElementById('studentCard').style.display = 'block';
+        document.getElementById('studentName').textContent = student.nombre;
+        document.getElementById('studentGrade').textContent = `🎓 ${student.grado} - ${student.seccion}`;
+        document.getElementById('studentCode2').textContent = `📝 Código: ${student.codigo}`;
+
+        // Get student loans and debt
+        const loansResponse = await fetch(`${CONFIG.API_URL}?action=getStudentLoans&studentCode=${student.codigo}`);
+        const loansData = await loansResponse.json();
+
+        if (loansData.success) {
+          displayLoans(loansData.loans, loansData.summary);
+        } else {
+          document.getElementById('loansList').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">📭</div>
+              <h3>No hay préstamos registrados</h3>
+              <p>¡Genial! No tienes deudas pendientes</p>
+            </div>
+          `;
+        }
+
+      } catch (error) {
+        console.error('Error loading student data:', error);
+        document.getElementById('loansList').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">❌</div>
+            <h3>Error al cargar datos</h3>
+            <p>Por favor intenta nuevamente</p>
+          </div>
+        `;
+      }
+    }
+
+    function displayLoans(loans, summary) {
+      // Update summary
+      document.getElementById('totalLoans').textContent = summary.totalLoans || 0;
+      document.getElementById('totalItems').textContent = summary.totalItems || 0;
+      document.getElementById('totalDebt').textContent = (summary.totalDebt || 0).toFixed(2);
+
+      const loansList = document.getElementById('loansList');
+
+      if (!loans || loans.length === 0) {
+        loansList.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">✨</div>
+            <h3>¡Sin préstamos!</h3>
+            <p>No tienes deudas pendientes</p>
+          </div>
+        `;
+        return;
+      }
+
+      loansList.innerHTML = loans.map(loan => `
+        <div class="loan-card">
+          <div class="loan-header">
+            <div class="loan-date">📅 ${formatDate(loan.fecha)}</div>
+            <div class="loan-total">S/ ${loan.total.toFixed(2)}</div>
+          </div>
+          <div class="loan-items">
+            ${loan.items.map(item => `
+              <div class="loan-item">
+                <div class="loan-item-name">${item.emoji || '📦'} ${item.nombre}</div>
+                <div class="loan-item-price">S/ ${item.precio.toFixed(2)}</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+      const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      
+      const dayName = days[date.getDay()];
+      const day = date.getDate();
+      const month = months[date.getMonth()];
+      const year = date.getFullYear();
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      
+      return `${dayName}, ${day} de ${month} ${year} - ${hours}:${minutes}`;
+    }
+
+    function resetSearch() {
+      document.getElementById('studentCard').style.display = 'none';
+      document.getElementById('studentCode').value = '';
+      document.getElementById('studentCode').focus();
+      currentStudent = null;
+    }
+
+    // Focus on load
+    window.addEventListener('load', () => {
+      document.getElementById('studentCode').focus();
+    });
+  </script>
+
+</body>
+</html>
