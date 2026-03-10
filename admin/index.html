@@ -565,6 +565,137 @@
         border-color: #555;
       }
     }
+
+    /* Diagnóstico Modal */
+    .diagnostic-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .diagnostic-modal.show {
+      display: flex;
+    }
+
+    .diagnostic-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .diagnostic-box h2 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+
+    .diagnostic-box .subtitle {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .diagnostic-status {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #ccc;
+    }
+
+    .diagnostic-status.ok {
+      background: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+    }
+
+    .diagnostic-status.error {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+
+    .diagnostic-status.loading {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+
+    .diagnostic-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .diagnostic-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+    }
+
+    .diagnostic-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .diagnostic-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .diagnostic-btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .diagnostic-btn.secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-diagnostic {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-diagnostic:hover {
+      background: #5a6268;
+      transform: scale(1.05);
+    }
+
+    .diagnostic-code {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
   </style>
 </head>
 <body>
@@ -611,6 +742,7 @@
         <div class="sidebar-header">
           <h2>🛒 Carrito</h2>
           <div class="header-buttons">
+            <button class="btn-diagnostic" onclick="openDiagnostic()" title="Diagnóstico Backend">🔧</button>
             <a href="manage/" class="btn-manage" title="Gestionar Productos">📦</a>
             <a href="https://docs.google.com/spreadsheets/d/1nl0hupwDw-yHVCC0skvqgY7bNpLS854TD7PvHbCTAiI" target="_blank" class="btn-manage" title="Google Sheets">📊</a>
             <button class="logout-btn" onclick="logout()">🚪</button>
@@ -669,6 +801,26 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- Diagnostic Modal -->
+  <div class="diagnostic-modal" id="diagnosticModal">
+    <div class="diagnostic-box">
+      <h2>🔧 Diagnóstico Backend</h2>
+      <p class="subtitle">Verificación de conexión con Google Apps Script</p>
+      
+      <div id="diagnosticResults">
+        <div class="diagnostic-status loading">
+          <strong>⏳ Listo para probar</strong><br>
+          Haz clic en "Probar Conexión" para verificar el backend.
+        </div>
+      </div>
+
+      <div class="diagnostic-buttons">
+        <button class="diagnostic-btn primary" onclick="runDiagnostic()">🔌 Probar Conexión</button>
+        <button class="diagnostic-btn secondary" onclick="closeDiagnostic()">Cerrar</button>
+      </div>
+    </div>
   </div>
 
   <script src="../js/config.js"></script>
@@ -764,8 +916,12 @@
         const response = await fetch(`${CONFIG.API_URL}?action=getProducts`);
         const data = await response.json();
         
+        console.log('📦 Respuesta productos:', data);
+        
         if (data.success) {
-          state.products = data.products;
+          // El backend devuelve data.data.products
+          const products = data.data?.products || data.products || [];
+          state.products = products;
           renderProducts(state.products);
           renderCategories(state.products);
         }
@@ -781,8 +937,12 @@
         const response = await fetch(`${CONFIG.API_URL}?action=getStudents`);
         const data = await response.json();
         
+        console.log('👥 Respuesta estudiantes:', data);
+        
         if (data.success) {
-          state.students = data.students;
+          // El backend devuelve data.data.students
+          const students = data.data?.students || data.students || [];
+          state.students = students;
         }
       } catch (error) {
         console.error('Error loading students:', error);
@@ -925,8 +1085,11 @@
         const response = await fetch(`${CONFIG.API_URL}?action=getStudentDebt&studentCode=${student.codigo}`);
         const data = await response.json();
         
+        console.log('💰 Respuesta deuda:', data);
+        
         if (data.success) {
-          student.deudaTotal = data.totalDebt;
+          // El backend puede devolver data.data.totalDebt o data.totalDebt
+          student.deudaTotal = data.data?.totalDebt || data.totalDebt || 0;
         }
       } catch (error) {
         console.error('Error getting student debt:', error);
@@ -998,6 +1161,189 @@
 
     function closeModal() {
       document.getElementById('successModal').style.display = 'none';
+    }
+
+    // ========== DIAGNOSTIC FUNCTIONS ==========
+    function openDiagnostic() {
+      document.getElementById('diagnosticModal').classList.add('show');
+      // Auto-run diagnostic
+      setTimeout(runDiagnostic, 300);
+    }
+
+    function closeDiagnostic() {
+      document.getElementById('diagnosticModal').classList.remove('show');
+    }
+
+    async function runDiagnostic() {
+      const resultsDiv = document.getElementById('diagnosticResults');
+      
+      // Test 1: API URL
+      resultsDiv.innerHTML = `
+        <div class="diagnostic-status loading">
+          <strong>🔍 Verificando configuración...</strong>
+        </div>
+      `;
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (!CONFIG.API_URL || CONFIG.API_URL.includes('AKfycbx...')) {
+        resultsDiv.innerHTML = `
+          <div class="diagnostic-status error">
+            <strong>❌ URL del API no configurada</strong><br>
+            La URL en <code>js/config.js</code> no está configurada correctamente.<br>
+            URL actual: <code>${CONFIG.API_URL}</code>
+          </div>
+        `;
+        return;
+      }
+
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status ok">
+          <strong>✅ URL configurada</strong><br>
+          ${CONFIG.API_URL}
+        </div>
+      `;
+
+      // Test 2: Connection
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>🔌 Probando conexión con backend...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getConfiguracion`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Backend conectado</strong><br>
+              Spreadsheet ID: ${data.spreadsheetId || 'Configurado'}<br>
+              Zona horaria: ${data.timezone || 'America/Lima'}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>❌ Error en respuesta</strong><br>
+              ${data.message || 'El backend respondió con error'}
+            </div>
+          `;
+          return;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ No se puede conectar al backend</strong><br>
+            Error: ${error.message}<br><br>
+            <strong>Posibles causas:</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+              <li>URL incorrecta en config.js</li>
+              <li>Apps Script no desplegado como Web App</li>
+              <li>Permisos no configurados (debe ser "Anyone")</li>
+            </ul>
+          </div>
+        `;
+        return;
+      }
+
+      // Test 3: Products
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>📦 Cargando productos...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getProducts`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        // El backend devuelve data.data.products
+        const products = data.data?.products || data.products || [];
+
+        if (data.success && products.length > 0) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Productos cargados</strong><br>
+              ${products.length} productos encontrados<br>
+              Categorías: ${[...new Set(products.map(p => p.category))].join(', ')}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>⚠️ No se encontraron productos</strong><br>
+              ${data.message || 'La hoja Productos está vacía o no existe'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ Error al cargar productos</strong><br>
+            ${error.message}
+          </div>
+        `;
+      }
+
+      // Test 4: Students
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>👥 Cargando estudiantes...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudents`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        // El backend devuelve data.data.students
+        const students = data.data?.students || data.students || [];
+
+        if (data.success && students.length > 0) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Estudiantes cargados</strong><br>
+              ${students.length} estudiantes registrados
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>⚠️ No se encontraron estudiantes</strong><br>
+              ${data.message || 'La hoja Estudiantes está vacía o no existe'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ Error al cargar estudiantes</strong><br>
+            ${error.message}
+          </div>
+        `;
+      }
+
+      // Final status
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status ok">
+          <strong>✅ Diagnóstico completado</strong><br>
+          Si ves errores arriba, revisa el archivo <code>BACKEND_SETUP.md</code> para instrucciones.
+        </div>
+      `;
     }
   </script>
 
