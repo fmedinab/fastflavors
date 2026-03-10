@@ -8,12 +8,12 @@
   <title>Fast Flavors - Portal Principal</title>
   <style>
     :root {
-      --primary: #D62300;
-      --primary-dark: #A01C00;
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
       --secondary: #FF8700;
       --accent: #F2A900;
       --dark: #1A1A1A;
-      --cream: #F5EBDC;
+      
     }
 
     * {
@@ -24,8 +24,8 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: var(--cream);
-      color: var(--dark);
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
       min-height: 100vh;
       display: flex;
       justify-content: center;
@@ -43,7 +43,7 @@
     /* Header */
     .header {
       text-align: center;
-      color: var(--dark);
+      color: white;
       margin-bottom: 40px;
       animation: fadeInDown 0.8s ease-out;
     }
@@ -71,7 +71,7 @@
     .tagline {
       font-size: 1.1rem;
       opacity: 0.7;
-      color: var(--dark);
+      color: white;
     }
 
     /* Cards Grid */
@@ -99,7 +99,7 @@
 
     @media (prefers-color-scheme: dark) {
       .system-card {
-        background: #2d2d2d;
+        background: #333333;
         color: #e0e0e0;
       }
 
@@ -118,7 +118,7 @@
     }
 
     [data-theme="dark"] .system-card {
-      background: #2d2d2d;
+      background: #333333;
       color: #e0e0e0;
     }
 
@@ -225,7 +225,7 @@
       backdrop-filter: blur(15px);
       border-radius: 20px;
       padding: 20px;
-      color: var(--dark);
+      color: white;
       text-align: center;
       margin-bottom: 30px;
       animation: fadeInUp 1s ease-out;
@@ -245,7 +245,7 @@
     /* Footer */
     .footer {
       text-align: center;
-      color: var(--dark);
+      color: white;
       padding: 30px;
     }
 
@@ -289,7 +289,7 @@
         padding: 15px;
       }
       .info-section {
-        background: #2d2d2d;
+        background: #333333;
         color: #e0e0e0;
       }
     }
@@ -310,7 +310,7 @@
       padding: 15px;
     }
     [data-theme="dark"] .info-section {
-      background: #2d2d2d;
+      background: #333333;
       color: #e0e0e0;
     }
 
@@ -396,101 +396,98 @@
       }
     }
 
-    /* Slider Anuncios */
-    .anuncios-wrapper {
-      margin: 20px 0;
+    /* Slider Anuncios - ESTILO BANNER OFERTA */
+    .site-banner {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      
+      box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+      z-index: 1000;
+      overflow: hidden;
+      padding: 10px 0;
+      border-top: 5px solid var(--primary);
+    }
+    .anuncios-slider {
+      display: flex;
       width: 100%;
       position: relative;
-      overflow: hidden;
-      border-radius: 12px;
-    }
-    .anuncios-slider-container {
-      display: flex;
-      transition: transform 0.5s ease-in-out;
-      width: 100%;
+      min-height: 80px;
     }
     .anuncio-card {
       min-width: 100%;
-      background: white;
-      padding: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+      padding: 0 40px;
       box-sizing: border-box;
-      text-align: center;
-      border: 4px solid var(--primary);
-      border-radius: 12px;
-      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    }
-    [data-theme="dark"] .anuncio-card {
-      background: #1e1e1e;
-      color: white;
-      border-color: #333;
-    }
-    @media (prefers-color-scheme: dark) {
-      body:not([data-theme="light"]) .anuncio-card {
-         background: #1e1e1e;
-         color: white;
-         border-color: #333;
-      }
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .emoji-anun {
       font-size: 3rem;
-      margin-bottom: 15px;
-      display: block;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
-    .anuncio-card h3 {
-      color: var(--primary);
-      margin: 0 0 10px 0;
-      font-size: 1.5rem;
+    .anuncio-content {
+      color: white;
+      text-align: left;
     }
-    .anuncio-card p {
-      color: #666;
+    .anuncio-content h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    .anuncio-content p {
       margin: 0;
-      font-size: 1.1rem;
-      line-height: 1.5;
+      font-size: 1rem;
+      opacity: 0.9;
     }
-    [data-theme="dark"] .anuncio-card p { color: #aaa; }
-    @media (prefers-color-scheme: dark) { body:not([data-theme="light"]) .anuncio-card p { color: #aaa; } }
     .slider-nav {
        position: absolute;
        top: 50%;
        transform: translateY(-50%);
-       width: 100%;
-       display: flex;
-       justify-content: space-between;
-       pointer-events: none;
-    }
-    .slider-btn {
-       background: var(--primary);
+       background: #cc2000;
        color: white;
-       border: none;
-       width: 40px;
-       height: 40px;
+       border: 2px solid white;
+       width: 35px;
+       height: 35px;
        border-radius: 50%;
        font-size: 1.2rem;
+       font-weight: bold;
        cursor: pointer;
-       pointer-events: auto;
-       opacity: 0.8;
-       transition: opacity 0.3s;
+       z-index: 10;
        display: flex;
        align-items: center;
        justify-content: center;
-       margin: 0 10px;
+       box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+       transition: all 0.3s;
     }
-    .slider-btn:hover { opacity: 1; }
+    .slider-nav:hover { background: #ff3300; transform: translateY(-50%) scale(1.1); }
+    .slider-prev { left: 15px; }
+    .slider-next { right: 15px; }
     .slider-dots {
        display: flex;
        justify-content: center;
-       gap: 8px;
-       margin-top: 15px;
+       gap: 6px;
+       margin-top: 5px;
     }
     .dot {
-       width: 10px;
-       height: 10px;
+       width: 8px;
+       height: 8px;
        border-radius: 50%;
-       background: #ccc;
+       background: rgba(255,255,255,0.4);
        cursor: pointer;
        transition: background 0.3s;
     }
-    .dot.active { background: var(--primary); }
+    .dot.active { background: white; }
+    
+    @media (max-width: 768px) {
+      .anuncio-card { flex-direction: column; text-align: center; gap: 10px; padding: 0 30px; }
+      .anuncio-content { text-align: center; }
+      .emoji-anun { font-size: 2.5rem; }
+    }
   </style>
 </head>
 <body>
@@ -543,39 +540,20 @@
 
     </div>
 
-    <!-- Anuncios Container -->
-    <div class="anuncios-slider-container" id="anunciosContainer" style="display: none; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.1);">
+    
+    <!-- Anuncios Banner (Fixed Bottom) -->
+    <div class="site-banner" id="anunciosContainer" style="display: none;">
       <div class="anuncios-slider" id="anunciosSlider">
         <div class="anuncio-card loading">
-          <p>Cargando anuncios...</p>
+          <p style="color:white; margin:0; text-align:center; width:100%;">Cargando anuncios...</p>
         </div>
       </div>
       
-      <button class="slider-nav slider-prev" id="sliderPrev" title="Anterior" style="display: none;">❮</button>
-      <button class="slider-nav slider-next" id="sliderNext" title="Siguiente" style="display: none;">❯</button>
+      <button class="slider-nav slider-prev" id="sliderPrev" title="Anterior" style="display: none;">&#10094;</button>
+      <button class="slider-nav slider-next" id="sliderNext" title="Siguiente" style="display: none;">&#10095;</button>
       
       <div class="slider-dots" id="sliderDots"></div>
     </div>
-
-    <!-- Info Section -->
-    <div class="info-section">
-      <h3>✨ Fácil, Rápido y Seguro</h3>
-    </div>
-
-    <!-- Footer -->
-    <div class="footer">
-      <div class="footer-links">
-        <a href="stats/" class="footer-link">📊 Estadísticas</a>
-        <a href="admin/" class="footer-link">⚙️ Administración</a>
-      </div>
-      <p style="margin-top: 30px; opacity: 0.9; font-size: 1.1rem;">
-        🍔 Fast Flavors
-      </p>
-      <p style="margin-top: 15px; opacity: 0.8; font-size: 0.95rem;">
-        © 2026 Fast Flavors - Sistema Completo de Comedor Estudiantil
-      </p>
-    </div>
-
   </div>
 
   <!-- Scripts para anuncios -->
@@ -658,3 +636,10 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
