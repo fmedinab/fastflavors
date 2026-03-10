@@ -3,278 +3,444 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Sistema de reservas de comedor estudiantil - Reserva tu menú antes del receso">
-  <meta name="theme-color" content="#d62300">
-  <title>FAST Flavors - Reserva tu Menú</title>
-  
-  <!-- Favicon -->
-  <link rel="icon" href="favicon.png" type="image/png">
-  <link rel="shortcut icon" href="favicon.png" type="image/png">
-  
-  <!-- Estilos -->
-  <link rel="stylesheet" href="css/styles.css">
+  <meta name="description" content="Fast Flavors - Sistema completo de comedor y préstamos estudiantiles">
+  <meta name="theme-color" content="#D32F2F">
+  <title>Fast Flavors - Portal Principal</title>
+  <style>
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+      --dark: #212121;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      overflow-x: hidden;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 50px;
+      animation: fadeInDown 0.8s ease-out;
+    }
+
+    .logo {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      animation: bounce 2s infinite;
+    }
+
+    .brand {
+      font-size: 4rem;
+      font-weight: bold;
+      margin-bottom: 15px;
+      text-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    }
+
+    .brand-fast {
+      color: white;
+    }
+
+    .brand-flavors {
+      color: var(--accent);
+    }
+
+    .subtitle {
+      font-size: 1.5rem;
+      opacity: 0.95;
+      margin-bottom: 10px;
+    }
+
+    .tagline {
+      font-size: 1.1rem;
+      opacity: 0.85;
+    }
+
+    /* Cards Grid */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 35px;
+      margin-bottom: 50px;
+    }
+
+    .system-card {
+      background: white;
+      border-radius: 25px;
+      padding: 45px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .system-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--secondary), var(--accent));
+      transform: scaleX(0);
+      transition: transform 0.4s;
+    }
+
+    .system-card:hover {
+      transform: translateY(-15px) scale(1.02);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+
+    .system-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-icon {
+      font-size: 6rem;
+      margin-bottom: 25px;
+      display: inline-block;
+      transition: transform 0.4s;
+    }
+
+    .system-card:hover .card-icon {
+      transform: scale(1.2) rotate(10deg);
+    }
+
+    .card-title {
+      font-size: 2.2rem;
+      color: var(--primary);
+      margin-bottom: 20px;
+      font-weight: bold;
+    }
+
+    .card-description {
+      font-size: 1.1rem;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 25px;
+    }
+
+    .card-features {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-bottom: 25px;
+      align-items: center;
+    }
+
+    .feature-item {
+      display: inline-block;
+      background: linear-gradient(135deg, rgba(211, 47, 47, 0.1), rgba(255, 87, 34, 0.1));
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.95rem;
+      color: var(--primary-dark);
+      font-weight: 500;
+    }
+
+    .card-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 25px;
+      font-size: 1rem;
+      font-weight: bold;
+      box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+    }
+
+    /* Special card styles */
+    .system-card.reservas {
+      border-top: 6px solid #FF5722;
+    }
+
+    .system-card.prestamos {
+      border-top: 6px solid #D32F2F;
+    }
+
+    /* Info Section */
+    .info-section {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(15px);
+      border-radius: 20px;
+      padding: 40px;
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      animation: fadeInUp 1s ease-out;
+    }
+
+    .info-section h3 {
+      font-size: 2rem;
+      margin-bottom: 25px;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+
+    .feature-box {
+      background: rgba(255,255,255,0.2);
+      padding: 20px;
+      border-radius: 15px;
+      transition: all 0.3s;
+    }
+
+    .feature-box:hover {
+      background: rgba(255,255,255,0.3);
+      transform: translateY(-5px);
+    }
+
+    .feature-box-icon {
+      font-size: 2.5rem;
+      margin-bottom: 10px;
+    }
+
+    .feature-box-text {
+      font-size: 1.1rem;
+      font-weight: 500;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      color: white;
+      padding: 30px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .footer-link {
+      background: white;
+      color: var(--primary);
+      padding: 12px 25px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+    }
+
+    .footer-link:hover {
+      transform: scale(1.1);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+    }
+
+    /* Animations */
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: translateY(0);
+      }
+      50% {
+        transform: translateY(-10px);
+      }
+    }
+
+    .system-card {
+      animation: fadeInUp 0.8s ease-out;
+    }
+
+    .system-card:nth-child(1) {
+      animation-delay: 0.2s;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    .system-card:nth-child(2) {
+      animation-delay: 0.4s;
+      opacity: 0;
+      animation-fill-mode: forwards;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .brand {
+        font-size: 2.5rem;
+      }
+
+      .subtitle {
+        font-size: 1.2rem;
+      }
+
+      .systems-grid {
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      .system-card {
+        padding: 35px 25px;
+      }
+
+      .card-icon {
+        font-size: 4.5rem;
+      }
+
+      .card-title {
+        font-size: 1.8rem;
+      }
+
+      .features-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+      }
+    }
+  </style>
 </head>
 <body>
 
-  <!-- HEADER -->
-  <header class="header">
-    <div class="header-content">  
-      <div class="logo">
-        Fast <span>Flavors</span>
-      </div>
-      <div class="header-info">
-        <button id="btnTheme" class="btn-theme" aria-label="Cambiar tema">
-          <span class="theme-icon">🌙</span>
-        </button>
-        <span id="diaActual">📅 Cargando...</span>
-      </div>
-    </div>
-  </header>
-
-  <!-- ALERTA TURNO CERRADO -->
-  <div class="alerta-cerrada" id="alertaTurnoCerrado" style="display: none;">
-    ⚠️ Lo sentimos, ya no se aceptan reservas para este turno
-  </div>
-
-  <!-- SELECTOR DE TURNOS -->
-  <div class="turnos-container">
-    <div class="turnos">
-      <button class="btn-turno active" data-turno="MANANA">
-        <span class="turno-icon">🌅</span>
-        <div class="turno-text">
-          <strong>Mañana</strong>
-          <small>Receso 10:00 AM</small>
-        </div>
-      </button>
-      <button class="btn-turno" data-turno="TARDE">
-        <span class="turno-icon">🌇</span>
-        <div class="turno-text">
-          <strong>Tarde</strong>
-          <small>Receso 5:30 PM</small>
-        </div>
-      </button>
-    </div>
-  </div>
-
-  <!-- CONTENIDO PRINCIPAL -->
-  <div class="main-container">
+  <div class="container">
     
-    <!-- SECCIÓN MENÚ DEL DÍA -->
-    <section class="menu-section">
-      <h2 class="section-title">🍽️ Menú del Día</h2>
-      <div class="menu-container" id="menuContainer">
-        <!-- Los platos se cargan dinámicamente aquí -->
-        <div class="empty-state">
-          <div class="icon-empty">⏳</div>
-          <h3>Cargando menú...</h3>
-        </div>
-      </div>
-    </section>
-
-    <!-- SIDEBAR RESERVA -->
-    <aside class="reserva-sidebar">
-      <div class="reserva-header">
-        <h3 class="reserva-title">📝 Tu Reserva</h3>
-      </div>
-
-      <!-- Resumen del menú seleccionado -->
-      <div class="resumen-container">
-        <h4>Menú Seleccionado:</h4>
-        <div id="resumenReserva">
-          <div class="empty-resumen">
-            <i class="icon-empty">🍽️</i>
-            <p>Selecciona tu menú para continuar</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Total -->
-      <div class="total-reserva">
-        <span class="total-label">Total:</span>
-        <span class="total-amount" id="totalReserva">S/ 0.00</span>
-      </div>
-
-      <!-- TABS de Reserva vs Cancelar -->
-      <div class="reserva-tabs">
-        <button class="tab-btn active" data-tab="reservar">📝 Reservar</button>
-        <button class="tab-btn" data-tab="cancelar">❌ Cancelar</button>
-      </div>
-
-      <!-- TAB 1: Formulario de reserva -->
-      <form id="formReserva" class="tab-content active" data-tab="reservar">
-        <div class="form-group">
-          <label class="form-label required" for="codigoEstudiante">Código de Estudiante</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            id="codigoEstudiante" 
-            placeholder="Ej: 3, 5, 8"
-            required
-            maxlength="10"
-            autocomplete="off"
-          >
-          <small class="form-hint" id="codigoHint"></small>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="nombreEstudiante">Nombre Completo</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            id="nombreEstudiante" 
-            placeholder="Se completará automáticamente"
-            readonly
-            style="background-color: #f0f0f0; cursor: not-allowed;"
-          >
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="emailEstudiante">Email</label>
-          <input 
-            type="email" 
-            class="form-input" 
-            id="emailEstudiante" 
-            placeholder="Email del estudiante"
-          >
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="notasReserva">Notas adicionales</label>
-          <textarea 
-            class="form-input" 
-            id="notasReserva" 
-            placeholder="Ej: Sin ají, extra arroz..."
-            maxlength="200"
-          ></textarea>
-        </div>
-
-        <button type="submit" class="btn btn-primary btn-block" id="btnConfirmarReserva" disabled>
-          ✅ Confirmar Reserva
-        </button>
-      </form>
-
-      <!-- TAB 2: Formulario de cancelación -->
-      <form id="formCancelar" class="tab-content" data-tab="cancelar">
-        <div class="form-group">
-          <label class="form-label required" for="codigoCancelar">Código de Estudiante</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            id="codigoCancelar" 
-            placeholder="Ej: 3, 5, 8"
-            required
-            maxlength="10"
-            autocomplete="off"
-          >
-          <small class="form-hint" id="cancelarHint"></small>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="nombreCancelar">Nombre Completo</label>
-          <input 
-            type="text" 
-            class="form-input" 
-            id="nombreCancelar" 
-            placeholder="Se completará automáticamente"
-            readonly
-            style="background-color: #f0f0f0; cursor: not-allowed;"
-          >
-        </div>
-
-        <div id="reservacionEncontrada" style="display: none; margin-bottom: 15px; padding: 12px; background: #e8f4f8; border-left: 4px solid #3498db; border-radius: 4px;">
-          <strong>📋 Tu Reserva:</strong>
-          <div id="detalleReserva"></div>
-        </div>
-
-        <div id="reservacionNoEncontrada" style="display: none; margin-bottom: 15px; padding: 12px; background: #fadbd8; border-left: 4px solid #e74c3c; border-radius: 4px;">
-          <strong>⚠️ Sin reserva hoy</strong>
-          <p>No tienes una reserva para cancelar hoy.</p>
-        </div>
-
-        <button type="submit" class="btn btn-danger btn-block" id="btnConfirmarCancelacion" disabled style="display: none;">
-          ⚠️ Cancelar Reserva
-        </button>
-      </form>
-    </aside>
-
-  </div>
-
-  <!-- LOADER -->
-  <div class="loader" id="loader">
-    <div class="spinner"></div>
-  </div>
-
-  <!-- MODAL DE CONFIRMACIÓN -->
-  <div class="modal" id="modalConfirmacion">
-    <div class="modal-content" id="confirmacionContent">
-      <!-- Contenido dinámico -->
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">🏪</div>
+      <h1 class="brand">
+        <span class="brand-fast">Fast</span> 
+        <span class="brand-flavors">Flavors</span>
+      </h1>
+      <p class="subtitle">Sistema Completo de Comedor Estudiantil</p>
+      <p class="tagline">Reservas de Menú & Préstamos</p>
     </div>
-  </div>
 
-  <!-- SLIDER DE ANUNCIOS/PROMOCIONES (FOOTER) -->
-  <footer class="anuncios-slider-container">
-    <div class="anuncios-slider" id="anunciosSlider">
-      <!-- Los anuncios se cargan dinámicamente aquí -->
-      <div class="anuncio-card loading">
-        <div class="anuncio-spinner"></div>
-        <p>Cargando anuncios...</p>
+    <!-- Systems Grid -->
+    <div class="systems-grid">
+      
+      <!-- Sistema de Reservas -->
+      <a href="reservas.html" class="system-card reservas">
+        <div class="card-icon">🍽️</div>
+        <h2 class="card-title">Reserva tu Menú</h2>
+        <p class="card-description">
+          Sistema de reservas para el comedor estudiantil. Elige tu menú antes del receso.
+        </p>
+        <div class="card-features">
+          <span class="feature-item">📅 Turnos Mañana y Tarde</span>
+          <span class="feature-item">🍔 Menú del Día</span>
+          <span class="feature-item">⏰ Reserva Anticipada</span>
+        </div>
+        <span class="card-badge">🍽️ Ir a Reservas</span>
+      </a>
+
+      <!-- Sistema de Préstamos -->
+      <a href="loans.html" class="system-card prestamos">
+        <div class="card-icon">💰</div>
+        <h2 class="card-title">Sistema de Préstamos</h2>
+        <p class="card-description">
+          POS moderno para gestión de préstamos de productos a estudiantes.
+        </p>
+        <div class="card-features">
+          <span class="feature-item">🛒 POS Administrador</span>
+          <span class="feature-item">📦 20+ Productos</span>
+          <span class="feature-item">🎓 Vista Estudiantes</span>
+        </div>
+        <span class="card-badge">💳 Ir a Préstamos</span>
+      </a>
+
+    </div>
+
+    <!-- Info Section -->
+    <div class="info-section">
+      <h3>✨ Características del Sistema</h3>
+      <div class="features-grid">
+        <div class="feature-box">
+          <div class="feature-box-icon">☁️</div>
+          <div class="feature-box-text">Google Sheets</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-box-icon">📱</div>
+          <div class="feature-box-text">100% Responsive</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-box-icon">⚡</div>
+          <div class="feature-box-text">Tiempo Real</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-box-icon">🎨</div>
+          <div class="feature-box-text">Diseño Moderno</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-box-icon">🔒</div>
+          <div class="feature-box-text">Seguro</div>
+        </div>
+        <div class="feature-box">
+          <div class="feature-box-icon">📊</div>
+          <div class="feature-box-text">Reportes</div>
+        </div>
       </div>
     </div>
-    
-    <!-- Controles del slider -->
-    <button class="slider-nav slider-prev" id="sliderPrev" title="Anterior" style="display: none;">
-      ❮
-    </button>
-    <button class="slider-nav slider-next" id="sliderNext" title="Siguiente" style="display: none;">
-      ❯
-    </button>
-    
-    <!-- Indicadores (dots) -->
-    <div class="slider-dots" id="sliderDots"></div>
-  </footer>
 
-  <!-- Reproductor de Radio Flotante -->
-  <div id="radioPlayer" class="radio-player">
-    <button id="radioToggle" class="radio-toggle" title="Radio 538 - Electronic Music">
-      🎵
-    </button>
-    <audio id="radioStream" preload="none">
-      <source src="https://22593.live.streamtheworld.com/RADIO538.mp3" type="audio/mpeg">
-    </audio>
+    <!-- Footer -->
+    <div class="footer">
+      <div class="footer-links">
+        <a href="stats/" class="footer-link">📊 Estadísticas</a>
+        <a href="admin/manage.html" class="footer-link">📦 Gestión Productos</a>
+        <a href="SISTEMA_PRESTAMOS.md" class="footer-link">📖 Documentación</a>
+        <a href="https://docs.google.com/spreadsheets/d/1nl0hupwDw-yHVCC0skvqgY7bNpLS854TD7PvHbCTAiI" target="_blank" class="footer-link">📋 Google Sheets</a>
+      </div>
+      <p style="margin-top: 30px; opacity: 0.9; font-size: 1.1rem;">
+        🍔 Perfecto para kioskos escolares, cafeterías y comedores
+      </p>
+      <p style="margin-top: 15px; opacity: 0.8; font-size: 0.95rem;">
+        © 2026 Fast Flavors - Sistema desarrollado con ❤️
+      </p>
+    </div>
+
   </div>
-
-  <!-- Scripts -->
-  <script src="js/config.js"></script>
-  <script src="js/utils.js"></script>
-  <script src="js/api.js"></script>
-  <script src="js/app.js"></script>
-
-  <script>
-    // Mostrar día actual
-    document.getElementById('diaActual').textContent = `📅 ${Utils.getDiaSemana()}, ${Utils.getFechaHoy()}`;
-
-    // Radio Player
-    const radioToggle = document.getElementById('radioToggle');
-    const radioStream = document.getElementById('radioStream');
-    let isPlaying = false;
-
-    radioToggle.addEventListener('click', () => {
-      if (isPlaying) {
-        radioStream.pause();
-        radioToggle.textContent = '🎵';
-        radioToggle.style.animation = 'none';
-        isPlaying = false;
-      } else {
-        radioStream.play().catch(err => {
-          console.error('Error al reproducir radio:', err);
-          Utils.showToast('Error al cargar la radio', 'error');
-        });
-        radioToggle.textContent = '🔊';
-        radioToggle.style.animation = 'pulse 1.5s infinite';
-        isPlaying = true;
-      }
-    });
-  </script>
 
 </body>
 </html>
