@@ -601,6 +601,7 @@ class ComedorApp {
     if (!codigo) {
       nombreInput.value = '';
       emailInput.value = '';
+      nombreInput.readOnly = false;
       codigoHint.textContent = '';
       codigoHint.style.color = '#666';
       this.actualizarBotonConfirmar();
@@ -618,16 +619,19 @@ class ComedorApp {
         const estudiante = response.data;
         nombreInput.value = estudiante.nombre;
         emailInput.value = estudiante.email || '';
+        nombreInput.readOnly = true;
         codigoHint.textContent = `✅ Estudiante encontrado: ${estudiante.nombre}`;
         codigoHint.style.color = '#27ae60';
         console.log('✅ Datos autocompleted:', estudiante);
       } else {
-        // Código no válido
+        // Código no registrado - permitir ingreso manual
         nombreInput.value = '';
         emailInput.value = '';
-        codigoHint.textContent = `❌ ${response.message}`;
-        codigoHint.style.color = '#e74c3c';
-        console.error('❌ Estudiante no encontrado');
+        nombreInput.readOnly = false;
+        nombreInput.focus();
+        codigoHint.innerHTML = `⚠️ Código no registrado. <strong>Ingresa tu nombre para completar el registro.</strong>`;
+        codigoHint.style.color = '#f39c12';
+        console.log('⚠️ Estudiante no encontrado - permitiendo registro manual');
       }
       
       this.actualizarBotonConfirmar();
@@ -636,8 +640,9 @@ class ComedorApp {
       console.error('❌ Error al buscar estudiante:', error);
       nombreInput.value = '';
       emailInput.value = '';
-      codigoHint.textContent = '❌ Error al validar código';
-      codigoHint.style.color = '#e74c3c';
+      nombreInput.readOnly = false;
+      codigoHint.textContent = '⚠️ Error al validar código. Ingresa tu nombre manualmente.';
+      codigoHint.style.color = '#f39c12';
       this.actualizarBotonConfirmar();
     }
   }
@@ -708,19 +713,19 @@ class ComedorApp {
       suggestionsDiv.innerHTML = html;
       suggestionsDiv.classList.add('show');
     } else {
-      // No se encontraron resultados - no ocultar, mostrar mensaje informativo
+      // No se encontraron resultados - mensaje informativo
       suggestionsDiv.innerHTML = `
         <div class="search-suggestion-item" style="cursor: default; opacity: 0.7;">
           <div class="name" style="font-weight: normal;">ℹ️ No encontrado</div>
-          <div class="details">Puedes escribir el nombre manualmente</div>
+          <div class="details">Ingresa tu código y nombre para registrarte automáticamente</div>
         </div>
       `;
       suggestionsDiv.classList.add('show');
       
-      // Ocultar después de 2 segundos
+      // Ocultar después de 3 segundos
       setTimeout(() => {
         this.hideSearchSuggestions(mode);
-      }, 2000);
+      }, 3000);
     }
   }
 
@@ -750,6 +755,9 @@ class ComedorApp {
       document.getElementById('codigoEstudiante').value = student.codigo;
       document.getElementById('nombreEstudiante').value = student.nombre;
       document.getElementById('emailEstudiante').value = student.email || '';
+      
+      const nombreInput = document.getElementById('nombreEstudiante');
+      nombreInput.readOnly = true;
       
       const codigoHint = document.getElementById('codigoHint');
       codigoHint.textContent = `✅ Estudiante: ${student.nombre}`;
@@ -969,6 +977,7 @@ class ComedorApp {
     const formData = {
       turno: this.turnoActual,
       codigoEstudiante: document.getElementById('codigoEstudiante').value.trim(),
+      nombreEstudiante: document.getElementById('nombreEstudiante').value.trim(),
       email: document.getElementById('emailEstudiante').value.trim(),
       notas: document.getElementById('notasReserva').value.trim(),
       plato: platosNombres,
@@ -980,6 +989,11 @@ class ComedorApp {
 
     if (!formData.codigoEstudiante) {
       Utils.showToast('Por favor ingresa tu código de estudiante', 'error');
+      return;
+    }
+
+    if (!formData.nombreEstudiante) {
+      Utils.showToast('Por favor ingresa tu nombre completo', 'error');
       return;
     }
 
@@ -1004,8 +1018,8 @@ class ComedorApp {
         this.renderMenu(); // Re-renderizar para quitar selecciones visuales
         this.actualizarResumen();
       } else {
-        console.error('❌ Backend respondió con error:', response.mensaje);
-        Utils.showToast(response.mensaje || 'Error al crear reserva', 'error');
+        console.error('❌ Backend respondió con error:', response.message || response.mensaje);
+        Utils.showToast(response.message || response.mensaje || 'Error al crear reserva', 'error');
       }
 
     } catch (error) {
@@ -1137,6 +1151,16 @@ class ComedorApp {
     if (nombreInput) {
       nombreInput.addEventListener('input', () => {
         this.actualizarBotonConfirmar();
+      });
+      
+      // Permitir editar si el usuario quiere modificar el nombre autocompletado
+      nombreInput.addEventListener('focus', () => {
+        if (nombreInput.readOnly) {
+          const confirmar = confirm('¿Deseas editar el nombre? (Esto creará una nueva cuenta si cambias el nombre)');
+          if (confirmar) {
+            nombreInput.readOnly = false;
+          }
+        }
       });
     }
 
