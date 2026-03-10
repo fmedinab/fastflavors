@@ -696,6 +696,201 @@
       overflow-x: auto;
       margin-top: 10px;
     }
+
+    /* Student Registration Modal */
+    .student-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10001;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .student-modal.show {
+      display: flex;
+    }
+
+    .student-modal-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .student-modal-box h2 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+
+    .student-modal-box .subtitle {
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-group label .required {
+      color: var(--primary);
+      margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-group .hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .form-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+      font-size: 1rem;
+    }
+
+    .form-button.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .form-button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .form-button.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .form-button.secondary:hover {
+      background: #5a6268;
+    }
+
+    .form-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Search Suggestions */
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      margin-top: -10px;
+    }
+
+    .search-suggestions.show {
+      display: block;
+    }
+
+    .search-suggestion-item {
+      padding: 12px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+    }
+
+    .search-suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-suggestion-item:hover {
+      background: #f8f9fa;
+    }
+
+    .search-suggestion-item .name {
+      font-weight: bold;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .search-suggestion-item .details {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .search-suggestion-create {
+      padding: 15px;
+      background: #fff3cd;
+      border-top: 2px solid #ffc107;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .search-suggestion-create:hover {
+      background: #ffe69c;
+    }
+
+    .search-suggestion-create .icon {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .search-suggestion-create .text {
+      font-weight: bold;
+      color: #856404;
+    }
+
+    .search-section {
+      position: relative;
+    }
   </style>
 </head>
 <body>
@@ -758,6 +953,7 @@
             placeholder="🔍 Buscar estudiante (código o nombre)..."
             autocomplete="off"
           >
+          <div class="search-suggestions" id="searchSuggestions"></div>
         </div>
 
       <!-- Student Info -->
@@ -820,6 +1016,63 @@
         <button class="diagnostic-btn primary" onclick="runDiagnostic()">🔌 Probar Conexión</button>
         <button class="diagnostic-btn secondary" onclick="closeDiagnostic()">Cerrar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Student Registration Modal -->
+  <div class="student-modal" id="studentModal">
+    <div class="student-modal-box">
+      <h2>👤 Registrar Estudiante</h2>
+      <p class="subtitle">Complete los datos del nuevo estudiante</p>
+      
+      <form id="studentForm" onsubmit="saveStudent(event)">
+        <div class="form-group">
+          <label>Código <span class="required">*</span></label>
+          <input type="text" id="studentCodigo" required autocomplete="off">
+          <div class="hint">Código único del estudiante</div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre Completo <span class="required">*</span></label>
+          <input type="text" id="studentNombre" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Grado</label>
+          <input type="text" id="studentGrado" placeholder="Ej: 3ro" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Sección</label>
+          <input type="text" id="studentSeccion" placeholder="Ej: A" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Nivel Educativo</label>
+          <select id="studentEducacion">
+            <option value="">Seleccionar...</option>
+            <option value="Inicial">Inicial</option>
+            <option value="Primaria">Primaria</option>
+            <option value="Secundaria">Secundaria</option>
+            <option value="Superior">Superior</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="studentEmail" placeholder="estudiante@colegio.edu.pe" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="studentTelefono" placeholder="987654321" autocomplete="off">
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" class="form-button primary" id="saveStudentBtn">💾 Guardar Estudiante</button>
+          <button type="button" class="form-button secondary" onclick="closeStudentModal()">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1048,6 +1301,8 @@
     }
 
     // ========== STUDENT SEARCH ==========
+    let searchAbortController = null;
+
     document.addEventListener('DOMContentLoaded', () => {
       const searchInput = document.getElementById('studentSearch');
       let searchTimeout;
@@ -1057,14 +1312,94 @@
         const query = e.target.value.trim();
 
         if (query.length < 2) {
+          hideSearchSuggestions();
           return;
         }
 
         searchTimeout = setTimeout(() => {
-          searchStudent(query);
+          searchStudentRealtime(query);
         }, 300);
       });
+
+      // Close suggestions when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-section')) {
+          hideSearchSuggestions();
+        }
+      });
     });
+
+    async function searchStudentRealtime(query) {
+      // Cancel previous request
+      if (searchAbortController) {
+        searchAbortController.abort();
+      }
+      searchAbortController = new AbortController();
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=searchStudent&query=${encodeURIComponent(query)}`, {
+          signal: searchAbortController.signal
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          showSearchResults(data.data || data, query);
+        } else {
+          hideSearchSuggestions();
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('Error searching student:', error);
+          hideSearchSuggestions();
+        }
+      }
+    }
+
+    function showSearchResults(searchData, query) {
+      const suggestionsDiv = document.getElementById('searchSuggestions');
+      
+      if (searchData.found && searchData.results && searchData.results.length > 0) {
+        // Show found students
+        let html = '';
+        searchData.results.forEach(student => {
+          html += `
+            <div class="search-suggestion-item" onclick='selectStudentFromSearch(${JSON.stringify(student)})'>
+              <div class="name">${student.nombre}</div>
+              <div class="details">📝 ${student.codigo} | 🎓 ${student.grado || 'N/A'} - ${student.seccion || 'N/A'}</div>
+            </div>
+          `;
+        });
+        suggestionsDiv.innerHTML = html;
+        suggestionsDiv.classList.add('show');
+      } else if (!searchData.found && searchData.suggestion) {
+        // Show create new student option
+        const suggestion = searchData.suggestion;
+        suggestionsDiv.innerHTML = `
+          <div class="search-suggestion-create" onclick='openStudentModal("${query}")'>
+            <div class="icon">➕</div>
+            <div class="text">Crear Nuevo Estudiante</div>
+            <div class="details" style="font-size: 0.85rem; margin-top: 5px; color: #856404;">
+              "${suggestion.query}" no encontrado. Haz clic para registrar.
+            </div>
+          </div>
+        `;
+        suggestionsDiv.classList.add('show');
+      } else {
+        hideSearchSuggestions();
+      }
+    }
+
+    function hideSearchSuggestions() {
+      const suggestionsDiv = document.getElementById('searchSuggestions');
+      suggestionsDiv.classList.remove('show');
+      suggestionsDiv.innerHTML = '';
+    }
+
+    function selectStudentFromSearch(student) {
+      hideSearchSuggestions();
+      document.getElementById('studentSearch').value = student.nombre;
+      selectStudent(student);
+    }
 
     async function searchStudent(query) {
       const student = state.students.find(s => 
@@ -1098,11 +1433,102 @@
       const studentInfo = document.getElementById('studentInfo');
       document.getElementById('studentName').textContent = student.nombre;
       document.getElementById('studentCode').textContent = `📝 Código: ${student.codigo}`;
-      document.getElementById('studentGrade').textContent = `🎓 ${student.grado} - ${student.seccion}`;
+      
+      // Show grade/section or additional info if available
+      let gradeText = '';
+      if (student.grado && student.seccion) {
+        gradeText = `🎓 ${student.grado} - ${student.seccion}`;
+      } else if (student.nivel) {
+        gradeText = `🎓 ${student.nivel}`;
+      }
+      document.getElementById('studentGrade').textContent = gradeText;
+      
       document.getElementById('studentDeuda').textContent = `💰 Deuda total: S/ ${(student.deudaTotal || 0).toFixed(2)}`;
       studentInfo.style.display = 'block';
 
       updateCart();
+    }
+
+    // ========== STUDENT REGISTRATION MODAL ==========
+    function openStudentModal(searchQuery = '') {
+      const modal = document.getElementById('studentModal');
+      modal.classList.add('show');
+      
+      // Pre-fill code or name if search query exists
+      if (searchQuery) {
+        // Try to detect if it's a code (usually shorter) or name
+        if (searchQuery.length <= 10 && /^[A-Z0-9]+$/i.test(searchQuery)) {
+          document.getElementById('studentCodigo').value = searchQuery.toUpperCase();
+        } else {
+          document.getElementById('studentNombre').value = searchQuery;
+        }
+      }
+      
+      // Focus first empty field
+      setTimeout(() => {
+        const codigoInput = document.getElementById('studentCodigo');
+        const nombreInput = document.getElementById('studentNombre');
+        if (!codigoInput.value) {
+          codigoInput.focus();
+        } else if (!nombreInput.value) {
+          nombreInput.focus();
+        }
+      }, 100);
+    }
+
+    function closeStudentModal() {
+      const modal = document.getElementById('studentModal');
+      modal.classList.remove('show');
+      document.getElementById('studentForm').reset();
+    }
+
+    async function saveStudent(event) {
+      event.preventDefault();
+      
+      const saveBtn = document.getElementById('saveStudentBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Guardando...';
+      
+      const studentData = {
+        codigo: document.getElementById('studentCodigo').value.trim(),
+        nombre: document.getElementById('studentNombre').value.trim(),
+        grado: document.getElementById('studentGrado').value.trim(),
+        seccion: document.getElementById('studentSeccion').value.trim(),
+        educacion: document.getElementById('studentEducacion').value,
+        email: document.getElementById('studentEmail').value.trim(),
+        telefono: document.getElementById('studentTelefono').value.trim()
+      };
+
+      try {
+        const params = new URLSearchParams({
+          action: 'createStudent',
+          ...studentData
+        });
+
+        const response = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+          showSuccessModal('✅ Estudiante Registrado', `${studentData.nombre} ha sido registrado exitosamente.`);
+          closeStudentModal();
+          
+          // Reload students and select the new one
+          await loadStudents();
+          const newStudent = state.students.find(s => s.codigo === studentData.codigo);
+          if (newStudent) {
+            document.getElementById('studentSearch').value = newStudent.nombre;
+            selectStudent(newStudent);
+          }
+        } else {
+          alert('❌ Error: ' + (data.mensaje || data.error || 'No se pudo registrar el estudiante'));
+        }
+      } catch (error) {
+        console.error('Error saving student:', error);
+        alert('❌ Error de conexión al guardar estudiante');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Guardar Estudiante';
+      }
     }
 
     // ========== SUBMIT LOAN ==========
