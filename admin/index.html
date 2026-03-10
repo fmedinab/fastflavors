@@ -516,6 +516,55 @@
       background: var(--accent);
       transform: scale(1.05);
     }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      .container {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+      
+      .sidebar {
+        background: #2d2d2d;
+      }
+      
+      .sidebar-header h2 {
+        color: #e0e0e0;
+      }
+
+      .login-box, .modal-content, .cart-item, .product-card {
+        background: #2d2d2d;
+        color: #e0e0e0;
+      }
+
+      .filter-btn {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+
+      .filter-btn.active {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+        color: white;
+        border-color: var(--secondary);
+      }
+
+      .cart-item-info h4, .product-card h3, .products-header h1 {
+        color: #e0e0e0;
+      }
+
+      .search-input {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #444;
+      }
+
+      .pin-input input {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #555;
+      }
+    }
   </style>
 </head>
 <body>
