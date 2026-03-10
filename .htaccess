@@ -1,1 +1,17 @@
 
+# Remove .html extension from URLs
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /fastflavors/
+  
+  # Remove .html from URLs
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^([^\.]+)$ $1.html [NC,L]
+  
+  # Handle directory requests
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI} -d
+  RewriteRule ^(.*)/$ $1/index.html [L]
+  RewriteCond %{DOCUMENT_ROOT}%{REQUEST_URI}/index.html -f
+  RewriteRule ^(.+)/?$ $1/index.html [L]
+</IfModule>
