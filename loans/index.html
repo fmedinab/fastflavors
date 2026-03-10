@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Préstamos - Kiosko Fast Flavors</title>
+  <style>
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 900px;
+      width: 100%;
+    }
+
+    .header {
+      text-align: center;
+      color: white;
+      margin-bottom: 40px;
+    }
+
+    .header h1 {
+      font-size: 3rem;
+      margin-bottom: 10px;
+      text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+
+    .header p {
+      font-size: 1.3rem;
+      opacity: 0.95;
+    }
+
+    .logo {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      transition: all 0.3s;
+      cursor: pointer;
+      text-decoration: none;
+      color: inherit;
+      display: block;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+    }
+
+    .card-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+    }
+
+    .card h2 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 15px;
+    }
+
+    .card p {
+      font-size: 1.1rem;
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+    .card-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      padding: 8px 20px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+
+    .card.admin {
+      border-top: 5px solid #e74c3c;
+    }
+
+    .card.admin .card-badge {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    }
+
+    .card.student {
+      border-top: 5px solid var(--secondary);
+    }
+
+    .footer {
+      background: rgba(255,255,255,0.2);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      color: white;
+      text-align: center;
+    }
+
+    .footer h3 {
+      font-size: 1.5rem;
+      margin-bottom: 15px;
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .footer-link {
+      background: white;
+      color: var(--primary);
+      padding: 10px 20px;
+      border-radius: 10px;
+      text-decoration: none;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .footer-link:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(255,255,255,0.3);
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 20px;
+    }
+
+    .feature {
+      background: rgba(255,255,255,0.15);
+      padding: 15px;
+      border-radius: 10px;
+      font-size: 0.95rem;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .header p {
+        font-size: 1.1rem;
+      }
+
+      .cards-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+
+      .card {
+        padding: 30px;
+      }
+
+      .card-icon {
+        font-size: 4rem;
+      }
+
+      .card h2 {
+        font-size: 1.5rem;
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .card, .footer {
+      animation: fadeIn 0.6s ease-out;
+    }
+
+    .card:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+
+    .card:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+
+    .footer {
+      animation-delay: 0.3s;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <div class="header">
+      <a href="../" style="color: white; text-decoration: none; display: inline-block; margin-bottom: 20px; opacity: 0.9; transition: opacity 0.3s;" onmouseover="this.style.opacity=1" onmouseout="this.style.opacity=0.9">
+        🏠 Volver al Menú Principal
+      </a>
+      <div class="logo">🏪</div>
+      <h1>Fast Flavors - Sistema POS</h1>
+      <p>Sistema Moderno de Préstamos Estudiantiles</p>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="cards-grid">
+      
+      <!-- Admin Card -->
+      <a href="admin/" class="card admin">
+        <div class="card-icon">👨‍💼</div>
+        <h2>Administrador</h2>
+        <p>Punto de venta (POS) para registrar préstamos de productos a estudiantes</p>
+        <span class="card-badge">🔐 Requiere PIN</span>
+      </a>
+
+      <!-- Student Card -->
+      <a href="study/" class="card student">
+        <div class="card-icon">🎓</div>
+        <h2>Estudiantes</h2>
+        <p>Consulta tu historial de préstamos y deuda pendiente de forma fácil</p>
+        <span class="card-badge">📝 Solo código</span>
+      </a>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      <h3>✨ Características del Sistema</h3>
+      <div class="features">
+        <div class="feature">📦 20+ Productos</div>
+        <div class="feature">🎓 Gestión Estudiantes</div>
+        <div class="feature">💰 Control de Deuda</div>
+        <div class="feature">📊 Historial Detallado</div>
+        <div class="feature">📱 100% Responsive</div>
+        <div class="feature">☁️ Google Sheets</div>
+      </div>
+      <div class="footer-links">
+        <a href="../SISTEMA_PRESTAMOS.md" class="footer-link">📖 Documentación</a>
+      </div>
+      <p style="margin-top: 25px; opacity: 0.9;">
+        🍔 Perfecto para kioskos escolares, cafeterías y comedores
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
