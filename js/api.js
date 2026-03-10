@@ -87,6 +87,13 @@ class API {
   }
 
   /**
+   * Buscar estudiante por código o nombre (con autocompletado)
+   */
+  async searchStudent(query) {
+    return await this.get('searchStudent', { query });
+  }
+
+  /**
    * Buscar reserva para cancelar
    */
   async buscarReservaParaCancelar(codigo) {
