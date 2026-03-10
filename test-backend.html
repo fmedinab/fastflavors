@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Diagnóstico Backend - Fast Flavors</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #D32F2F 0%, #B71C1C 100%);
+      min-height: 100vh;
+      padding: 20px;
+      color: white;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      border-radius: 20px;
+      padding: 40px;
+      color: #333;
+    }
+
+    h1 {
+      color: #D32F2F;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 1.1rem;
+    }
+
+    .url-section {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .url-section label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #D32F2F;
+    }
+
+    .url-section input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 0.95rem;
+      font-family: 'Courier New', monospace;
+    }
+
+    .url-section .hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 8px;
+      line-height: 1.4;
+    }
+
+    .test-section {
+      margin-bottom: 30px;
+    }
+
+    .test-button {
+      background: #D32F2F;
+      color: white;
+      border: none;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-right: 10px;
+    }
+
+    .test-button:hover {
+      background: #B71C1C;
+      transform: scale(1.05);
+    }
+
+    .test-button.secondary {
+      background: #FF5722;
+    }
+
+    .test-button.secondary:hover {
+      background: #E64A19;
+    }
+
+    .test-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .result-box {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-top: 20px;
+      display: none;
+    }
+
+    .result-box.show {
+      display: block;
+    }
+
+    .result-box.success {
+      background: #d4edda;
+      border: 2px solid #28a745;
+    }
+
+    .result-box.error {
+      background: #f8d7da;
+      border: 2px solid #dc3545;
+    }
+
+    .result-box h3 {
+      margin-bottom: 15px;
+      font-size: 1.2rem;
+    }
+
+    .result-box.success h3 {
+      color: #155724;
+    }
+
+    .result-box.error h3 {
+      color: #721c24;
+    }
+
+    pre {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 15px;
+      border-radius: 8px;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .status-item {
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 8px;
+      background: white;
+      border-left: 4px solid #ccc;
+    }
+
+    .status-item.ok {
+      border-left-color: #28a745;
+    }
+
+    .status-item.error {
+      border-left-color: #dc3545;
+    }
+
+    .status-item.warning {
+      border-left-color: #ffc107;
+    }
+
+    .icon {
+      font-size: 1.5rem;
+      margin-right: 10px;
+    }
+
+    .instructions {
+      background: #fff3cd;
+      border: 2px solid #ffc107;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .instructions h3 {
+      color: #856404;
+      margin-bottom: 15px;
+    }
+
+    .instructions ol {
+      margin-left: 20px;
+      line-height: 1.8;
+    }
+
+    .instructions code {
+      background: #f8f9fa;
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: 'Courier New', monospace;
+      color: #D32F2F;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255,255,255,.3);
+      border-radius: 50%;
+      border-top-color: #D32F2F;
+      animation: spin 1s ease-in-out infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔧 Diagnóstico Backend - Fast Flavors</h1>
+    <p class="subtitle">Verifica la conexión con Google Apps Script y carga los datos iniciales</p>
+
+    <div class="instructions">
+      <h3>📋 Instrucciones:</h3>
+      <ol>
+        <li>Asegúrate de haber desplegado tu Google Apps Script como <strong>Web App</strong></li>
+        <li>Copia la URL de implementación que termina en <code>/exec</code></li>
+        <li>Pégala abajo y prueba la conexión</li>
+        <li>Si todo funciona, actualiza el archivo <code>js/config.js</code> con esta URL</li>
+      </ol>
+    </div>
+
+    <div class="url-section">
+      <label>🔗 URL de Google Apps Script:</label>
+      <input type="text" id="apiUrl" placeholder="https://script.google.com/macros/s/AKfycbx.../exec">
+      <div class="hint">
+        <strong>Nota:</strong> Esta URL debe ser la del deployment de tu Apps Script, 
+        NO la del editor. Debe terminar en <code>/exec</code>.
+      </div>
+    </div>
+
+    <div class="test-section">
+      <button class="test-button" onclick="testConnection()">
+        🔌 Probar Conexión
+      </button>
+      <button class="test-button secondary" onclick="testProducts()">
+        📦 Cargar Productos
+      </button>
+      <button class="test-button secondary" onclick="testStudents()">
+        👥 Cargar Estudiantes
+      </button>
+    </div>
+
+    <div id="results"></div>
+  </div>
+
+  <script>
+    // Cargar URL guardada del config.js si existe
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedUrl = 'https://script.google.com/macros/s/AKfycbx2VhrYcU5jgh-dB5chbvdhXdYjmWrWzWawMfAByPpnI_j7kT_b9bnYzb_Qq-_0n6UQ/exec';
+      if (savedUrl) {
+        document.getElementById('apiUrl').value = savedUrl;
+      }
+    });
+
+    async function testConnection() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      
+      if (!apiUrl) {
+        showResult('error', 'Por favor ingresa la URL del Apps Script');
+        return;
+      }
+
+      showResult('loading', 'Probando conexión...');
+
+      try {
+        const response = await fetch(`${apiUrl}?action=getConfiguracion`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showResult('success', '✅ Conexión exitosa', `
+            <div class="status-item ok">
+              <span class="icon">✅</span>
+              <strong>Backend conectado correctamente</strong>
+            </div>
+            <div class="status-item ok">
+              <span class="icon">📊</span>
+              Spreadsheet ID: ${data.spreadsheetId || 'Configurado'}
+            </div>
+            <div class="status-item ok">
+              <span class="icon">⏰</span>
+              Zona horaria: ${data.timezone || 'America/Lima'}
+            </div>
+            <p style="margin-top: 20px;"><strong>Respuesta completa:</strong></p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `);
+        } else {
+          showResult('error', '❌ Error en la respuesta', `
+            <div class="status-item error">
+              <span class="icon">❌</span>
+              El servidor respondió pero con error: ${data.message}
+            </div>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `);
+        }
+      } catch (error) {
+        showResult('error', '❌ Error de conexión', `
+          <div class="status-item error">
+            <span class="icon">❌</span>
+            <strong>No se puede conectar al backend</strong>
+          </div>
+          <div class="status-item warning">
+            <span class="icon">⚠️</span>
+            Error: ${error.message}
+          </div>
+          <div class="status-item warning">
+            <span class="icon">💡</span>
+            <strong>Posibles causas:</strong>
+            <ul style="margin-top: 10px; margin-left: 20px;">
+              <li>URL incorrecta</li>
+              <li>Apps Script no desplegado como Web App</li>
+              <li>Permisos no configurados (debe ser "Anyone")</li>
+              <li>Problema de CORS (la URL debe terminar en /exec)</li>
+            </ul>
+          </div>
+          <pre>${error.stack}</pre>
+        `);
+      }
+    }
+
+    async function testProducts() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      
+      if (!apiUrl) {
+        showResult('error', 'Por favor ingresa la URL del Apps Script primero');
+        return;
+      }
+
+      showResult('loading', 'Cargando productos...');
+
+      try {
+        const response = await fetch(`${apiUrl}?action=getProducts`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.products) {
+          const products = data.products;
+          
+          showResult('success', `✅ Productos cargados (${products.length})`, `
+            <div class="status-item ok">
+              <span class="icon">📦</span>
+              <strong>${products.length} productos encontrados</strong>
+            </div>
+            <div class="status-item ok">
+              <span class="icon">📋</span>
+              Categorías: ${[...new Set(products.map(p => p.category))].join(', ')}
+            </div>
+            <div class="status-item ok">
+              <span class="icon">💰</span>
+              Rango de precios: S/ ${Math.min(...products.map(p => p.price)).toFixed(2)} - S/ ${Math.max(...products.map(p => p.price)).toFixed(2)}
+            </div>
+            <p style="margin-top: 20px;"><strong>Primeros 5 productos:</strong></p>
+            <pre>${JSON.stringify(products.slice(0, 5), null, 2)}</pre>
+          `);
+        } else {
+          showResult('error', '❌ No se encontraron productos', `
+            <div class="status-item error">
+              <span class="icon">❌</span>
+              ${data.message || 'La respuesta no contiene productos'}
+            </div>
+            <p style="margin-top: 20px;"><strong>Respuesta:</strong></p>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `);
+        }
+      } catch (error) {
+        showResult('error', '❌ Error al cargar productos', `
+          <div class="status-item error">
+            <span class="icon">❌</span>
+            Error: ${error.message}
+          </div>
+          <pre>${error.stack}</pre>
+        `);
+      }
+    }
+
+    async function testStudents() {
+      const apiUrl = document.getElementById('apiUrl').value.trim();
+      
+      if (!apiUrl) {
+        showResult('error', 'Por favor ingresa la URL del Apps Script primero');
+        return;
+      }
+
+      showResult('loading', 'Cargando estudiantes...');
+
+      try {
+        const response = await fetch(`${apiUrl}?action=getStudents`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        if (data.success && data.students) {
+          const students = data.students;
+          
+          showResult('success', `✅ Estudiantes cargados (${students.length})`, `
+            <div class="status-item ok">
+              <span class="icon">👥</span>
+              <strong>${students.length} estudiantes encontrados</strong>
+            </div>
+            <div class="status-item ok">
+              <span class="icon">📚</span>
+              Niveles educativos: ${[...new Set(students.map(s => s.educacion))].join(', ')}
+            </div>
+            <p style="margin-top: 20px;"><strong>Primeros 5 estudiantes:</strong></p>
+            <pre>${JSON.stringify(students.slice(0, 5), null, 2)}</pre>
+          `);
+        } else {
+          showResult('error', '❌ No se encontraron estudiantes', `
+            <div class="status-item error">
+              <span class="icon">❌</span>
+              ${data.message || 'La respuesta no contiene estudiantes'}
+            </div>
+            <pre>${JSON.stringify(data, null, 2)}</pre>
+          `);
+        }
+      } catch (error) {
+        showResult('error', '❌ Error al cargar estudiantes', `
+          <div class="status-item error">
+            <span class="icon">❌</span>
+            Error: ${error.message}
+          </div>
+          <pre>${error.stack}</pre>
+        `);
+      }
+    }
+
+    function showResult(type, title, content = '') {
+      const resultsDiv = document.getElementById('results');
+      
+      if (type === 'loading') {
+        resultsDiv.innerHTML = `
+          <div class="result-box show">
+            <h3><span class="loading"></span> ${title}</h3>
+          </div>
+        `;
+        return;
+      }
+
+      const className = type === 'success' ? 'success' : 'error';
+      
+      resultsDiv.innerHTML = `
+        <div class="result-box ${className} show">
+          <h3>${title}</h3>
+          ${content}
+        </div>
+      `;
+    }
+  </script>
+</body>
+</html>
