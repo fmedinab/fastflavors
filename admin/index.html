@@ -979,7 +979,11 @@
       </div>
 
       <button class="submit-btn" id="submitBtn" onclick="submitLoan()" disabled>
-        Registrar Préstamo
+        💳 Registrar Préstamo
+      </button>
+      
+      <button class="submit-btn" id="payBtn" onclick="openPaymentModal()" disabled style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-top: 10px;">
+        💰 Registrar Pago
       </button>
       </div>
     </div>
@@ -1016,6 +1020,42 @@
         <button class="diagnostic-btn primary" onclick="runDiagnostic()">🔌 Probar Conexión</button>
         <button class="diagnostic-btn secondary" onclick="closeDiagnostic()">Cerrar</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="student-modal" id="paymentModal">
+    <div class="student-modal-box">
+      <h2>💰 Registrar Pago</h2>
+      <p class="subtitle">Ingrese el monto que el estudiante está pagando</p>
+      
+      <div id="paymentStudentInfo" style="background: #e8f5e9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 10px 0; color: #2e7d32;">👤 <span id="payStudentName">-</span></h3>
+        <p style="margin: 5px 0; color: #555;">📝 Código: <strong id="payStudentCode">-</strong></p>
+        <p style="margin: 5px 0; color: #d32f2f; font-size: 1.2rem;">💰 Deuda Total: <strong id="payStudentDebt">S/ 0.00</strong></p>
+      </div>
+      
+      <form id="paymentForm" onsubmit="submitPayment(event)">
+        <div class="form-group">
+          <label>Monto a Pagar <span class="required">*</span></label>
+          <input 
+            type="number" 
+            id="paymentAmount" 
+            required 
+            step="0.01" 
+            min="0.01" 
+            placeholder="0.00"
+            autocomplete="off"
+            style="font-size: 1.5rem; font-weight: bold;"
+          >
+          <div class="hint">💡 Puede ingresar el monto total o un pago parcial. El sistema pagará los productos uno por uno hasta que se agote el monto.</div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" class="form-button primary" id="savePaymentBtn">✅ Confirmar Pago</button>
+          <button type="button" class="form-button secondary" onclick="closePaymentModal()">Cancelar</button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -1276,29 +1316,44 @@
       const cartItems = document.getElementById('cartItems');
       const totalElement = document.getElementById('cartTotal');
       const submitBtn = document.getElementById('submitBtn');
+      const payBtn = document.getElementById('payBtn');
 
       if (state.cart.length === 0) {
         cartItems.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛒</div><p>Carrito vacío</p></div>';
         totalElement.textContent = '0.00';
         submitBtn.disabled = true;
-        return;
-      }
-
-      const total = state.cart.reduce((sum, item) => sum + item.price, 0);
-      
-      cartItems.innerHTML = state.cart.map(item => `
-        <div class="cart-item">
-          <div class="cart-item-info">
-            <h4>${item.emoji} ${item.name}</h4>
-            <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
+      } else {
+        const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+        
+        cartItems.innerHTML = state.cart.map(item => `
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <h4>${item.emoji} ${item.name}</h4>
+              <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
           </div>
-          <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
-        </div>
-      `).join('');
+        `).join('');
 
-      totalElement.textContent = total.toFixed(2);
-      submitBtn.disabled = !state.currentStudent || state.cart.length === 0;
+        totalElement.textContent = total.toFixed(2);
+        submitBtn.disabled = !state.currentStudent || state.cart.length === 0;
+      }
+      
+      // Actualizar botón de pago independientemente del carrito
+      if (payBtn && state.currentStudent) {
+        const deuda = state.currentStudent.deudaTotal || 0;
+        payBtn.disabled = deuda <= 0;
+        if (deuda > 0) {
+          payBtn.textContent = `💰 Pagar Deuda (S/ ${deuda.toFixed(2)})`;
+        } else {
+          payBtn.textContent = '💰 Sin Deuda';
+        }
+      } else if (payBtn) {
+        payBtn.disabled = true;
+        payBtn.textContent = '💰 Registrar Pago';
+      }
     }
+    
 
     // ========== STUDENT SEARCH ==========
     let searchAbortController = null;
@@ -1472,10 +1527,34 @@
       }
       document.getElementById('studentGrade').textContent = gradeText;
       
-      document.getElementById('studentDeuda').textContent = `💰 Deuda total: S/ ${(student.deudaTotal || 0).toFixed(2)}`;
+      // Mostrar deuda con color según el monto
+      const deuda = student.deudaTotal || 0;
+      const deudaElement = document.getElementById('studentDeuda');
+      deudaElement.textContent = `💰 Deuda total: S/ ${deuda.toFixed(2)}`;
+      
+      // Cambiar color según la deuda
+      if (deuda > 0) {
+        deudaElement.style.color = '#d32f2f';
+        deudaElement.style.fontWeight = 'bold';
+      } else {
+        deudaElement.style.color = '#27ae60';
+        deudaElement.style.fontWeight = 'normal';
+      }
+      
       studentInfo.style.display = 'block';
 
       updateCart();
+      
+      // Actualizar botón de pago según la deuda
+      const payBtn = document.getElementById('payBtn');
+      if (payBtn) {
+        payBtn.disabled = !student.deudaTotal || student.deudaTotal <= 0;
+        if (student.deudaTotal && student.deudaTotal > 0) {
+          payBtn.textContent = `💰 Pagar Deuda (S/ ${student.deudaTotal.toFixed(2)})`;
+        } else {
+          payBtn.textContent = '💰 Registrar Pago';
+        }
+      }
     }
 
     // ========== STUDENT REGISTRATION MODAL ==========
@@ -1616,7 +1695,123 @@
         alert('❌ Error al registrar préstamo: ' + error.message);
       } finally {
         submitBtn.disabled = false;
-        submitBtn.textContent = 'Registrar Préstamo';
+        submitBtn.textContent = '💳 Registrar Préstamo';
+      }
+    }
+
+    // ========== PAYMENT FUNCTIONS ==========
+    function openPaymentModal() {
+      if (!state.currentStudent) {
+        alert('⚠️ Primero selecciona un estudiante');
+        return;
+      }
+
+      const deuda = state.currentStudent.deudaTotal || 0;
+      
+      if (deuda <= 0) {
+        alert('✅ Este estudiante no tiene deudas pendientes');
+        return;
+      }
+
+      // Llenar información del modal
+      document.getElementById('payStudentName').textContent = state.currentStudent.nombre;
+      document.getElementById('payStudentCode').textContent = state.currentStudent.codigo;
+      document.getElementById('payStudentDebt').textContent = `S/ ${deuda.toFixed(2)}`;
+      
+      // Sugerir pagar el total
+      document.getElementById('paymentAmount').value = deuda.toFixed(2);
+      
+      // Mostrar modal
+      const modal = document.getElementById('paymentModal');
+      modal.classList.add('show');
+      
+      // Focus en el input
+      setTimeout(() => {
+        document.getElementById('paymentAmount').select();
+      }, 100);
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.classList.remove('show');
+      document.getElementById('paymentForm').reset();
+    }
+
+    async function submitPayment(event) {
+      event.preventDefault();
+      
+      const saveBtn = document.getElementById('savePaymentBtn');
+      const montoPago = parseFloat(document.getElementById('paymentAmount').value);
+      const deudaTotal = state.currentStudent.deudaTotal || 0;
+      
+      if (montoPago <= 0) {
+        alert('❌ El monto debe ser mayor a cero');
+        return;
+      }
+      
+      if (montoPago > deudaTotal) {
+        const confirmar = confirm(`⚠️ El monto (S/ ${montoPago.toFixed(2)}) es mayor que la deuda (S/ ${deudaTotal.toFixed(2)}).\n\n¿Deseas continuar?`);
+        if (!confirmar) return;
+      }
+      
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Procesando pago...';
+      
+      try {
+        const paymentData = {
+          codigoEstudiante: state.currentStudent.codigo,
+          montoPago: montoPago
+        };
+
+        console.log('💰 Enviando pago:', paymentData);
+
+        const formData = new FormData();
+        formData.append('action', 'registrarPago');
+        formData.append('data', JSON.stringify(paymentData));
+
+        const response = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        console.log('📥 Respuesta pago:', data);
+
+        if (data.success) {
+          const montoPagado = data.data?.montoPagado || montoPago;
+          const excedente = data.data?.excedente || 0;
+          const itemsPagados = data.data?.itemsPagados || 0;
+          
+          let mensaje = `✅ Pago registrado exitosamente\n\n`;
+          mensaje += `💰 Monto pagado: S/ ${montoPagado.toFixed(2)}\n`;
+          mensaje += `📦 Ítems pagados: ${itemsPagados}\n`;
+          
+          if (excedente > 0) {
+            mensaje += `\n💡 Excedente: S/ ${excedente.toFixed(2)}\n(La deuda ha sido pagada completamente)`;
+          }
+          
+          // Calcular nueva deuda
+          const nuevaDeuda = (state.currentStudent.deudaTotal || 0) - montoPagado;
+          if (nuevaDeuda > 0) {
+            mensaje += `\n\n⚠️ Deuda restante: S/ ${nuevaDeuda.toFixed(2)}`;
+          } else {
+            mensaje += `\n\n🎉 ¡Deuda saldada completamente!`;
+          }
+          
+          showSuccessModal('💰 Pago Registrado', mensaje);
+          closePaymentModal();
+          
+          // Recargar deuda del estudiante
+          await selectStudent(state.currentStudent);
+        } else {
+          alert('❌ Error: ' + (data.mensaje || data.message || 'No se pudo registrar el pago'));
+        }
+      } catch (error) {
+        console.error('Error submitting payment:', error);
+        alert('❌ Error al registrar pago: ' + error.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '✅ Confirmar Pago';
       }
     }
 
