@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Admin - Sistema de Préstamos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1400px;
+      width: 100%;
+      height: 90vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Login Screen */
+    .login-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .login-box h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+
+    .login-box .logo {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .login-box .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .login-box .brand-text {
+      color: var(--accent);
+    }
+
+    .pin-input {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+
+    .pin-input input {
+      width: 60px;
+      height: 70px;
+      font-size: 2rem;
+      text-align: center;
+      border: 3px solid #e0e0e0;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .pin-input input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      transform: scale(1.1);
+    }
+
+    .error-msg {
+      color: #e74c3c;
+      margin-top: 15px;
+      display: none;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 350px;
+      background: #f8f9fa;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+
+    .sidebar-brand h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-brand .brand-text {
+      color: var(--accent);
+    }
+
+    .sidebar-content {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-manage {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-manage:hover {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+      transform: scale(1.05);
+    }
+
+    .search-section {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .student-info {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .student-info h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .student-info p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin: 5px 0;
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .cart-item {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .cart-item-info h4 {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-price {
+      font-size: 1.1rem;
+      color: var(--secondary);
+      font-weight: bold;
+    }
+
+    .remove-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+
+    .remove-btn:hover {
+      background: #c0392b;
+      transform: rotate(90deg);
+    }
+
+    .cart-total {
+      background: #333;
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+    }
+
+    .cart-total h3 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    .cart-total-amount {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(255, 87, 34, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Products Section */
+    .products-section {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .products-header {
+      margin-bottom: 30px;
+    }
+
+    .products-header h1 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .products-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.95rem;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      border-color: var(--secondary);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: white;
+      border-radius: 15px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      border: 3px solid transparent;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(255, 87, 34, 0.3);
+      border-color: var(--secondary);
+    }
+
+    .product-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #D32F2F20 0%, #FF572220 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3rem;
+    }
+
+    .product-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .product-category {
+      font-size: 0.85rem;
+      color: #999;
+      margin-bottom: 10px;
+    }
+
+    .product-price {
+      font-size: 1.4rem;
+      color: var(--secondary);
+      font-weight: bold;
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 1.2rem;
+      color: #999;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 50px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 90vh;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-height: 50vh;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      .product-image {
+        height: 120px;
+      }
+    }
+
+    /* Success Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .modal-content h2 {
+      font-size: 1.8rem;
+      color: #27ae60;
+      margin-bottom: 15px;
+    }
+
+    .modal-content p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .modal-close-btn {
+      padding: 12px 30px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="logo">🏪</div>
+      <div class="brand">Fast <span class="brand-text">Flavors</span></div>
+      <h1>🔐 Admin POS</h1>
+      <p style="color: #666; margin-bottom: 20px;">Ingrese PIN de administrador</p>
+      <div class="pin-input">
+        <input type="password" maxlength="1" id="pin1" autocomplete="off">
+        <input type="password" maxlength="1" id="pin2" autocomplete="off">
+        <input type="password" maxlength="1" id="pin3" autocomplete="off">
+        <input type="password" maxlength="1" id="pin4" autocomplete="off">
+      </div>
+      <p class="error-msg" id="errorMsg">❌ PIN incorrecto</p>
+      <p style="color: #999; font-size: 0.9rem;">PIN por defecto: 1234</p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal" id="successModal">
+    <div class="modal-content">
+      <div class="modal-icon">✅</div>
+      <h2>¡Préstamo registrado!</h2>
+      <p id="successMessage"></p>
+      <button class="modal-close-btn" onclick="closeModal()">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container" style="display: none;" id="mainContainer">
+    
+    <!-- Sidebar (Cart) -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <h1>Fast <span class="brand-text">Flavors</span></h1>
+        <p style="font-size: 0.9rem; opacity: 0.9;">Sistema POS</p>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="sidebar-header">
+          <h2>🛒 Carrito</h2>
+          <div class="header-buttons">
+            <a href="manage.html" class="btn-manage" title="Gestionar Productos">📦</a>
+            <button class="logout-btn" onclick="logout()">🚪</button>
+          </div>
+        </div>
+
+        <!-- Student Search -->
+        <div class="search-section">
+          <input 
+            type="text" 
+            class="search-input" 
+            id="studentSearch" 
+            placeholder="🔍 Buscar estudiante (código o nombre)..."
+            autocomplete="off"
+          >
+        </div>
+
+      <!-- Student Info -->
+      <div class="student-info" id="studentInfo" style="display: none;">
+        <h3 id="studentName">Estudiante</h3>
+        <p id="studentCode"></p>
+        <p id="studentGrade"></p>
+        <p id="studentDeuda" style="font-size: 1.1rem; margin-top: 10px;">💰 Deuda total: S/ 0.00</p>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="cart-items" id="cartItems">
+        <div class="empty-state">
+          <div class="empty-state-icon">🛒</div>
+          <p>Carrito vacío</p>
+        </div>
+      </div>
+
+      <!-- Cart Total -->
+      <div class="cart-total">
+        <h3>TOTAL A PRESTAR</h3>
+        <div class="cart-total-amount">S/ <span id="cartTotal">0.00</span></div>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitLoan()" disabled>
+        Registrar Préstamo
+      </button>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="products-section">
+      <div class="products-header">
+        <h1>📦 Productos Disponibles</h1>
+        <div class="products-filter" id="productsFilter">
+          <button class="filter-btn active" data-category="all">Todos</button>
+        </div>
+      </div>
+      <div class="products-grid" id="productsGrid">
+        <div class="loading">⏳ Cargando productos...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    // Estado global
+    const state = {
+      currentStudent: null,
+      cart: [],
+      products: [],
+      students: []
+    };
+
+    const ADMIN_PIN = '1234'; // Cambiar según necesidad
+
+    // ========== LOGIN ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      setupPinInput();
+    });
+
+    function setupPinInput() {
+      const inputs = [
+        document.getElementById('pin1'),
+        document.getElementById('pin2'),
+        document.getElementById('pin3'),
+        document.getElementById('pin4')
+      ];
+
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < 3) {
+            inputs[index + 1].focus();
+          }
+          
+          if (index === 3 && e.target.value.length === 1) {
+            checkPin();
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
+      });
+
+      inputs[0].focus();
+    }
+
+    function checkPin() {
+      const pin = Array.from(document.querySelectorAll('.pin-input input'))
+        .map(input => input.value)
+        .join('');
+
+      if (pin === ADMIN_PIN) {
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('mainContainer').style.display = 'flex';
+        loadData();
+      } else {
+        document.getElementById('errorMsg').style.display = 'block';
+        setTimeout(() => {
+          document.querySelectorAll('.pin-input input').forEach(input => input.value = '');
+          document.getElementById('pin1').focus();
+          document.getElementById('errorMsg').style.display = 'none';
+        }, 2000);
+      }
+    }
+
+    function logout() {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('mainContainer').style.display = 'none';
+      document.querySelectorAll('.pin-input input').forEach(input => input.value = '');
+      document.getElementById('pin1').focus();
+      state.currentStudent = null;
+      state.cart = [];
+      updateCart();
+    }
+
+    // ========== DATA LOADING ==========
+    async function loadData() {
+      try {
+        await Promise.all([
+          loadProducts(),
+          loadStudents()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Error al cargar datos. Verifica la conexión.');
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getProducts`);
+        const data = await response.json();
+        
+        if (data.success) {
+          state.products = data.products;
+          renderProducts(state.products);
+          renderCategories(state.products);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        document.getElementById('productsGrid').innerHTML = 
+          '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error al cargar productos</p></div>';
+      }
+    }
+
+    async function loadStudents() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudents`);
+        const data = await response.json();
+        
+        if (data.success) {
+          state.students = data.students;
+        }
+      } catch (error) {
+        console.error('Error loading students:', error);
+      }
+    }
+
+    // ========== RENDERING ==========
+    function renderProducts(products) {
+      const grid = document.getElementById('productsGrid');
+      
+      if (products.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>No hay productos disponibles</p></div>';
+        return;
+      }
+
+      grid.innerHTML = products.map(product => `
+        <div class="product-card" onclick="addToCart(${product.id})">
+          <div class="product-image">${product.emoji || '📦'}</div>
+          <div class="product-name">${product.name}</div>
+          <div class="product-category">${product.category}</div>
+          <div class="product-price">S/ ${product.price.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderCategories(products) {
+      const categories = ['all', ...new Set(products.map(p => p.category))];
+      const filterContainer = document.getElementById('productsFilter');
+      
+      filterContainer.innerHTML = categories.map(cat => `
+        <button class="filter-btn ${cat === 'all' ? 'active' : ''}" 
+                onclick="filterProducts('${cat}')" 
+                data-category="${cat}">
+          ${cat === 'all' ? 'Todos' : cat}
+        </button>
+      `).join('');
+    }
+
+    function filterProducts(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === category);
+      });
+
+      const filtered = category === 'all' 
+        ? state.products 
+        : state.products.filter(p => p.category === category);
+      
+      renderProducts(filtered);
+    }
+
+    // ========== CART MANAGEMENT ==========
+    function addToCart(productId) {
+      if (!state.currentStudent) {
+        alert('⚠️ Primero selecciona un estudiante');
+        document.getElementById('studentSearch').focus();
+        return;
+      }
+
+      const product = state.products.find(p => p.id === productId);
+      if (product) {
+        state.cart.push({
+          id: Date.now(),
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          emoji: product.emoji
+        });
+        updateCart();
+      }
+    }
+
+    function removeFromCart(cartId) {
+      state.cart = state.cart.filter(item => item.id !== cartId);
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cartItems');
+      const totalElement = document.getElementById('cartTotal');
+      const submitBtn = document.getElementById('submitBtn');
+
+      if (state.cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛒</div><p>Carrito vacío</p></div>';
+        totalElement.textContent = '0.00';
+        submitBtn.disabled = true;
+        return;
+      }
+
+      const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+      
+      cartItems.innerHTML = state.cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-info">
+            <h4>${item.emoji} ${item.name}</h4>
+            <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
+          </div>
+          <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
+        </div>
+      `).join('');
+
+      totalElement.textContent = total.toFixed(2);
+      submitBtn.disabled = !state.currentStudent || state.cart.length === 0;
+    }
+
+    // ========== STUDENT SEARCH ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('studentSearch');
+      let searchTimeout;
+
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          searchStudent(query);
+        }, 300);
+      });
+    });
+
+    async function searchStudent(query) {
+      const student = state.students.find(s => 
+        s.codigo.toLowerCase().includes(query.toLowerCase()) ||
+        s.nombre.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (student) {
+        selectStudent(student);
+      }
+    }
+
+    async function selectStudent(student) {
+      state.currentStudent = student;
+      
+      // Get student debt
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudentDebt&studentCode=${student.codigo}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          student.deudaTotal = data.totalDebt;
+        }
+      } catch (error) {
+        console.error('Error getting student debt:', error);
+      }
+
+      const studentInfo = document.getElementById('studentInfo');
+      document.getElementById('studentName').textContent = student.nombre;
+      document.getElementById('studentCode').textContent = `📝 Código: ${student.codigo}`;
+      document.getElementById('studentGrade').textContent = `🎓 ${student.grado} - ${student.seccion}`;
+      document.getElementById('studentDeuda').textContent = `💰 Deuda total: S/ ${(student.deudaTotal || 0).toFixed(2)}`;
+      studentInfo.style.display = 'block';
+
+      updateCart();
+    }
+
+    // ========== SUBMIT LOAN ==========
+    async function submitLoan() {
+      if (!state.currentStudent || state.cart.length === 0) {
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Procesando...';
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=createLoan`, {
+          method: 'POST',
+          body: JSON.stringify({
+            studentCode: state.currentStudent.codigo,
+            items: state.cart.map(item => ({
+              productId: item.productId,
+              name: item.name,
+              price: item.price
+            })),
+            total: state.cart.reduce((sum, item) => sum + item.price, 0)
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          showSuccessModal(`Préstamo de S/ ${data.total.toFixed(2)} registrado para ${state.currentStudent.nombre}`);
+          
+          // Reset
+          state.cart = [];
+          updateCart();
+          
+          // Reload student debt
+          if (state.currentStudent) {
+            selectStudent(state.currentStudent);
+          }
+        } else {
+          alert('❌ Error: ' + (data.message || 'No se pudo registrar el préstamo'));
+        }
+      } catch (error) {
+        console.error('Error submitting loan:', error);
+        alert('❌ Error al registrar préstamo');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = 'Registrar Préstamo';
+      }
+    }
+
+    function showSuccessModal(message) {
+      document.getElementById('successMessage').textContent = message;
+      document.getElementById('successModal').style.display = 'flex';
+    }
+
+    function closeModal() {
+      document.getElementById('successModal').style.display = 'none';
+    }
+  </script>
+
+</body>
+</html>
