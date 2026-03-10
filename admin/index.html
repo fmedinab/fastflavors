@@ -1542,23 +1542,34 @@
       submitBtn.textContent = '⏳ Procesando...';
 
       try {
-        const response = await fetch(`${CONFIG.API_URL}?action=createLoan`, {
+        const loanData = {
+          studentCode: state.currentStudent.codigo,
+          items: state.cart.map(item => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price
+          })),
+          total: state.cart.reduce((sum, item) => sum + item.price, 0)
+        };
+
+        console.log('📤 Enviando préstamo:', loanData);
+
+        // Crear FormData con el JSON como parámetro
+        const formData = new FormData();
+        formData.append('action', 'createLoan');
+        formData.append('data', JSON.stringify(loanData));
+
+        const response = await fetch(CONFIG.API_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            studentCode: state.currentStudent.codigo,
-            items: state.cart.map(item => ({
-              productId: item.productId,
-              name: item.name,
-              price: item.price
-            })),
-            total: state.cart.reduce((sum, item) => sum + item.price, 0)
-          })
+          body: formData
         });
 
         const data = await response.json();
+        console.log('📥 Respuesta préstamo:', data);
 
         if (data.success) {
-          showSuccessModal(`Préstamo de S/ ${data.total.toFixed(2)} registrado para ${state.currentStudent.nombre}`);
+          const total = data.data?.total || loanData.total;
+          showSuccessModal('✅ Préstamo Registrado', `Préstamo de S/ ${total.toFixed(2)} registrado para ${state.currentStudent.nombre}`);
           
           // Reset
           state.cart = [];
@@ -1569,20 +1580,29 @@
             selectStudent(state.currentStudent);
           }
         } else {
-          alert('❌ Error: ' + (data.message || 'No se pudo registrar el préstamo'));
+          alert('❌ Error: ' + (data.mensaje || data.message || 'No se pudo registrar el préstamo'));
         }
       } catch (error) {
         console.error('Error submitting loan:', error);
-        alert('❌ Error al registrar préstamo');
+        alert('❌ Error al registrar préstamo: ' + error.message);
       } finally {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Registrar Préstamo';
       }
     }
 
-    function showSuccessModal(message) {
-      document.getElementById('successMessage').textContent = message;
-      document.getElementById('successModal').style.display = 'flex';
+    function showSuccessModal(title, message) {
+      const modal = document.getElementById('successModal');
+      const messageEl = document.getElementById('successMessage');
+      
+      // If message element supports title, update it
+      if (messageEl) {
+        messageEl.textContent = message || title;
+      }
+      
+      if (modal) {
+        modal.style.display = 'flex';
+      }
     }
 
     function closeModal() {
