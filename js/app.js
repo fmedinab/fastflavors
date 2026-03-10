@@ -57,16 +57,14 @@ class ComedorApp {
    */
   async init() {
     console.log('🚀 Inicializando aplicación...');
-
-        // Cargar anuncios dinámicos
-    await this.cargarAnuncios();
     
     if (!Utils.esDiaHabil()) {
       this.mostrarAlertaFinDeSemana();
       return;
     }
 
-
+    // Cargar anuncios dinámicos
+    await this.cargarAnuncios();
 
     this.setupEventListeners();
     await this.verificarDisponibilidadTurnos();
@@ -1205,4 +1203,3 @@ let app;
 document.addEventListener('DOMContentLoaded', () => {
   app = new ComedorApp();
 });
-
