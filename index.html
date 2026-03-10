@@ -406,7 +406,7 @@
       box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
       z-index: 1000;
       overflow: hidden;
-      padding: 10px 0;
+      padding: 0;
       border-top: 5px solid var(--primary);
     }
     .anuncios-slider {
@@ -467,12 +467,7 @@
     .slider-nav:hover { background: #ff3300; transform: translateY(-50%) scale(1.1); }
     .slider-prev { left: 15px; }
     .slider-next { right: 15px; }
-    .slider-dots {
-       display: flex;
-       justify-content: center;
-       gap: 6px;
-       margin-top: 5px;
-    }
+    .slider-dots { position: absolute; bottom: 10px; width: 100%; display: flex; justify-content: center; gap: 6px; z-index: 20; }
     .dot {
        width: 8px;
        height: 8px;
@@ -636,6 +631,8 @@
   </script>
 </body>
 </html>
+
+
 
 
 
