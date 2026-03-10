@@ -659,6 +659,118 @@ class ComedorApp {
   }
 
   /**
+   * Búsqueda de estudiante en tiempo real
+   */
+  async searchStudentRealtime(query, mode = 'reservar') {
+    try {
+      console.log(`🔍 Buscando estudiante: "${query}" (modo: ${mode})`);
+      
+      const response = await api.request('searchStudent', { query: query });
+      
+      console.log('📥 Respuesta búsqueda:', response);
+      
+      if (response.success && response.data) {
+        this.showSearchResults(response.data, query, mode);
+      } else {
+        this.hideSearchSuggestions(mode);
+      }
+    } catch (error) {
+      console.error('❌ Error buscando estudiante:', error);
+      this.hideSearchSuggestions(mode);
+    }
+  }
+
+  /**
+   * Mostrar resultados de búsqueda
+   */
+  showSearchResults(searchData, query, mode = 'reservar') {
+    const suggestionsId = mode === 'reservar' ? 'searchSuggestions' : 'searchSuggestionsCancelar';
+    const suggestionsDiv = document.getElementById(suggestionsId);
+    
+    if (!suggestionsDiv) return;
+    
+    // Compatibilidad con diferentes estructuras de respuesta
+    const students = searchData.students || searchData.results || [];
+    const found = searchData.found !== false && students.length > 0;
+    
+    if (found) {
+      // Mostrar estudiantes encontrados
+      let html = '';
+      students.forEach(student => {
+        const studentJson = JSON.stringify(student).replace(/'/g, '\\\'');
+        html += `
+          <div class="search-suggestion-item" onclick='app.selectStudentFromSearch(${studentJson}, "${mode}")'>
+            <div class="name">${student.nombre}</div>
+            <div class="details">📝 ${student.codigo} | 🎓 ${student.grado || 'N/A'} - ${student.seccion || 'N/A'}</div>
+          </div>
+        `;
+      });
+      suggestionsDiv.innerHTML = html;
+      suggestionsDiv.classList.add('show');
+    } else {
+      // No se encontraron resultados - no ocultar, mostrar mensaje informativo
+      suggestionsDiv.innerHTML = `
+        <div class="search-suggestion-item" style="cursor: default; opacity: 0.7;">
+          <div class="name" style="font-weight: normal;">ℹ️ No encontrado</div>
+          <div class="details">Puedes escribir el nombre manualmente</div>
+        </div>
+      `;
+      suggestionsDiv.classList.add('show');
+      
+      // Ocultar después de 2 segundos
+      setTimeout(() => {
+        this.hideSearchSuggestions(mode);
+      }, 2000);
+    }
+  }
+
+  /**
+   * Ocultar sugerencias de búsqueda
+   */
+  hideSearchSuggestions(mode = 'reservar') {
+    const suggestionsId = mode === 'reservar' ? 'searchSuggestions' : 'searchSuggestionsCancelar';
+    const suggestionsDiv = document.getElementById(suggestionsId);
+    
+    if (suggestionsDiv) {
+      suggestionsDiv.classList.remove('show');
+      suggestionsDiv.innerHTML = '';
+    }
+  }
+
+  /**
+   * Seleccionar estudiante desde las sugerencias
+   */
+  async selectStudentFromSearch(student, mode = 'reservar') {
+    console.log('✅ Estudiante seleccionado:', student, 'Modo:', mode);
+    
+    this.hideSearchSuggestions(mode);
+    
+    if (mode === 'reservar') {
+      // Rellenar campos de reserva
+      document.getElementById('codigoEstudiante').value = student.codigo;
+      document.getElementById('nombreEstudiante').value = student.nombre;
+      document.getElementById('emailEstudiante').value = student.email || '';
+      
+      const codigoHint = document.getElementById('codigoHint');
+      codigoHint.textContent = `✅ Estudiante: ${student.nombre}`;
+      codigoHint.style.color = '#27ae60';
+      
+      this.actualizarBotonConfirmar();
+    } else {
+      // Rellenar campos de cancelación
+      document.getElementById('codigoCancelar').value = student.codigo;
+      document.getElementById('nombreCancelar').value = student.nombre;
+      
+      const cancelarHint = document.getElementById('cancelarHint');
+      cancelarHint.textContent = `✅ Estudiante: ${student.nombre}`;
+      cancelarHint.style.color = '#27ae60';
+      
+      // Buscar la reserva de este estudiante
+      await this.buscarReservaParaCancelar();
+    }
+  }
+
+  /**
    * Cambiar entre tabs (Reservar vs Cancelar)
    */
   cambiarTab(tabName) {
@@ -992,19 +1104,76 @@ class ComedorApp {
       });
     });
 
-    // Buscar estudiante cuando completa el código (RESERVAR)
+    // Búsqueda en tiempo real para RESERVAR
     const codigoInput = document.getElementById('codigoEstudiante');
     if (codigoInput) {
-      codigoInput.addEventListener('blur', () => this.buscarEstudiantePorCodigo());
-      codigoInput.addEventListener('change', () => this.buscarEstudiantePorCodigo());
+      let searchTimeout;
+      codigoInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        // Actualizar botón siempre que cambie el input
+        this.actualizarBotonConfirmar();
+
+        if (query.length < 2) {
+          this.hideSearchSuggestions();
+          // Limpiar campos si está vacío
+          if (query.length === 0) {
+            document.getElementById('nombreEstudiante').value = '';
+            document.getElementById('emailEstudiante').value = '';
+            document.getElementById('codigoHint').textContent = '';
+          }
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          this.searchStudentRealtime(query, 'reservar');
+        }, 300);
+      });
     }
 
-    // Buscar reserva para cancelar cuando completa el código (CANCELAR)
+    // Listener para campo de nombre (permite entrada manual)
+    const nombreInput = document.getElementById('nombreEstudiante');
+    if (nombreInput) {
+      nombreInput.addEventListener('input', () => {
+        this.actualizarBotonConfirmar();
+      });
+    }
+
+    // Búsqueda en tiempo real para CANCELAR
     const codigoCancelarInput = document.getElementById('codigoCancelar');
     if (codigoCancelarInput) {
-      codigoCancelarInput.addEventListener('blur', () => this.buscarReservaParaCancelar());
-      codigoCancelarInput.addEventListener('change', () => this.buscarReservaParaCancelar());
+      let searchTimeoutCancelar;
+      codigoCancelarInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeoutCancelar);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+          this.hideSearchSuggestions('cancelar');
+          // Limpiar campos si está vacío
+          if (query.length === 0) {
+            document.getElementById('nombreCancelar').value = '';
+            document.getElementById('cancelarHint').textContent = '';
+            document.getElementById('reservacionEncontrada').style.display = 'none';
+            document.getElementById('reservacionNoEncontrada').style.display = 'none';
+            document.getElementById('btnConfirmarCancelacion').style.display = 'none';
+          }
+          return;
+        }
+
+        searchTimeoutCancelar = setTimeout(() => {
+          this.searchStudentRealtime(query, 'cancelar');
+        }, 300);
+      });
     }
+
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.search-section')) {
+        this.hideSearchSuggestions();
+        this.hideSearchSuggestions('cancelar');
+      }
+    });
 
     // Formulario de cancelación
     const formCancelar = document.getElementById('formCancelar');
