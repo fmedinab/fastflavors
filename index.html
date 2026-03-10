@@ -24,7 +24,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      background: #1a1a1a;
       color: white;
       min-height: 100vh;
       display: flex;
@@ -53,8 +53,6 @@
       margin-bottom: 10px;
       animation: fadeInDown 1s ease-out;
       border-radius: 20px;
-      /* If logo has white bg this helps blend it */
-      mix-blend-mode: multiply;
       display: block;
       margin-left: auto;
       margin-right: auto;
@@ -65,7 +63,7 @@
       opacity: 0.9;
       margin-bottom: 5px;
       font-weight: 600;
-      color: var(--primary);
+      color: #e0e0e0;
     }
 
     .tagline {
@@ -83,7 +81,8 @@
     }
 
     .system-card {
-      background: white;
+      background: #2d2d2d;
+      color: #e0e0e0;
       border-radius: 25px;
       padding: 45px;
       text-align: center;
@@ -99,7 +98,7 @@
 
     @media (prefers-color-scheme: dark) {
       .system-card {
-        background: #333333;
+        background: #2d2d2d;
         color: #e0e0e0;
       }
 
@@ -118,7 +117,7 @@
     }
 
     [data-theme="dark"] .system-card {
-      background: #333333;
+      background: #2d2d2d;
       color: #e0e0e0;
     }
 
@@ -169,14 +168,14 @@
 
     .card-title {
       font-size: 2.2rem;
-      color: var(--primary);
+      color: #FF7043;
       margin-bottom: 20px;
       font-weight: bold;
     }
 
     .card-description {
       font-size: 1.1rem;
-      color: #555;
+      color: #b0b0b0;
       line-height: 1.7;
       margin-bottom: 25px;
     }
@@ -191,11 +190,11 @@
 
     .feature-item {
       display: inline-block;
-      background: linear-gradient(135deg, rgba(211, 47, 47, 0.1), rgba(255, 87, 34, 0.1));
+      background: linear-gradient(135deg, rgba(255, 112, 67, 0.2), rgba(255, 152, 0, 0.2));
       padding: 8px 18px;
       border-radius: 20px;
       font-size: 0.95rem;
-      color: var(--primary-dark);
+      color: #FF7043;
       font-weight: 500;
     }
 
@@ -283,13 +282,8 @@
       .header, .subtitle, .tagline, .footer {
         color: #e0e0e0;
       }
-      .logo-img {
-        mix-blend-mode: normal;
-        background: white;
-        padding: 15px;
-      }
       .info-section {
-        background: #333333;
+        background: #2d2d2d;
         color: #e0e0e0;
       }
     }
@@ -304,13 +298,9 @@
     [data-theme="dark"] .footer {
       color: #e0e0e0;
     }
-    [data-theme="dark"] .logo-img {
-      mix-blend-mode: normal;
-      background: white;
-      padding: 15px;
-    }
+    [data-theme="dark"]
     [data-theme="dark"] .info-section {
-      background: #333333;
+      background: #2d2d2d;
       color: #e0e0e0;
     }
 
@@ -402,12 +392,12 @@
       bottom: 0;
       left: 0;
       width: 100%;
-      
-      box-shadow: 0 -4px 15px rgba(0,0,0,0.4);
+      background: #1e1e1e;
+      box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
       z-index: 1000;
       overflow: hidden;
       padding: 0;
-      border-top: 5px solid var(--primary);
+      border-top: 3px solid var(--primary);
     }
     .anuncios-slider {
       display: flex;
@@ -631,6 +621,13 @@
   </script>
 </body>
 </html>
+
+
+
+
+
+
+
 
 
 
