@@ -674,27 +674,41 @@
     let products = [];
     let editingProductId = null;
 
+    // Verificar configuración
+    console.log('🔧 CONFIG cargado:', CONFIG);
+    console.log('🌐 API_URL:', CONFIG?.API_URL);
+
     // Load products on page load
     document.addEventListener('DOMContentLoaded', () => {
+      console.log('📱 Página cargada, iniciando carga de productos...');
       loadProducts();
     });
 
     async function loadProducts() {
       try {
-        const response = await fetch(`${CONFIG.API_URL}?action=getProducts`);
+        console.log('📦 Cargando productos desde:', CONFIG.API_URL);
+        
+        // Usar getAllProducts para obtener TODOS los productos (activos e inactivos)
+        const response = await fetch(`${CONFIG.API_URL}?action=getAllProducts`);
         const data = await response.json();
         
+        console.log('📥 Respuesta productos:', data);
+        
         if (data.success) {
-          products = data.products;
+          // Compatibilidad con estructura data.data.products o data.products
+          products = data.data?.products || data.products || [];
+          
+          console.log(`✅ ${products.length} productos cargados`);
+          
           renderProducts(products);
           updateStats();
           renderFilters();
         } else {
-          showError('Error al cargar productos');
+          showError('Error al cargar productos: ' + (data.mensaje || data.message || ''));
         }
       } catch (error) {
-        console.error('Error loading products:', error);
-        showError('Error de conexión');
+        console.error('❌ Error loading products:', error);
+        showError('Error de conexión: ' + error.message);
       }
     }
 
@@ -822,23 +836,31 @@
       const action = productData.id ? 'updateProduct' : 'createProduct';
 
       try {
-        const response = await fetch(`${CONFIG.API_URL}?action=${action}`, {
+        console.log(`💾 Guardando producto (${action}):`, productData);
+        
+        // Crear FormData para compatibilidad con doPost
+        const formData = new FormData();
+        formData.append('action', action);
+        formData.append('data', JSON.stringify(productData));
+        
+        const response = await fetch(CONFIG.API_URL, {
           method: 'POST',
-          body: JSON.stringify(productData)
+          body: formData
         });
         
         const data = await response.json();
+        console.log('📥 Respuesta guardar:', data);
         
         if (data.success) {
           alert(`✅ ${productData.id ? 'Producto actualizado' : 'Producto creado'} exitosamente`);
           closeModal();
           loadProducts();
         } else {
-          alert('❌ Error: ' + (data.message || 'No se pudo guardar'));
+          alert('❌ Error: ' + (data.mensaje || data.message || 'No se pudo guardar'));
         }
       } catch (error) {
-        console.error('Error saving product:', error);
-        alert('❌ Error de conexión');
+        console.error('❌ Error saving product:', error);
+        alert('❌ Error de conexión: ' + error.message);
       }
     }
 
@@ -853,28 +875,35 @@
       const newStatus = !product.active;
       
       try {
-        const response = await fetch(`${CONFIG.API_URL}?action=updateProduct`, {
+        console.log(`👁️ Cambiando estado producto ${productId} a:`, newStatus);
+        
+        const formData = new FormData();
+        formData.append('action', 'updateProduct');
+        formData.append('data', JSON.stringify({
+          id: productId,
+          name: product.name,
+          category: product.category,
+          price: product.price,
+          emoji: product.emoji,
+          active: newStatus
+        }));
+        
+        const response = await fetch(CONFIG.API_URL, {
           method: 'POST',
-          body: JSON.stringify({
-            id: productId,
-            name: product.name,
-            category: product.category,
-            price: product.price,
-            emoji: product.emoji,
-            active: newStatus
-          })
+          body: formData
         });
         
         const data = await response.json();
+        console.log('📥 Respuesta toggle:', data);
         
         if (data.success) {
           loadProducts();
         } else {
-          alert('❌ Error al actualizar estado');
+          alert('❌ Error al actualizar estado: ' + (data.mensaje || data.message || ''));
         }
       } catch (error) {
-        console.error('Error toggling product:', error);
-        alert('❌ Error de conexión');
+        console.error('❌ Error toggling product:', error);
+        alert('❌ Error de conexión: ' + error.message);
       }
     }
 
@@ -887,18 +916,22 @@
       }
 
       try {
+        console.log(`🗑️ Eliminando producto ${productId}`);
+        
         const response = await fetch(`${CONFIG.API_URL}?action=deleteProduct&productId=${productId}`);
         const data = await response.json();
+        
+        console.log('📥 Respuesta eliminar:', data);
         
         if (data.success) {
           alert('✅ Producto eliminado');
           loadProducts();
         } else {
-          alert('❌ Error al eliminar: ' + (data.message || ''));
+          alert('❌ Error al eliminar: ' + (data.mensaje || data.message || ''));
         }
       } catch (error) {
-        console.error('Error deleting product:', error);
-        alert('❌ Error de conexión');
+        console.error('❌ Error deleting product:', error);
+        alert('❌ Error de conexión: ' + error.message);
       }
     }
 
