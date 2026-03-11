@@ -203,18 +203,51 @@
       margin-bottom: 15px;
       padding-bottom: 10px;
       border-bottom: 2px solid #e0e0e0;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .loan-date {
-      font-size: 1rem;
+    .loan-datetime {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .loan-date-field {
+      font-size: 0.95rem;
       color: #666;
       font-weight: 500;
+    }
+
+    .loan-time-field {
+      font-size: 0.95rem;
+      color: #999;
+    }
+
+    .loan-status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .loan-status.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .loan-status.paid {
+      background: #d4edda;
+      color: #155724;
     }
 
     .loan-total {
       font-size: 1.5rem;
       font-weight: bold;
       color: var(--primary-dark);
+      min-width: 100px;
+      text-align: right;
     }
 
     .loan-items {
@@ -227,18 +260,47 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 10px;
+      padding: 12px;
       background: white;
       border-radius: 8px;
+      border-left: 3px solid var(--accent);
+    }
+
+    .loan-item-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
     .loan-item-name {
       font-size: 1.1rem;
       color: #333;
+      font-weight: 600;
+    }
+
+    .loan-item-id {
+      font-size: 0.85rem;
+      color: #999;
+    }
+
+    .loan-item-right {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 4px;
+    }
+
+    .loan-item-quantity {
+      font-size: 0.9rem;
+      color: #666;
+      background: #e9ecef;
+      padding: 2px 8px;
+      border-radius: 4px;
     }
 
     .loan-item-price {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: bold;
       color: var(--secondary);
     }
@@ -336,6 +398,44 @@
     .student-card, .loan-card {
       animation: fadeIn 0.5s ease-out;
     }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+      }
+      .header, .search-section, .student-card {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+      .header h1, .search-title, .history-title, .debt-item-label {
+        color: #e0e0e0;
+      }
+      .debt-item, .loan-card {
+        background: #2d2d2d;
+      }
+      .loan-header {
+        border-bottom-color: #444;
+      }
+      .loan-product {
+        background: #1e1e1e;
+        color: #b0b0b0;
+      }
+      .search-input {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-color: #444;
+      }
+      .back-btn {
+        background: #1e1e1e;
+        color: #FF5722;
+        border-color: #FF5722;
+      }
+      .back-btn:hover {
+        background: #FF5722;
+        color: white;
+      }
+    }
   </style>
 </head>
 <body>
@@ -343,7 +443,12 @@
   <div class="container">
     
     <!-- Header -->
-    <div class="header">
+    <div style="position: absolute; top: 15px; left: 15px;">
+      <a href="../loans/" style="color: white; font-size: 1.2rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 20px;" title="Volver al inicio">
+        🏠 Volver
+      </a>
+    </div>
+    <div class="header" style="margin-top: 40px;">
       <div class="brand"><span class="brand-name">Fast</span> <span class="brand-text">Flavors</span></div>
       <h1>💰 Mis Préstamos</h1>
       <p>Consulta tus compras y deuda pendiente</p>
@@ -505,38 +610,61 @@
         return;
       }
 
-      loansList.innerHTML = loans.map(loan => `
-        <div class="loan-card">
-          <div class="loan-header">
-            <div class="loan-date">📅 ${formatDate(loan.fecha)}</div>
-            <div class="loan-total">S/ ${loan.total.toFixed(2)}</div>
-          </div>
-          <div class="loan-items">
-            ${loan.items.map(item => `
-              <div class="loan-item">
-                <div class="loan-item-name">${item.emoji || '📦'} ${item.nombre}</div>
-                <div class="loan-item-price">S/ ${item.precio.toFixed(2)}</div>
+      loansList.innerHTML = loans.map(loan => {
+        const estado = loan.estado || 'PENDIENTE';
+        const statusClass = estado === 'PAGADO' ? 'paid' : 'pending';
+        const statusEmoji = estado === 'PAGADO' ? '✅' : '⏳';
+        
+        return `
+          <div class="loan-card">
+            <div class="loan-header">
+              <div class="loan-datetime">
+                <div class="loan-date-field">📅 ${formatDateShort(loan.fecha)}</div>
+                <div class="loan-time-field">⏰ ${loan.hora}</div>
               </div>
-            `).join('')}
+              <div class="loan-status ${statusClass}">
+                ${statusEmoji} ${estado}
+              </div>
+              <div class="loan-total">S/ ${loan.total.toFixed(2)}</div>
+            </div>
+            <div class="loan-items">
+              ${loan.items.map(item => `
+                <div class="loan-item">
+                  <div class="loan-item-info">
+                    <div class="loan-item-name">${item.emoji || '📦'} ${item.nombre}</div>
+                    <div class="loan-item-id">ID: ${item.id || 'N/A'}</div>
+                  </div>
+                  <div class="loan-item-right">
+                    <div class="loan-item-quantity">Cantidad: ${item.cantidad}</div>
+                    <div class="loan-item-price">S/ ${item.precio.toFixed(2)}</div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
           </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    function formatDate(dateString) {
-      const date = new Date(dateString);
-      const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-      const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
-                      'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-      
-      const dayName = days[date.getDay()];
-      const day = date.getDate();
-      const month = months[date.getMonth()];
-      const year = date.getFullYear();
-      const hours = date.getHours().toString().padStart(2, '0');
-      const minutes = date.getMinutes().toString().padStart(2, '0');
-      
-      return `${dayName}, ${day} de ${month} ${year} - ${hours}:${minutes}`;
+    function formatDateShort(dateString) {
+      try {
+        const parts = dateString.toString().split('-');
+        const year = parts[0];
+        const month = parts[1];
+        const day = parts[2];
+        
+        const date = new Date(year, month - 1, day);
+        const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+        const months = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        const dayName = days[date.getDay()];
+        const monthName = months[date.getMonth()];
+        
+        return `${dayName}, ${day} de ${monthName} ${year}`;
+      } catch (e) {
+        return dateString;
+      }
     }
 
     function resetSearch() {
