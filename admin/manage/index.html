@@ -601,15 +601,18 @@
       /* Table to Cards */
       .table-container {
         overflow-x: visible;
+        border-radius: 10px;
       }
 
       table {
         display: block;
         width: 100%;
+        border-collapse: separate;
+        border-spacing: 0;
       }
 
       thead {
-        display: none;
+        display: none !important;
       }
 
       tbody {
@@ -619,12 +622,13 @@
 
       tbody tr {
         display: block;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         padding: 12px;
         background: var(--dark-bg);
         border-radius: 10px;
         border: 1px solid #333;
         box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        width: 100%;
       }
 
       tbody tr:hover {
@@ -633,67 +637,74 @@
       }
 
       td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 8px 0;
-        border: none;
-        min-height: 32px;
+        display: block !important;
+        width: 100% !important;
+        padding: 8px 0 !important;
+        border: none !important;
+        text-align: left;
+        word-break: break-word;
+      }
+
+      td * {
+        word-break: break-word;
       }
 
       td:not(:last-child) {
-        border-bottom: 1px solid #444;
+        border-bottom: 1px solid #444 !important;
       }
 
       td:last-child {
-        padding-top: 12px;
+        padding-top: 10px !important;
+        border-top: 1px solid #444 !important;
       }
 
       td.product-emoji {
-        font-size: 1.8rem;
-        justify-content: center;
-        padding: 5px 0 10px 0;
+        font-size: 1.5rem;
+        text-align: center;
+        padding: 5px 0 !important;
       }
 
       td.product-emoji::before {
-        display: none;
+        display: none !important;
       }
 
       td.product-name {
         font-weight: bold;
-        font-size: 1rem;
+        font-size: 0.95rem;
+        padding: 5px 0 !important;
       }
 
       td::before {
         content: attr(data-label);
+        display: inline;
         font-weight: bold;
         color: var(--accent);
         text-transform: uppercase;
-        font-size: 0.75rem;
-        min-width: 70px;
+        font-size: 0.7rem;
+        margin-right: 8px;
       }
 
       td.price::before {
-        min-width: 60px;
+        content: 'Precio: ';
       }
 
       /* Action buttons en mobile */
+      td:last-child::before {
+        display: none;
+      }
+
       .action-buttons {
-        display: flex;
-        gap: 8px;
+        display: flex !important;
+        gap: 6px;
         width: 100%;
         justify-content: flex-end;
       }
 
       .btn-icon {
-        padding: 8px 10px !important;
-        font-size: 1rem !important;
-        min-width: 36px;
-        min-height: 36px;
-      }
-
-      .btn-icon::before {
-        display: none !important;
+        padding: 6px 8px !important;
+        font-size: 0.95rem !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
       }
 
       /* Modal */
@@ -755,47 +766,78 @@
       }
 
       /* Tablas extra compactas en phones */
+      .table-container {
+        border-radius: 8px;
+      }
+
+      table {
+        border-spacing: 0;
+      }
+
       tbody tr {
-        margin-bottom: 10px;
+        margin-bottom: 8px;
         padding: 10px;
+        border-radius: 8px;
       }
 
       td {
-        padding: 6px 0;
-        font-size: 0.9rem;
+        padding: 6px 0 !important;
+        font-size: 0.85rem !important;
       }
 
       td::before {
-        font-size: 0.7rem;
-        min-width: 65px;
+        font-size: 0.65rem;
+        margin-right: 6px;
       }
 
       .product-emoji {
-        font-size: 1.5rem;
+        font-size: 1.3rem;
       }
 
       .product-name {
-        font-size: 0.95rem;
+        font-size: 0.9rem;
+      }
+
+      td:not(:last-child) {
+        border-bottom: 1px solid #444 !important;
+      }
+
+      td:last-child {
+        padding-top: 8px !important;
+        border-top: 1px solid #444 !important;
       }
 
       .category-badge {
-        padding: 4px 10px;
-        font-size: 0.75rem;
+        padding: 3px 8px;
+        font-size: 0.7rem;
       }
 
       .price {
-        font-size: 1.1rem;
+        font-size: 1rem;
       }
 
       .action-buttons {
-        gap: 6px;
+        gap: 4px;
       }
 
       .btn-icon {
-        padding: 6px 8px !important;
-        font-size: 0.9rem !important;
-        min-width: 32px;
-        min-height: 32px;
+        padding: 5px 6px !important;
+        font-size: 0.85rem !important;
+        min-width: 28px !important;
+        min-height: 28px !important;
+      }
+
+      /* Compactar secciones */
+      .products-section {
+        padding: 12px;
+      }
+
+      .section-header h2 {
+        font-size: 1.2rem;
+      }
+
+      .filter-bar {
+        margin-bottom: 12px;
       }
     }
   </style>
