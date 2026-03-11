@@ -542,7 +542,7 @@
         
         if (!Array.isArray(students) || students.length === 0) {
           alert('⚠️ No hay estudiantes registrados');
-          return;
+          return; 
         }
 
         const student = students.find(s => 
@@ -575,8 +575,14 @@
         const loansResponse = await fetch(`${CONFIG.API_URL}?action=getStudentLoans&studentCode=${student.codigo}`);
         const loansData = await loansResponse.json();
 
+        console.log('📊 Datos de préstamos:', loansData);
+
         if (loansData.success) {
-          displayLoans(loansData.loans, loansData.summary);
+          // Manejar ambas estructuras: data.loans o loans directamente
+          const loans = loansData.data?.loans || loansData.loans || [];
+          const summary = loansData.data?.summary || loansData.summary || {};
+          
+          displayLoans(loans, summary);
         } else {
           document.getElementById('loansList').innerHTML = `
             <div class="empty-state">
@@ -600,10 +606,15 @@
     }
 
     function displayLoans(loans, summary) {
+      // Validar que summary existe y tiene valores
+      const totalLoans = summary?.totalLoans || 0;
+      const totalItems = summary?.totalItems || 0;
+      const totalDebt = summary?.totalDebt || 0;
+
       // Update summary
-      document.getElementById('totalLoans').textContent = summary.totalLoans || 0;
-      document.getElementById('totalItems').textContent = summary.totalItems || 0;
-      document.getElementById('totalDebt').textContent = (summary.totalDebt || 0).toFixed(2);
+      document.getElementById('totalLoans').textContent = totalLoans;
+      document.getElementById('totalItems').textContent = totalItems;
+      document.getElementById('totalDebt').textContent = totalDebt.toFixed(2);
 
       const loansList = document.getElementById('loansList');
 
