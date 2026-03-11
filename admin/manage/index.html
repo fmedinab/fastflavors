@@ -993,6 +993,11 @@
         </div>
 
         <div class="form-group">
+          <label>Descripción</label>
+          <textarea class="form-control" id="productDescription" rows="3" placeholder="Ej: Hamburguesa con queso y vegetales frescos..."></textarea>
+        </div>
+
+        <div class="form-group">
           <label>Estado *</label>
           <select class="form-control" id="productStatus" required>
             <option value="SI">✅ Activo</option>
@@ -1128,6 +1133,7 @@
           document.getElementById('productCategory').value = product.category;
           document.getElementById('productPrice').value = product.price;
           document.getElementById('productEmoji').value = product.emoji;
+          document.getElementById('productDescription').value = product.description || '';
           document.getElementById('productStatus').value = product.active ? 'SI' : 'NO';
         }
       } else {
@@ -1157,6 +1163,7 @@
         name: document.getElementById('productName').value,
         category: document.getElementById('productCategory').value,
         price: parseFloat(document.getElementById('productPrice').value),
+        description: document.getElementById('productDescription').value,
         emoji: document.getElementById('productEmoji').value,
         active: document.getElementById('productStatus').value === 'SI'
       };
@@ -1212,6 +1219,7 @@
           name: product.name,
           category: product.category,
           price: product.price,
+          description: product.description,
           emoji: product.emoji,
           active: newStatus
         }));
