@@ -537,8 +537,16 @@
           return;
         }
 
-        const student = studentsData.students.find(s => 
-          s.codigo.toUpperCase() === code.toUpperCase()
+        // Manejar ambas estructuras de respuesta: data.data.students o data.students
+        const students = studentsData.data?.students || studentsData.students || [];
+        
+        if (!Array.isArray(students) || students.length === 0) {
+          alert('⚠️ No hay estudiantes registrados');
+          return;
+        }
+
+        const student = students.find(s => 
+          String(s.codigo).toUpperCase() === code.toUpperCase()
         );
 
         if (!student) {
