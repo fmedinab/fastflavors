@@ -1209,8 +1209,6 @@
         const response = await fetch(`${CONFIG.API_URL}?action=getProducts`);
         const data = await response.json();
         
-        console.log('📦 Respuesta productos:', data);
-        
         if (data.success) {
           // El backend devuelve data.data.products
           const products = data.data?.products || data.products || [];
@@ -1229,8 +1227,6 @@
       try {
         const response = await fetch(`${CONFIG.API_URL}?action=getStudents`);
         const data = await response.json();
-        
-        console.log('👥 Respuesta estudiantes:', data);
         
         if (data.success) {
           // El backend devuelve data.data.students
@@ -1396,10 +1392,6 @@
           signal: searchAbortController.signal
         });
         const data = await response.json();
-        
-        console.log('🔍 Búsqueda de estudiante:', query);
-        console.log('📦 Respuesta completa:', data);
-        console.log('📋 Data.data:', data.data);
 
         if (data.success) {
           showSearchResults(data.data || data, query);
@@ -1418,17 +1410,11 @@
     function showSearchResults(searchData, query) {
       const suggestionsDiv = document.getElementById('searchSuggestions');
       
-      console.log('📊 showSearchResults llamado con:', searchData);
-      
       // Compatibilidad: el backend devuelve 'students', no 'results'
       const students = searchData.students || searchData.results || [];
       
-      console.log('👥 Estudiantes encontrados:', students);
-      console.log('✅ searchData.found:', searchData.found);
-      
       if (searchData.found && students.length > 0) {
         // Show found students
-        console.log(`✅ Mostrando ${students.length} estudiante(s)`);
         let html = '';
         students.forEach((student, index) => {
           // Guardar el estudiante en una variable temporal accesible globalmente
@@ -1446,7 +1432,6 @@
         suggestionsDiv.classList.add('show');
       } else if (!searchData.found && searchData.suggestion) {
         // Show create new student option
-        console.log('➕ Mostrando opción de crear nuevo estudiante');
         const suggestion = searchData.suggestion;
         suggestionsDiv.innerHTML = `
           <div class="search-suggestion-create" onclick='openStudentModal("${query}")'>
@@ -1459,7 +1444,6 @@
         `;
         suggestionsDiv.classList.add('show');
       } else {
-        console.log('❌ Sin resultados para mostrar');
         hideSearchSuggestions();
       }
     }
@@ -1476,7 +1460,6 @@
     }
 
     function selectStudentFromSearch(student) {
-      console.log('🎯 Estudiante seleccionado desde búsqueda:', student);
       hideSearchSuggestions();
       document.getElementById('studentSearch').value = student.nombre;
       selectStudent(student);
@@ -1494,15 +1477,12 @@
     }
 
     async function selectStudent(student) {
-      console.log('👤 Seleccionando estudiante:', student);
       state.currentStudent = student;
       
       // Get student debt
       try {
         const response = await fetch(`${CONFIG.API_URL}?action=getStudentDebt&studentCode=${student.codigo}`);
         const data = await response.json();
-        
-        console.log('💰 Respuesta deuda:', data);
         
         if (data.success) {
           // El backend puede devolver data.data.totalDebt o data.totalDebt
@@ -1515,8 +1495,6 @@
       const studentInfo = document.getElementById('studentInfo');
       document.getElementById('studentName').textContent = student.nombre;
       document.getElementById('studentCode').textContent = `📝 Código: ${student.codigo}`;
-      
-      console.log('✅ Estudiante actualizado en la UI');
       
       // Show grade/section or additional info if available
       let gradeText = '';
@@ -1660,8 +1638,6 @@
           total: state.cart.reduce((sum, item) => sum + item.price, 0)
         };
 
-        console.log('📤 Enviando préstamo:', loanData);
-
         // Crear FormData con el JSON como parámetro
         const formData = new FormData();
         formData.append('action', 'createLoan');
@@ -1673,7 +1649,6 @@
         });
 
         const data = await response.json();
-        console.log('📥 Respuesta préstamo:', data);
 
         if (data.success) {
           const total = data.data?.total || loanData.total;
@@ -1763,8 +1738,6 @@
           montoPago: montoPago
         };
 
-        console.log('💰 Enviando pago:', paymentData);
-
         const formData = new FormData();
         formData.append('action', 'registrarPago');
         formData.append('data', JSON.stringify(paymentData));
@@ -1775,7 +1748,6 @@
         });
 
         const data = await response.json();
-        console.log('📥 Respuesta pago:', data);
 
         if (data.success) {
           const montoPagado = data.data?.montoPagado || montoPago;
