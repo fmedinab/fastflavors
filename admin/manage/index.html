@@ -586,13 +586,16 @@
       .filter-bar {
         gap: 8px;
         margin-bottom: 20px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        -webkit-overflow-scrolling: touch;
       }
 
       .filter-btn {
-        padding: 10px 16px;
-        font-size: 0.9rem;
-        flex: 1;
-        min-width: fit-content;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        flex-shrink: 0;
+        white-space: nowrap;
       }
 
       /* Table to Cards */
@@ -602,6 +605,7 @@
 
       table {
         display: block;
+        width: 100%;
       }
 
       thead {
@@ -610,35 +614,54 @@
 
       tbody {
         display: block;
+        width: 100%;
       }
 
       tbody tr {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 15px;
-        padding: 15px;
+        display: block;
+        margin-bottom: 12px;
+        padding: 12px;
         background: var(--dark-bg);
-        border-radius: 12px;
-        border: 2px solid #333;
-        border-bottom: 2px solid #333;
-        box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+        border-radius: 10px;
+        border: 1px solid #333;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
       }
 
       tbody tr:hover {
         border-color: var(--secondary);
-        box-shadow: 0 5px 15px rgba(255, 87, 34, 0.3);
+        box-shadow: 0 4px 12px rgba(255, 87, 34, 0.25);
       }
 
       td {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 10px 0;
+        padding: 8px 0;
         border: none;
+        min-height: 32px;
       }
 
       td:not(:last-child) {
-        border-bottom: 1px solid #333;
+        border-bottom: 1px solid #444;
+      }
+
+      td:last-child {
+        padding-top: 12px;
+      }
+
+      td.product-emoji {
+        font-size: 1.8rem;
+        justify-content: center;
+        padding: 5px 0 10px 0;
+      }
+
+      td.product-emoji::before {
+        display: none;
+      }
+
+      td.product-name {
+        font-weight: bold;
+        font-size: 1rem;
       }
 
       td::before {
@@ -646,58 +669,36 @@
         font-weight: bold;
         color: var(--accent);
         text-transform: uppercase;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
+        min-width: 70px;
       }
 
-      .product-emoji {
-        font-size: 3rem;
-        justify-content: center;
-        padding: 15px 0;
+      td.price::before {
+        min-width: 60px;
       }
 
-      .product-emoji::before {
-        display: none;
-      }
-
-      .product-name {
-        font-size: 1.2rem;
-      }
-
-      .category-badge {
-        padding: 8px 18px;
-        font-size: 0.9rem;
-      }
-
-      .price {
-        font-size: 1.5rem;
-      }
-
+      /* Action buttons en mobile */
       .action-buttons {
-        flex-wrap: wrap;
-        justify-content: flex-end;
+        display: flex;
+        gap: 8px;
         width: 100%;
-      }
-
-      .action-buttons::before {
-        display: none;
+        justify-content: flex-end;
       }
 
       .btn-icon {
-        padding: 10px 15px;
-        font-size: 1rem;
+        padding: 8px 10px !important;
+        font-size: 1rem !important;
+        min-width: 36px;
+        min-height: 36px;
+      }
+
+      .btn-icon::before {
+        display: none !important;
       }
 
       /* Modal */
       .modal {
-        padding: 0;
-      }
-
-      .modal-content {
-        max-width: 100%;
-        height: 100%;
-        max-height: 100%;
-        border-radius: 0;
-        padding: 20px 15px;
+        padding: 15px 20px;
       }
 
       .modal-header h2 {
@@ -743,15 +744,47 @@
       .filter-bar {
         grid-template-columns: repeat(2, 1fr);
         display: grid;
+        gap: 6px;
       }
 
       .filter-btn {
+        padding: 8px 10px !important;
+        font-size: 0.8rem !important;
         flex: none;
         width: 100%;
       }
 
-      .emoji-picker {
-        grid-template-columns: repeat(5, 1fr);
+      /* Tablas extra compactas en phones */
+      tbody tr {
+        margin-bottom: 10px;
+        padding: 10px;
+      }
+
+      td {
+        padding: 6px 0;
+        font-size: 0.9rem;
+      }
+
+      td::before {
+        font-size: 0.7rem;
+        min-width: 65px;
+      }
+
+      .product-emoji {
+        font-size: 1.5rem;
+      }
+
+      .product-name {
+        font-size: 0.95rem;
+      }
+
+      .category-badge {
+        padding: 4px 10px;
+        font-size: 0.75rem;
+      }
+
+      .price {
+        font-size: 1.1rem;
       }
 
       .action-buttons {
@@ -759,7 +792,10 @@
       }
 
       .btn-icon {
-        flex: 1;
+        padding: 6px 8px !important;
+        font-size: 0.9rem !important;
+        min-width: 32px;
+        min-height: 32px;
       }
     }
   </style>
@@ -935,31 +971,20 @@
     let products = [];
     let editingProductId = null;
 
-    // Verificar configuración
-    console.log('🔧 CONFIG cargado:', CONFIG);
-    console.log('🌐 API_URL:', CONFIG?.API_URL);
-
     // Load products on page load
     document.addEventListener('DOMContentLoaded', () => {
-      console.log('📱 Página cargada, iniciando carga de productos...');
       loadProducts();
     });
 
     async function loadProducts() {
       try {
-        console.log('📦 Cargando productos desde:', CONFIG.API_URL);
-        
         // Usar getAllProducts para obtener TODOS los productos (activos e inactivos)
         const response = await fetch(`${CONFIG.API_URL}?action=getAllProducts`);
         const data = await response.json();
         
-        console.log('📥 Respuesta productos:', data);
-        
         if (data.success) {
           // Compatibilidad con estructura data.data.products o data.products
           products = data.data?.products || data.products || [];
-          
-          console.log(`✅ ${products.length} productos cargados`);
           
           renderProducts(products);
           updateStats();
@@ -968,7 +993,7 @@
           showError('Error al cargar productos: ' + (data.mensaje || data.message || ''));
         }
       } catch (error) {
-        console.error('❌ Error loading products:', error);
+        console.error('Error loading products:', error);
         showError('Error de conexión: ' + error.message);
       }
     }
