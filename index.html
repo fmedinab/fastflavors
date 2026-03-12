@@ -28,10 +28,9 @@
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      justify-content: center;
+      justify-content: flex-start;
       align-items: center;
       padding: 0;
-      padding-top: 80px;
       overflow-x: hidden;
       transition: all 0.3s ease;
     }
@@ -61,15 +60,16 @@
     .header {
       text-align: center;
       color: #e0e0e0;
-      margin-top: 80px;
-      margin-bottom: 35px;
+      margin-top: 18px;
+      margin-bottom: 14px;
       animation: fadeInDown 0.8s ease-out;
       width: 100%;
+      padding: 0 10px;
     }
 
     .logo-img {
-      max-width: 320px;
-      margin-bottom: 12px;
+      max-width: 200px;
+      margin-bottom: 8px;
       animation: fadeInDown 1s ease-out;
       display: block;
       margin-left: auto;
@@ -81,26 +81,27 @@
     }
 
     .subtitle {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       opacity: 0.95;
-      margin-bottom: 6px;
+      margin-bottom: 3px;
       font-weight: bold;
       color: #ffffff;
       text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .tagline {
-      font-size: 1.1rem;
+      font-size: 0.95rem;
       opacity: 0.75;
       color: #bbbbbb;
+      margin-bottom: 8px;
     }
 
     /* Cards Grid */
     .systems-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 25px;
-      margin-bottom: 30px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
       width: 100%;
       max-width: 1000px;
     }
@@ -108,8 +109,8 @@
     .system-card {
       background: #2d2d2d;
       color: #e0e0e0;
-      border-radius: 20px;
-      padding: 35px;
+      border-radius: 16px;
+      padding: 24px 18px;
       text-align: center;
       box-shadow: 0 10px 30px rgba(0,0,0,0.4);
       transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
@@ -142,8 +143,8 @@
     }
 
     .card-icon {
-      font-size: 4.5rem;
-      margin-bottom: 18px;
+      font-size: 3.5rem;
+      margin-bottom: 10px;
       display: inline-block;
       transition: transform 0.3s ease;
       filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
@@ -154,24 +155,24 @@
     }
 
     .card-title {
-      font-size: 2rem;
+      font-size: 1.55rem;
       color: #FF5722; /* matching reservas accent */
-      margin-bottom: 15px;
+      margin-bottom: 8px;
       font-weight: 800;
     }
 
     .card-description {
-      font-size: 1.05rem;
+      font-size: 0.95rem;
       color: #b0b0b0;
-      line-height: 1.6;
-      margin-bottom: 20px;
+      line-height: 1.5;
+      margin-bottom: 12px;
     }
 
     .card-features {
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 25px;
+      gap: 6px;
+      margin-bottom: 14px;
       align-items: center;
     }
 
@@ -179,9 +180,9 @@
       display: inline-block;
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
-      padding: 6px 16px;
+      padding: 4px 12px;
       border-radius: 20px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: #e0e0e0;
       font-weight: 500;
     }
@@ -190,9 +191,9 @@
       display: inline-block;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
-      padding: 8px 24px;
+      padding: 7px 20px;
       border-radius: 25px;
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       font-weight: bold;
       box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
     }
@@ -214,22 +215,66 @@
 
     /* Fix responsive */
     @media (max-width: 768px) {
-      body { padding-top: 65px; }
-      .site-banner { top: 70px; width: 92%; }
-      .header { margin-top: 70px; }
-      .systems-grid { grid-template-columns: 1fr; gap: 20px; }
-      .system-card { padding: 30px 20px; }
-      .logo-img { max-width: 260px; }
-      .subtitle { font-size: 1.3rem; }
+      .header { margin-top: 12px; margin-bottom: 10px; }
+      .systems-grid { grid-template-columns: 1fr; gap: 12px; }
+      .system-card { padding: 18px 14px; }
+      .logo-img { max-width: 160px; }
+      .subtitle { font-size: 1.1rem; margin-bottom: 2px; }
+      .tagline { font-size: 0.85rem; }
+      .card-icon { font-size: 3rem; margin-bottom: 6px; }
+      .card-title { font-size: 1.35rem; margin-bottom: 6px; }
+      .card-description { font-size: 0.9rem; margin-bottom: 8px; }
+      .card-features { gap: 4px; margin-bottom: 10px; }
+      .feature-item { padding: 3px 10px; font-size: 0.75rem; }
+      .card-badge { padding: 6px 16px; font-size: 0.8rem; }
     }
 
-    /* BANNER SLIDER - Encima de la barra roja */
+    @media (max-width: 480px) {
+      .top-header-bar { height: 50px; }
+      .header { margin-top: 8px; margin-bottom: 8px; padding: 0 8px; }
+      .logo-img { max-width: 130px; margin-bottom: 4px; }
+      .subtitle { font-size: 0.95rem; margin-bottom: 1px; }
+      .tagline { font-size: 0.75rem; margin-bottom: 6px; }
+      .systems-grid { gap: 10px; }
+      .system-card { padding: 14px 12px; border-radius: 12px; }
+      .card-icon { font-size: 2.5rem; margin-bottom: 4px; }
+      .card-title { font-size: 1.15rem; margin-bottom: 4px; }
+      .card-description { font-size: 0.8rem; line-height: 1.4; margin-bottom: 6px; }
+      .card-features { gap: 3px; margin-bottom: 8px; }
+      .feature-item { padding: 2px 8px; font-size: 0.7rem; }
+      .card-badge { padding: 5px 14px; font-size: 0.75rem; }
+      
+      .site-banner { top: 50px; width: 98%; }
+      .anuncios-slider { min-height: 60px; border-radius: 10px; }
+      .anuncio-card { padding: 10px 40px; gap: 8px; }
+      .emoji-anun { font-size: 2.2rem; }
+      .anuncio-content h3 { font-size: 1rem; margin-bottom: 1px; }
+      .anuncio-content p { font-size: 0.75rem; }
+      .slider-nav { width: 32px; height: 32px; font-size: 0.9rem; }
+      .slider-prev { left: 5px; }
+      .slider-next { right: 5px; }
+      .slider-dots { bottom: 3px; gap: 4px; }
+      .dot { width: 6px; height: 6px; }
+    }
+
+    @media (max-width: 360px) {
+      .logo-img { max-width: 100px; }
+      .subtitle { font-size: 0.85rem; }
+      .tagline { font-size: 0.7rem; }
+      .card-icon { font-size: 2rem; }
+      .card-title { font-size: 1rem; }
+      .card-description { font-size: 0.75rem; }
+      .anuncio-card { padding: 8px 30px; gap: 6px; }
+      .emoji-anun { font-size: 1.8rem; }
+      .anuncio-content h3 { font-size: 0.85rem; }
+      .anuncio-content p { font-size: 0.65rem; }
+    }
     .site-banner {
       position: fixed;
-      top: 65px;
+      top: 60px;
       left: 50%;
       transform: translateX(-50%);
-      width: 90%;
+      width: 95%;
       max-width: 1100px;
       background: transparent;
       overflow: hidden;
@@ -241,11 +286,11 @@
       display: flex;
       width: 100%;
       position: relative;
-      min-height: 85px;
+      min-height: 70px;
       overflow: hidden;
-      border-radius: 18px;
+      border-radius: 12px;
       box-shadow: 0 8px 25px rgba(0,0,0,0.5);
-      border: 3px solid rgba(255,255,255,0.1);
+      border: 2px solid rgba(255,255,255,0.1);
     }
 
     .anuncio-card {
@@ -255,15 +300,15 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 18px;
-      padding: 15px 70px;
+      gap: 12px;
+      padding: 12px 50px;
       box-sizing: border-box;
       transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
-      border-radius: 15px;
+      border-radius: 12px;
       box-shadow: 0 6px 20px rgba(0,0,0,0.4);
     }
     .emoji-anun {
-      font-size: 3.5rem;
+      font-size: 2.8rem;
       filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
       flex-shrink: 0;
     }
@@ -276,17 +321,17 @@
       align-items: center;
     }
     .anuncio-content h3 {
-      margin: 0 0 6px 0;
-      font-size: 1.5rem;
+      margin: 0 0 2px 0;
+      font-size: 1.25rem;
       font-weight: 900;
-      line-height: 1.3;
+      line-height: 1.2;
       text-shadow: 0 2px 4px rgba(0,0,0,0.3);
     }
     .anuncio-content p {
       margin: 0;
-      font-size: 1.05rem;
+      font-size: 0.85rem;
       font-weight: 600;
-      line-height: 1.3;
+      line-height: 1.2;
       text-shadow: 0 1px 2px rgba(0,0,0,0.2);
     }
     
@@ -297,10 +342,10 @@
        background: white;
        color: var(--primary);
        border: 2px solid var(--primary);
-       width: 40px;
-       height: 40px;
+       width: 36px;
+       height: 36px;
        border-radius: 50%;
-       font-size: 1.2rem;
+       font-size: 1rem;
        font-weight: bold;
        cursor: pointer;
        z-index: 10;
@@ -311,21 +356,21 @@
        transition: all 0.3s;
     }
     .slider-nav:hover { background: var(--primary); color: white; transform: translateY(-50%) scale(1.1); }
-    .slider-prev { left: 15px; }
-    .slider-next { right: 15px; }
+    .slider-prev { left: 8px; }
+    .slider-next { right: 8px; }
     
     .slider-dots { 
       position: absolute; 
-      bottom: 8px; 
+      bottom: 5px; 
       left: 50%;
       transform: translateX(-50%);
       display: flex; 
-      gap: 8px; 
+      gap: 6px; 
       z-index: 20; 
     }
     .dot {
-       width: 10px;
-       height: 10px;
+       width: 8px;
+       height: 8px;
        border-radius: 50%;
        background: rgba(255, 255, 255, 0.4);
        cursor: pointer;
@@ -334,21 +379,13 @@
     }
     .dot:hover { background: rgba(255, 255, 255, 0.6); transform: scale(1.2); }
     .dot.active { background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
-
-    @media (max-width: 768px) {
-      .anuncios-slider { min-height: 95px; border-radius: 14px; }
-      .anuncio-card { padding: 15px 50px; gap: 12px; flex-direction: column; text-align: center; }
-      .emoji-anun { font-size: 3rem; }
-      .anuncio-content h3 { font-size: 1.2rem; }
-      .anuncio-content p { font-size: 0.95rem; }
-    }
     @media (max-width: 480px) {
-      .site-banner { top: 68px; width: 95%; }
-      .anuncios-slider { min-height: 90px; }
-      .anuncio-card { padding: 12px 45px; }
-      .emoji-anun { font-size: 2.5rem; }
-      .anuncio-content h3 { font-size: 1.05rem; }
-      .anuncio-content p { font-size: 0.85rem; }
+      .site-banner { top: 50px; width: 98%; }
+      .anuncios-slider { min-height: 60px; border-radius: 10px; }
+      .anuncio-card { padding: 10px 40px; gap: 8px; }
+      .emoji-anun { font-size: 2.2rem; }
+      .anuncio-content h3 { font-size: 1rem; margin-bottom: 1px; }
+      .anuncio-content p { font-size: 0.75rem; }
     }
   </style>
 </head>
