@@ -281,6 +281,10 @@
       text-align: right;
     }
 
+    .loan-header.paid .loan-total {
+      color: #4caf50;
+    }
+
     .loan-items {
       display: flex;
       flex-direction: column;
@@ -334,6 +338,12 @@
       font-size: 1rem;
       font-weight: bold;
       color: var(--secondary);
+    }
+
+    .loan-item-price.paid-price {
+      color: #4caf50;
+      text-decoration: line-through;
+      opacity: 0.9;
     }
 
     /* Empty State */
@@ -880,7 +890,7 @@
         
         return `
           <div class="loan-card">
-            <div class="loan-header">
+            <div class="loan-header ${statusClass}">
               <div class="loan-datetime">
                 <div class="loan-date-field">📅 ${formatDateShort(loan.fecha)}</div>
                 <div class="loan-time-field">⏰ ${formatTime(loan.hora)}</div>
@@ -888,10 +898,13 @@
               <div class="loan-status ${statusClass}">
                 ${statusEmoji} ${estado}
               </div>
-              <div class="loan-total">S/ ${loan.total.toFixed(2)}</div>
+              <div class="loan-total">${estado === 'PAGADO' ? '✓ Pagado: ' : ''}S/ ${loan.total.toFixed(2)}</div>
             </div>
             <div class="loan-items">
-              ${loan.items.map(item => `
+              ${loan.items.map(item => {
+                const itemEstado = item.estado || 'PENDIENTE';
+                const priceLabel = itemEstado === 'PAGADO' ? '✓ Pagó: ' : '';
+                return `
                 <div class="loan-item">
                   <div class="loan-item-info">
                     <div class="loan-item-name">${item.emoji || '📦'} ${item.nombre}</div>
@@ -899,10 +912,11 @@
                   </div>
                   <div class="loan-item-right">
                     <div class="loan-item-quantity">Cantidad: ${item.cantidad}</div>
-                    <div class="loan-item-price">S/ ${item.precio.toFixed(2)}</div>
+                    <div class="loan-item-price ${itemEstado === 'PAGADO' ? 'paid-price' : ''}">${priceLabel}S/ ${item.precio.toFixed(2)}</div>
                   </div>
                 </div>
-              `).join('')}
+              `;
+              }).join('')}
             </div>
           </div>
         `;
