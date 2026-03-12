@@ -25,8 +25,8 @@
     }
 
     [data-theme="dark"] {
-      --primary-color: #ff6b35;
-      --primary-dark: #d62300;
+      --primary-color: #d62300;
+      --primary-dark: #a01c00;
       --secondary-color: #3a3a3a;
       --accent-color: #ffa500;
       --success-color: #48bb78;
@@ -218,57 +218,102 @@
       }
     }
 
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
     body {
       transition: background-color 0.3s ease;
+      padding-top: 100px;
     }
 
     [data-theme="dark"] body {
       background: #1a1a1a;
     }
 
+    /* Header superior con logo */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+    }
+
     .logo-container {
-      position: relative;
+      position: absolute;
       text-align: center;
-      margin-bottom: 15px;
-      padding-top: 10px;
+      padding: 0;
     }
 
     .logo-img-header {
-      max-width: 90px;
+      max-width: 80px;
       height: auto;
-      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+      animation: fadeInDown 0.5s ease;
     }
 
     .stats-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 15px;
+      padding: 20px 15px;
       animation: fadeInUp 0.6s ease;
     }
 
     .stats-header {
       text-align: center;
       margin-bottom: 30px;
-      padding: 25px 15px;
-      background: var(--primary-color);
-      color: white;
+      padding: 20px 15px;
+      background: white;
+      color: var(--primary-color);
       border-radius: 15px;
-      box-shadow: var(--shadow-lg);
+      box-shadow: var(--shadow-md);
       position: relative;
       overflow: hidden;
       animation: fadeInUp 0.4s ease;
+      border-left: 5px solid var(--primary-color);
+    }
+
+    [data-theme="dark"] .stats-header {
+      background: #2d3748;
+      color: white;
+      border-left-color: var(--accent-color);
     }
 
     .stats-header h1 {
-      margin: 10px 0 8px 0;
-      font-size: 2rem;
-      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+      margin: 5px 0 5px 0;
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    [data-theme="dark"] .stats-header h1 {
+      color: white;
     }
 
     .stats-header p {
-      margin: 5px 0 15px 0;
-      font-size: 0.95rem;
-      opacity: 0.95;
+      margin: 3px 0 15px 0;
+      font-size: 0.9rem;
+      opacity: 0.85;
+      color: #666;
+    }
+
+    [data-theme="dark"] .stats-header p {
+      color: #aaa;
     }
 
     .theme-toggle {
@@ -591,15 +636,16 @@
     /* Responsive */
     @media (max-width: 1024px) {
       .stats-container {
-        padding: 12px;
+        padding: 15px 8px;
       }
 
       .stats-header {
-        padding: 20px 12px;
+        padding: 18px 10px;
+        margin-bottom: 25px;
       }
 
       .stats-header h1 {
-        font-size: 1.8rem;
+        font-size: 1.6rem;
       }
 
       .stats-grid {
@@ -609,31 +655,45 @@
       .stat-number {
         font-size: 2.8rem;
       }
+
+      .theme-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+      }
     }
 
     @media (max-width: 768px) {
+      body {
+        padding-top: 90px;
+      }
+
+      .top-header {
+        height: 90px;
+      }
+
       .stats-container {
-        padding: 10px;
+        padding: 12px;
       }
 
       .logo-img-header {
-        max-width: 75px;
+        max-width: 70px;
       }
 
       .stats-header {
         margin-bottom: 20px;
-        padding: 18px 10px;
+        padding: 15px 10px;
         border-radius: 12px;
       }
 
       .stats-header h1 {
-        font-size: 1.5rem;
-        margin: 8px 0 6px 0;
+        font-size: 1.4rem;
+        margin: 5px 0 4px 0;
       }
 
       .stats-header p {
-        font-size: 0.9rem;
-        margin: 4px 0 12px 0;
+        font-size: 0.85rem;
+        margin: 3px 0 10px 0;
       }
 
       .stats-grid {
@@ -643,8 +703,12 @@
       }
 
       .stat-card {
-        padding: 15px;
+        padding: 15px 12px;
         border-radius: 12px;
+      }
+
+      .stat-card h3 {
+        font-size: 0.95rem;
       }
 
       .stat-number {
@@ -653,62 +717,73 @@
       }
 
       .stat-label {
-        font-size: 0.8rem;
+        font-size: 0.75rem;
       }
 
       .table-container {
-        padding: 15px;
+        padding: 15px 12px;
         margin-bottom: 20px;
         border-radius: 12px;
       }
 
       .table-container h2 {
-        font-size: 1.2rem;
-        margin: 0 0 15px 0;
+        font-size: 1.15rem;
+        margin: 0 0 12px 0;
       }
 
       .stats-table th,
       .stats-table td {
-        padding: 8px 6px;
-        font-size: 0.8rem;
+        padding: 8px 5px;
+        font-size: 0.75rem;
       }
 
       .btn-refresh,
       .btn-back {
-        padding: 10px 16px;
-        font-size: 0.9rem;
-        margin: 6px 4px;
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        margin: 5px 3px;
       }
 
       .theme-toggle {
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
+        width: 43px;
+        height: 43px;
+        font-size: 1.2rem;
+        top: 15px;
+        right: 15px;
       }
     }
 
     @media (max-width: 480px) {
+      body {
+        padding-top: 85px;
+      }
+
+      .top-header {
+        height: 85px;
+        padding: 8px 15px;
+      }
+
       .stats-container {
-        padding: 8px;
+        padding: 10px;
       }
 
       .logo-img-header {
-        max-width: 65px;
+        max-width: 60px;
       }
 
       .stats-header {
-        margin-bottom: 18px;
-        padding: 15px 8px;
+        margin-bottom: 15px;
+        padding: 12px 8px;
       }
 
       .stats-header h1 {
-        font-size: 1.3rem;
-        margin: 6px 0 4px 0;
+        font-size: 1.2rem;
+        margin: 4px 0 3px 0;
       }
 
       .stats-header p {
-        font-size: 0.85rem;
-        margin: 2px 0 10px 0;
+        font-size: 0.8rem;
+        margin: 2px 0 8px 0;
       }
 
       .stats-grid {
@@ -718,7 +793,11 @@
       }
 
       .stat-card {
-        padding: 12px;
+        padding: 12px 10px;
+      }
+
+      .stat-card h3 {
+        font-size: 0.9rem;
       }
 
       .stat-number {
@@ -727,53 +806,17 @@
       }
 
       .stat-label {
-        font-size: 0.75rem;
+        font-size: 0.7rem;
       }
 
       .table-container {
-        padding: 12px;
+        padding: 12px 10px;
         margin-bottom: 15px;
       }
 
       .table-container h2 {
-        font-size: 1.1rem;
-        margin: 0 0 12px 0;
-      }
-
-      .stats-table th,
-      .stats-table td {
-        padding: 6px 4px;
-        font-size: 0.75rem;
-      }
-
-      .badge {
-        padding: 4px 12px;
-        font-size: 0.7rem;
-      }
-
-      .btn-refresh,
-      .btn-back {
-        padding: 8px 12px;
-        font-size: 0.8rem;
-        margin: 4px 2px;
-        display: block;
-        width: calc(100% - 4px);
-        margin-left: 2px;
-        margin-right: 2px;
-      }
-
-      .theme-toggle {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
-        top: 10px;
-        right: 10px;
-      }
-    }
-
-    @media (max-width: 360px) {
-      .stats-header h1 {
-        font-size: 1.2rem;
+        font-size: 1rem;
+        margin: 0 0 10px 0;
       }
 
       .stats-table th,
@@ -782,8 +825,68 @@
         font-size: 0.7rem;
       }
 
+      .badge {
+        padding: 3px 10px;
+        font-size: 0.65rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        margin: 3px 0;
+        display: block;
+        width: 100%;
+      }
+
+      .theme-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        top: 8px;
+        right: 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      body {
+        padding-top: 80px;
+      }
+
+      .top-header {
+        height: 80px;
+      }
+
+      .logo-img-header {
+        max-width: 55px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.1rem;
+      }
+
+      .stats-header p {
+        font-size: 0.75rem;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 4px 2px;
+        font-size: 0.65rem;
+      }
+
       .stat-number {
         font-size: 1.6rem;
+      }
+
+      .stat-card h3 {
+        font-size: 0.85rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 6px 8px;
+        font-size: 0.7rem;
       }
     }
 
@@ -838,6 +941,13 @@
   </style>
 </head>
 <body>
+  <!-- Header superior con logo -->
+  <div class="top-header">
+    <div class="logo-container">
+      <img src="../favicon.png" alt="Logo Fast Flavors" class="logo-img-header">
+    </div>
+  </div>
+
   <!-- Modal de autenticación -->
   <div id="authModal" class="auth-modal">
     <div class="auth-card">
@@ -861,9 +971,6 @@
 
   <div class="stats-container">
     <div class="stats-header">
-      <div class="logo-container">
-        <img src="../favicon.png" alt="Logo" class="logo-img-header">
-      </div>
       <h1>📊 Estadísticas de Reservas</h1>
       <p>Panel de control para administradores</p>
       <div>
@@ -1205,24 +1312,37 @@
         // Obtener deudas de todos los estudiantes
         console.log('💳 Cargando deudas...');
         const deudasResponse = await api.getResumenDeudas();
-        console.log('💳 Datos de deudas:', deudasResponse);
+        console.log('💳 Respuesta completa de deudas:', deudasResponse);
+        console.log('💳 Success:', deudasResponse?.success);
+        console.log('💳 Data:', deudasResponse?.data);
+        console.log('💳 Resumen:', deudasResponse?.data?.resumen);
         
         // Extraer array de deudas del resumen
         let deudas = [];
-        if (deudasResponse.data?.resumen && Array.isArray(deudasResponse.data.resumen)) {
-          // Mapear campos: totalDeuda → deuda
+        if (deudasResponse && deudasResponse.success && deudasResponse.data && deudasResponse.data.resumen && Array.isArray(deudasResponse.data.resumen)) {
+          // Ya vienen agregadas desde el backend
           deudas = deudasResponse.data.resumen.map(est => ({
-            nombre: est.nombre,
-            codigo: est.codigo,
-            grado: est.grado,
+            nombre: est.nombre || '',
+            codigo: est.codigo || '',
+            grado: est.grado || '',
             deuda: est.totalDeuda || 0,
-            ultimaReserva: est.ultimaReserva || '---'
+            ultimaReserva: est.ultimaReserva || '---',
+            cantidadItems: est.cantidadItems || 0
           }));
+          console.log('✅ Deudas mapeadas correctamente:', deudas);
+        } else {
+          console.warn('⚠️ Respuesta inesperada de getResumenDeudas:', {
+            success: deudasResponse?.success,
+            hasData: !!deudasResponse?.data,
+            hasResumen: !!deudasResponse?.data?.resumen,
+            isArray: Array.isArray(deudasResponse?.data?.resumen)
+          });
         }
         
         console.log('📋 Deudas procesadas:', {
           cantidad: deudas.length,
-          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0)
+          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0),
+          deudas: deudas
         });
 
         // Renderizar deudas
@@ -1314,7 +1434,13 @@
       const deudaTotal = document.getElementById('deudaTotal');
       const contadorDeudores = document.getElementById('contadorDeudores');
       
+      console.log('🎨 Renderizando deudas:', {
+        cantidad: deudas?.length,
+        deudas: deudas
+      });
+      
       if (!deudas || deudas.length === 0) {
+        console.log('✅ Sin deudas para mostrar');
         tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="icon-empty">✅</div><p>¡No hay deudas pendientes!</p></td></tr>';
         deudaTotal.textContent = '0.00';
         contadorDeudores.textContent = '0';
@@ -1323,6 +1449,8 @@
 
       // Calcular total de deudas
       const total = deudas.reduce((sum, d) => sum + (d.deuda || 0), 0);
+      
+      console.log('📊 Total de deudas calculado:', total);
       
       // Actualizar números
       document.getElementById('deudaTotal').textContent = total.toFixed(2);
@@ -1340,6 +1468,8 @@
           <td>${deuda.ultimaReserva || 'N/A'}</td>
         </tr>
       `).join('');
+      
+      console.log('✅ Tabla de deudas renderizada con', deudasOrdenadas.length, 'registros');
     }
 
     // Función para animar números
