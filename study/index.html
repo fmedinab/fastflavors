@@ -749,6 +749,35 @@
   <script>
     let currentStudent = null;
     let searchTimeout = null;
+    let studentsCache = []; // Cache global de estudiantes
+    let cacheLoaded = false; // Indicador si el cache está listo
+
+    // Cargar estudiantes una sola vez al iniciar
+    async function loadStudentsCache() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudents`);
+        const data = await response.json();
+        
+        if (data.success) {
+          studentsCache = data.data?.students || data.students || [];
+          cacheLoaded = true;
+          console.log(`✅ ${studentsCache.length} estudiantes cargados en cache`);
+        } else {
+          console.warn('⚠️ Error cargando cache de estudiantes');
+        }
+      } catch (error) {
+        console.error('Error loading students cache:', error);
+      }
+    }
+
+    // Mostrar loader visual
+    function showSearchLoader() {
+      document.getElementById('loansList').innerHTML = '<div class="loading">🔍 Buscando estudiante...</div>';
+    }
+
+    function showLoading() {
+      document.getElementById('loansList').innerHTML = '<div class="loading">⏳ Cargando préstamos...</div>';
+    }
 
     // Search functionality with debounce
     document.getElementById('studentCode').addEventListener('input', (e) => {
@@ -760,10 +789,10 @@
       }
       
       if (code.length >= 3) {
-        // Wait 800ms after user stops typing before searching
+        // Wait 600ms after user stops typing before searching
         searchTimeout = setTimeout(() => {
           searchStudent(code);
-        }, 800);
+        }, 600);
       }
     });
 
@@ -782,29 +811,28 @@
 
     async function searchStudent(code) {
       try {
-        // Get student info
-        const studentsResponse = await fetch(`${CONFIG.API_URL}?action=getStudents`);
-        const studentsData = await studentsResponse.json();
-
-        if (!studentsData.success) {
-          alert('❌ Error al buscar estudiante');
-          return;
+        // Si el cache no está listo, esperar a que cargue
+        if (!cacheLoaded) {
+          console.log('⏳ Esperando cache de estudiantes...');
+          showSearchLoader();
+          await loadStudentsCache();
         }
 
-        // Manejar ambas estructuras de respuesta: data.data.students o data.students
-        const students = studentsData.data?.students || studentsData.students || [];
-        
-        if (!Array.isArray(students) || students.length === 0) {
-          alert('⚠️ No hay estudiantes registrados');
-          return; 
-        }
-
-        const student = students.find(s => 
+        // Buscar en el cache
+        const student = studentsCache.find(s => 
           String(s.codigo).toUpperCase() === code.toUpperCase()
         );
 
         if (!student) {
-          alert('⚠️ Estudiante no encontrado. Verifica tu código.');
+          // Si no encontró, mostrar mensaje sin alert
+          document.getElementById('studentCard').style.display = 'block';
+          document.getElementById('loansList').innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🔍</div>
+              <h3>Código no encontrado</h3>
+              <p>Verifica que el código sea correcto (Ejemplo: EST001)</p>
+            </div>
+          `;
           return;
         }
 
@@ -813,7 +841,13 @@
 
       } catch (error) {
         console.error('Error searching student:', error);
-        alert('❌ Error al buscar estudiante. Verifica tu conexión.');
+        document.getElementById('loansList').innerHTML = `
+          <div class="empty-state">
+            <div class="empty-state-icon">⚠️</div>
+            <h3>Error al conectar</h3>
+            <p>Por favor recarga la página e intenta nuevamente</p>
+          </div>
+        `;
       }
     }
 
@@ -824,6 +858,9 @@
         document.getElementById('studentName').textContent = student.nombre;
         document.getElementById('studentGrade').textContent = `🎓 ${student.grado} - ${student.seccion}`;
         document.getElementById('studentCode2').textContent = `📝 Código: ${student.codigo}`;
+
+        // Show loading
+        showLoading();
 
         // Get student loans and debt
         const loansResponse = await fetch(`${CONFIG.API_URL}?action=getStudentLoans&studentCode=${student.codigo}`);
@@ -985,8 +1022,10 @@
       currentStudent = null;
     }
 
-    // Focus on load
-    window.addEventListener('load', () => {
+    // Load cache and focus on load
+    window.addEventListener('load', async () => {
+      console.log('📱 Iniciando aplicación...');
+      await loadStudentsCache();
       document.getElementById('studentCode').focus();
     });
   </script>
