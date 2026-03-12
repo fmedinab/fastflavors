@@ -22,34 +22,65 @@
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       min-height: 100vh;
-      padding: 20px;
+      padding: 0;
+      padding-top: 140px;
+      padding-bottom: 30px;
+    }
+
+    .top-header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 130px;
+      background: var(--primary);
+      z-index: 100;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .logo-container {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 101;
+    }
+
+    .logo-img-header {
+      max-width: 110px;
+      height: auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     }
 
     .container {
       max-width: 800px;
       margin: 0 auto;
+      padding: 15px;
     }
 
     /* Header */
     .header {
       background: white;
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 20px;
+      border-radius: 16px;
+      padding: 20px 15px;
+      margin-bottom: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       text-align: center;
     }
 
     .header h1 {
-      font-size: 2.5rem;
+      font-size: 1.8rem;
       color: var(--accent);
-      margin-bottom: 10px;
+      margin-bottom: 6px;
     }
 
     .header .brand {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: bold;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     .header .brand-name {
@@ -62,32 +93,32 @@
 
     .header p {
       color: #666;
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     /* Search Section */
     .search-section {
       background: white;
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 20px;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
     }
 
     .search-label {
-      font-size: 1.3rem;
+      font-size: 1.1rem;
       color: #333;
-      margin-bottom: 15px;
+      margin-bottom: 12px;
       display: block;
       font-weight: bold;
     }
 
     .search-input {
       width: 100%;
-      padding: 20px;
-      font-size: 1.3rem;
+      padding: 14px;
+      font-size: 1.1rem;
       border: 3px solid #e0e0e0;
-      border-radius: 15px;
+      border-radius: 12px;
       transition: all 0.3s;
       text-align: center;
       font-weight: bold;
@@ -100,18 +131,18 @@
     }
 
     .search-hint {
-      margin-top: 15px;
+      margin-top: 10px;
       color: #999;
-      font-size: 1rem;
+      font-size: 0.9rem;
       text-align: center;
     }
 
     /* Student Info Card */
     .student-card {
       background: white;
-      border-radius: 20px;
-      padding: 30px;
-      margin-bottom: 20px;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 15px;
       box-shadow: 0 10px 30px rgba(0,0,0,0.2);
       display: none;
     }
@@ -119,47 +150,47 @@
     .student-header {
       background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
       color: white;
-      padding: 25px;
-      border-radius: 15px;
-      margin-bottom: 20px;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
       text-align: center;
     }
 
     .student-header h2 {
-      font-size: 2rem;
-      margin-bottom: 10px;
+      font-size: 1.6rem;
+      margin-bottom: 8px;
     }
 
     .student-header p {
-      font-size: 1.2rem;
+      font-size: 1rem;
       opacity: 0.9;
-      margin: 5px 0;
+      margin: 3px 0;
     }
 
     /* Debt Summary */
     .debt-summary {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 15px;
-      margin-bottom: 25px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
     }
 
     .debt-item {
       background: #f8f9fa;
-      padding: 20px;
-      border-radius: 15px;
+      padding: 15px;
+      border-radius: 12px;
       text-align: center;
     }
 
     .debt-item-label {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       color: #666;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-weight: 500;
     }
 
     .debt-item-value {
-      font-size: 2rem;
+      font-size: 1.8rem;
       font-weight: bold;
       color: var(--secondary);
     }
@@ -169,30 +200,30 @@
     }
 
     .debt-item.total .debt-item-value {
-      font-size: 2.5rem;
+      font-size: 2rem;
       color: var(--primary-dark);
     }
 
     /* Loans List */
     .loans-section h3 {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       color: #333;
-      margin-bottom: 20px;
-      padding-bottom: 10px;
+      margin-bottom: 15px;
+      padding-bottom: 8px;
       border-bottom: 3px solid var(--secondary);
     }
 
     .loan-card {
       background: #f8f9fa;
-      border-radius: 15px;
-      padding: 20px;
-      margin-bottom: 15px;
+      border-radius: 12px;
+      padding: 15px;
+      margin-bottom: 12px;
       border-left: 5px solid var(--secondary);
       transition: all 0.3s;
     }
 
     .loan-card:hover {
-      transform: translateX(5px);
+      transform: translateX(3px);
       box-shadow: 0 5px 15px rgba(0,0,0,0.1);
     }
 
@@ -200,34 +231,34 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 15px;
-      padding-bottom: 10px;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
       border-bottom: 2px solid #e0e0e0;
       flex-wrap: wrap;
-      gap: 10px;
+      gap: 8px;
     }
 
     .loan-datetime {
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 3px;
     }
 
     .loan-date-field {
-      font-size: 0.95rem;
+      font-size: 0.85rem;
       color: #666;
       font-weight: 500;
     }
 
     .loan-time-field {
-      font-size: 0.95rem;
+      font-size: 0.8rem;
       color: #999;
     }
 
     .loan-status {
-      padding: 5px 12px;
+      padding: 4px 10px;
       border-radius: 20px;
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       font-weight: bold;
       text-align: center;
     }
@@ -243,24 +274,24 @@
     }
 
     .loan-total {
-      font-size: 1.5rem;
+      font-size: 1.3rem;
       font-weight: bold;
       color: var(--primary-dark);
-      min-width: 100px;
+      min-width: 90px;
       text-align: right;
     }
 
     .loan-items {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 6px;
     }
 
     .loan-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px;
+      padding: 10px;
       background: white;
       border-radius: 8px;
       border-left: 3px solid var(--accent);
@@ -270,17 +301,17 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
     }
 
     .loan-item-name {
-      font-size: 1.1rem;
+      font-size: 1rem;
       color: #333;
       font-weight: 600;
     }
 
     .loan-item-id {
-      font-size: 0.85rem;
+      font-size: 0.75rem;
       color: #999;
     }
 
@@ -288,19 +319,19 @@
       display: flex;
       flex-direction: column;
       align-items: flex-end;
-      gap: 4px;
+      gap: 3px;
     }
 
     .loan-item-quantity {
-      font-size: 0.9rem;
+      font-size: 0.8rem;
       color: #666;
       background: #e9ecef;
-      padding: 2px 8px;
+      padding: 2px 6px;
       border-radius: 4px;
     }
 
     .loan-item-price {
-      font-size: 1.2rem;
+      font-size: 1rem;
       font-weight: bold;
       color: var(--secondary);
     }
@@ -308,31 +339,31 @@
     /* Empty State */
     .empty-state {
       text-align: center;
-      padding: 60px 20px;
+      padding: 40px 20px;
       color: #999;
     }
 
     .empty-state-icon {
-      font-size: 5rem;
-      margin-bottom: 20px;
+      font-size: 4rem;
+      margin-bottom: 15px;
       opacity: 0.5;
     }
 
     .empty-state h3 {
-      font-size: 1.5rem;
-      margin-bottom: 10px;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
       color: #666;
     }
 
     .empty-state p {
-      font-size: 1.1rem;
+      font-size: 1rem;
     }
 
     /* Loading */
     .loading {
       text-align: center;
-      padding: 40px;
-      font-size: 1.3rem;
+      padding: 30px;
+      font-size: 1.1rem;
       color: #667eea;
     }
 
@@ -341,14 +372,14 @@
       background: white;
       color: var(--primary);
       border: 3px solid var(--primary);
-      padding: 12px 25px;
+      padding: 10px 20px;
       border-radius: 10px;
-      font-size: 1.1rem;
+      font-size: 1rem;
       font-weight: bold;
       cursor: pointer;
       transition: all 0.3s;
       display: block;
-      margin: 20px auto 0;
+      margin: 15px auto 0;
     }
 
     .back-btn:hover {
@@ -359,27 +390,219 @@
 
     /* Responsive */
     @media (max-width: 768px) {
+      body {
+        padding-top: 132px;
+      }
+      .top-header-bar {
+        height: 120px;
+      }
+      .logo-img-header {
+        max-width: 90px;
+      }
       .header h1 {
-        font-size: 2rem;
+        font-size: 1.5rem;
+        margin-bottom: 4px;
       }
-
+      .header p {
+        font-size: 0.9rem;
+      }
+      .header .brand {
+        font-size: 0.9rem;
+      }
+      .search-label {
+        font-size: 1rem;
+      }
       .search-input {
-        font-size: 1.1rem;
-        padding: 15px;
+        font-size: 1rem;
+        padding: 12px;
       }
-
       .student-header h2 {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
+        margin-bottom: 6px;
       }
-
+      .student-header p {
+        font-size: 0.9rem;
+      }
       .debt-item-value {
-        font-size: 1.5rem;
+        font-size: 1.4rem;
       }
-
+      .debt-item.total .debt-item-value {
+        font-size: 1.6rem;
+      }
       .loan-header {
         flex-direction: column;
         align-items: flex-start;
+        gap: 8px;
+      }
+      .loans-section h3 {
+        font-size: 1.15rem;
+      }
+      .loan-total {
+        font-size: 1.2rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding-top: 125px;
+        padding-bottom: 20px;
+      }
+      .top-header-bar {
+        height: 110px;
+      }
+      .logo-img-header {
+        max-width: 75px;
+      }
+      .header {
+        padding: 15px 12px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+      }
+      .header h1 {
+        font-size: 1.2rem;
+        margin-bottom: 2px;
+      }
+      .header .brand {
+        font-size: 0.8rem;
+        margin-bottom: 6px;
+      }
+      .header p {
+        font-size: 0.8rem;
+      }
+      .search-section {
+        padding: 15px 12px;
+        border-radius: 12px;
+      }
+      .search-label {
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+      }
+      .search-input {
+        font-size: 1rem;
+        padding: 11px;
+        border-radius: 10px;
+      }
+      .search-hint {
+        font-size: 0.8rem;
+        margin-top: 8px;
+      }
+      .student-card {
+        padding: 15px;
+        margin-bottom: 12px;
+        border-radius: 12px;
+      }
+      .student-header {
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 12px;
+      }
+      .student-header h2 {
+        font-size: 1.2rem;
+        margin-bottom: 4px;
+      }
+      .student-header p {
+        font-size: 0.85rem;
+        margin: 2px 0;
+      }
+      .debt-summary {
+        grid-template-columns: repeat(3, 1fr);
         gap: 10px;
+        margin-bottom: 12px;
+      }
+      .debt-item {
+        padding: 12px 10px;
+        border-radius: 10px;
+      }
+      .debt-item-label {
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+      }
+      .debt-item-value {
+        font-size: 1.3rem;
+      }
+      .debt-item.total .debt-item-value {
+        font-size: 1.4rem;
+      }
+      .loans-section h3 {
+        font-size: 1rem;
+        margin-bottom: 12px;
+        padding-bottom: 6px;
+      }
+      .loan-card {
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+      }
+      .loan-header {
+        margin-bottom: 10px;
+        padding-bottom: 6px;
+        gap: 6px;
+      }
+      .loan-datetime {
+        gap: 2px;
+      }
+      .loan-date-field {
+        font-size: 0.75rem;
+      }
+      .loan-time-field {
+        font-size: 0.7rem;
+      }
+      .loan-status {
+        padding: 3px 8px;
+        font-size: 0.7rem;
+      }
+      .loan-total {
+        font-size: 1rem;
+        min-width: 80px;
+      }
+      .loan-items {
+        gap: 5px;
+      }
+      .loan-item {
+        padding: 8px;
+        border-radius: 6px;
+      }
+      .loan-item-name {
+        font-size: 0.9rem;
+      }
+      .loan-item-id {
+        font-size: 0.7rem;
+      }
+      .loan-item-quantity {
+        font-size: 0.7rem;
+        padding: 1px 4px;
+      }
+      .loan-item-price {
+        font-size: 0.9rem;
+      }
+      .back-btn {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+        margin: 12px auto 0;
+      }
+    }
+
+    @media (max-width: 360px) {
+      body {
+        padding-top: 120px;
+      }
+      .top-header-bar {
+        height: 105px;
+      }
+      .logo-img-header {
+        max-width: 60px;
+      }
+      .header h1 {
+        font-size: 1.05rem;
+      }
+      .student-header h2 {
+        font-size: 1.1rem;
+      }
+      .debt-item-value {
+        font-size: 1.1rem;
+      }
+      .loan-item-name {
+        font-size: 0.8rem;
       }
     }
 
@@ -439,16 +662,22 @@
   </style>
 </head>
 <body>
+  <!-- Red Top Header Bar -->
+  <div class="top-header-bar">
+    <div class="logo-container">
+      <img src="../logo.png" alt="Fast Flavors Logo" class="logo-img-header">
+    </div>
+  </div>
 
   <div class="container">
     
     <!-- Header -->
     <div style="position: absolute; top: 15px; left: 15px;">
-      <a href="../loans/" style="color: white; font-size: 1.2rem; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; background: rgba(0,0,0,0.5); padding: 8px 15px; border-radius: 20px;" title="Volver al inicio">
+      <a href="../loans/" style="color: white; font-size: 1rem; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; background: rgba(0,0,0,0.5); padding: 6px 12px; border-radius: 20px; font-weight: bold;" title="Volver al inicio">
         🏠 Volver
       </a>
     </div>
-    <div class="header" style="margin-top: 40px;">
+    <div class="header">
       <div class="brand"><span class="brand-name">Fast</span> <span class="brand-text">Flavors</span></div>
       <h1>💰 Mis Préstamos</h1>
       <p>Consulta tus compras y deuda pendiente</p>
@@ -509,20 +738,35 @@
   <script src="../js/config.js"></script>
   <script>
     let currentStudent = null;
+    let searchTimeout = null;
 
-    // Search functionality
+    // Search functionality with debounce
     document.getElementById('studentCode').addEventListener('input', (e) => {
       const code = e.target.value.trim().toUpperCase();
       
+      // Clear previous timeout
+      if (searchTimeout) {
+        clearTimeout(searchTimeout);
+      }
+      
       if (code.length >= 3) {
-        searchStudent(code);
+        // Wait 800ms after user stops typing before searching
+        searchTimeout = setTimeout(() => {
+          searchStudent(code);
+        }, 800);
       }
     });
 
     document.getElementById('studentCode').addEventListener('keypress', (e) => {
       if (e.key === 'Enter') {
+        // Clear timeout and search immediately
+        if (searchTimeout) {
+          clearTimeout(searchTimeout);
+        }
         const code = e.target.value.trim().toUpperCase();
-        searchStudent(code);
+        if (code.length >= 3) {
+          searchStudent(code);
+        }
       }
     });
 
