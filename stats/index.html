@@ -1000,35 +1000,29 @@
 
         // Obtener deudas de todos los estudiantes
         console.log('💳 Cargando deudas...');
-        const deudasResponse = await fetch(`${CONFIG.API_URL}?action=getPrestamos`);
-        const deudasData = await deudasResponse.json();
-        console.log('💳 Datos de deudas (getPrestamos):', deudasData);
+        const deudasResponse = await api.getResumenDeudas();
+        console.log('💳 Datos de deudas:', deudasResponse);
         
-        // Extraer array de deudas manteniendo compatibilidad con ambas estructuras
+        // Extraer array de deudas del resumen
         let deudas = [];
-        if (deudasData.data?.deudas && Array.isArray(deudasData.data.deudas)) {
-          deudas = deudasData.data.deudas;
-        } else if (deudasData.data?.prestamos && Array.isArray(deudasData.data.prestamos)) {
-          deudas = deudasData.data.prestamos;
-        } else if (Array.isArray(deudasData.deudas)) {
-          deudas = deudasData.deudas;
-        } else if (Array.isArray(deudasData.prestamos)) {
-          deudas = deudasData.prestamos;
-        } else if (Array.isArray(deudasData.data)) {
-          deudas = deudasData.data;
+        if (deudasResponse.data?.resumen && Array.isArray(deudasResponse.data.resumen)) {
+          // Mapear campos: totalDeuda → deuda
+          deudas = deudasResponse.data.resumen.map(est => ({
+            nombre: est.nombre,
+            codigo: est.codigo,
+            grado: est.grado,
+            deuda: est.totalDeuda || 0,
+            ultimaReserva: est.ultimaReserva || '---'
+          }));
         }
         
-        // Filtrar solo los pendientes
-        const deudasPendientes = deudas.filter(d => d.estado?.toUpperCase() === 'PENDIENTE');
-        
         console.log('📋 Deudas procesadas:', {
-          total: deudas.length,
-          pendientes: deudasPendientes.length,
-          totalDeuda: deudasPendientes.reduce((sum, d) => sum + (d.deuda || d.precio || 0), 0)
+          cantidad: deudas.length,
+          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0)
         });
 
         // Renderizar deudas
-        renderDeudas(deudasPendientes);
+        renderDeudas(deudas);
 
         // Renderizar platos populares
         renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
