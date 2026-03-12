@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Estadísticas de Reservas - Fast Flavors</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <link rel="shortcut icon" href="../favicon.png" type="image/png">
+  
   <link rel="stylesheet" href="../css/styles.css">
   <style>
     /* Variables de colores - Alineados con página principal */
@@ -580,6 +585,55 @@
         font-size: 0.9rem;
       }
     }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #e0e0e0;
+      }
+      .auth-card, .stat-card, .table-container, .btn-home {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+      .stat-title {
+        color: #b0b0b0;
+      }
+      .stat-value {
+        color: #e0e0e0;
+      }
+      .stats-table th {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-bottom-color: #444;
+      }
+      .stats-table td {
+        border-bottom-color: #333;
+        color: #e0e0e0;
+      }
+      .stats-table tr:hover {
+        background: #252525;
+      }
+      .btn-update {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #444;
+      }
+      .btn-update:hover {
+        background: #444;
+      }
+      .table-title {
+        color: #e0e0e0;
+      }
+      .pin-input {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+      .auth-icon {
+        color: #e0e0e0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -712,7 +766,58 @@
         </tbody>
       </table>
     </div>
+
+    <!-- SECCIÓN DE DEUDAS -->
+    <div class="table-container">
+      <h2>💳 Listado de Deudas Pendientes</h2>
+      <div style="margin-bottom: 20px;">
+        <div class="stat-card" style="display: inline-block; width: auto; padding: 15px 30px; min-width: 250px;">
+          <div style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">DEUDA TOTAL</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: #e74c3c;">S/ <span id="deudaTotal">0.00</span></div>
+        </div>
+        <div class="stat-card" style="display: inline-block; width: auto; padding: 15px 30px; min-width: 250px; margin-left: 15px;">
+          <div style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">ESTUDIANTES CON DEUDA</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color);"><span id="contadorDeudores">0</span></div>
+        </div>
+      </div>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Estudiante</th>
+            <th>Código</th>
+            <th>Grado</th>
+            <th>Deuda Total</th>
+            <th>Última Reserva</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDeudas">
+          <tr>
+            <td colspan="5" class="loading">Cargando deudas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
   </div>
+
+  <!-- Platos más solicitados HOY (OCULTO - para mantener estructura) -->
+  <div style="display: none;">
+    <div class="table-container">
+      <h2>🏆 Platos Más Solicitados Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Plato</th>
+            <th>Cantidad</th>
+            <th>Porcentaje</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPlatosPopulares">
+          <tr>
+            <td colspan="3" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
   <script src="../js/config.js"></script>
   <script src="../js/utils.js"></script>
@@ -893,6 +998,9 @@
         // Renderizar detalle de hoy
         renderDetalleHoy(dataHoy.reservasDetalle);
 
+    // Renderizar deudas
+    renderDeudas(dataHoy.deudas);
+
         // Renderizar platos populares
         renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
 
@@ -970,6 +1078,39 @@
           <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📌'} ${plato.nombre}</td>
           <td><strong>${plato.cantidad}</strong></td>
           <td>${plato.porcentaje}%</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDeudas(deudas) {
+      const tbody = document.getElementById('tablaDeudas');
+      const deudaTotal = document.getElementById('deudaTotal');
+      const contadorDeudores = document.getElementById('contadorDeudores');
+      
+      if (!deudas || deudas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="icon-empty">✅</div><p>¡No hay deudas pendientes!</p></td></tr>';
+        deudaTotal.textContent = '0.00';
+        contadorDeudores.textContent = '0';
+        return;
+      }
+
+      // Calcular total de deudas
+      const total = deudas.reduce((sum, d) => sum + (d.deuda || 0), 0);
+      
+      // Actualizar números
+      document.getElementById('deudaTotal').textContent = total.toFixed(2);
+      contadorDeudores.textContent = deudas.length;
+
+      // Ordenar por deuda descendente
+      const deudasOrdenadas = [...deudas].sort((a, b) => (b.deuda || 0) - (a.deuda || 0));
+
+      tbody.innerHTML = deudasOrdenadas.map((deuda, index) => `
+        <tr>
+          <td>${deuda.nombre || 'N/A'}</td>
+          <td><strong>${deuda.codigo || 'N/A'}</strong></td>
+          <td>${deuda.grado || 'N/A'}</td>
+          <td style="color: #e74c3c; font-weight: bold;">S/ ${(deuda.deuda || 0).toFixed(2)}</td>
+          <td>${deuda.ultimaReserva || 'N/A'}</td>
         </tr>
       `).join('');
     }
