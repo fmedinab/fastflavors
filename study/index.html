@@ -639,7 +639,7 @@
             <div class="loan-header">
               <div class="loan-datetime">
                 <div class="loan-date-field">📅 ${formatDateShort(loan.fecha)}</div>
-                <div class="loan-time-field">⏰ ${loan.hora}</div>
+                <div class="loan-time-field">⏰ ${formatTime(loan.hora)}</div>
               </div>
               <div class="loan-status ${statusClass}">
                 ${statusEmoji} ${estado}
@@ -667,10 +667,24 @@
 
     function formatDateShort(dateString) {
       try {
-        const parts = dateString.toString().split('-');
-        const year = parts[0];
-        const month = parts[1];
-        const day = parts[2];
+        // Si no hay fecha, retornar vacío
+        if (!dateString) return 'Fecha no disponible';
+        
+        let year, month, day;
+        
+        // Si es un timestamp ISO (contiene T)
+        if (dateString.includes('T')) {
+          const date = new Date(dateString);
+          year = date.getFullYear();
+          month = String(date.getMonth() + 1).padStart(2, '0');
+          day = String(date.getDate()).padStart(2, '0');
+        } else {
+          // Si es formato YYYY-MM-DD
+          const parts = dateString.toString().split('-');
+          year = parts[0];
+          month = parts[1];
+          day = parts[2];
+        }
         
         const date = new Date(year, month - 1, day);
         const days = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
@@ -682,7 +696,27 @@
         
         return `${dayName}, ${day} de ${monthName} ${year}`;
       } catch (e) {
-        return dateString;
+        return 'Fecha no disponible';
+      }
+    }
+
+    function formatTime(timeString) {
+      try {
+        // Si no hay tiempo, retornar vacío
+        if (!timeString) return 'Hora no disponible';
+        
+        // Si es un timestamp ISO (contiene T)
+        if (timeString.includes('T')) {
+          const date = new Date(timeString);
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          return `${hours}:${minutes}`;
+        }
+        
+        // Si ya está en formato HH:mm
+        return timeString;
+      } catch (e) {
+        return 'Hora no disponible';
       }
     }
 
