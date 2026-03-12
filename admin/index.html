@@ -113,6 +113,80 @@
       display: none;
     }
 
+    /* Access Modal */
+    .access-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10002;
+    }
+
+    .access-modal.show {
+      display: flex;
+    }
+
+    .access-box {
+      background: white;
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .access-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      animation: bounce 0.6s ease-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    .access-box h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .access-box.success h2 {
+      color: #27ae60;
+    }
+
+    .access-box.error h2 {
+      color: #e74c3c;
+    }
+
+    .access-box p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
     /* Sidebar */
     .sidebar {
       width: 350px;
@@ -895,6 +969,15 @@
 </head>
 <body>
 
+  <!-- Access Modal -->
+  <div class="access-modal" id="accessModal">
+    <div class="access-box" id="accessBox">
+      <div class="access-icon" id="accessIcon">✅</div>
+      <h2 id="accessTitle">Acceso Permitido</h2>
+      <p id="accessMessage">Bienvenido al Sistema POS</p>
+    </div>
+  </div>
+
   <!-- Login Screen -->
   <div class="login-screen" id="loginScreen">
     <div class="login-box">
@@ -909,7 +992,6 @@
         <input type="password" maxlength="1" id="pin4" autocomplete="off">
       </div>
       <p class="error-msg" id="errorMsg">❌ PIN incorrecto</p>
-      <p style="color: #999; font-size: 0.9rem;">PIN por defecto: 1234</p>
     </div>
   </div>
 
@@ -1126,7 +1208,7 @@
       students: []
     };
 
-    const ADMIN_PIN = '1234'; // Cambiar según necesidad
+    const ADMIN_PIN = '2026'; // Cambiar según necesidad
 
     // ========== LOGIN ==========
     document.addEventListener('DOMContentLoaded', () => {
@@ -1168,17 +1250,51 @@
         .join('');
 
       if (pin === ADMIN_PIN) {
-        document.getElementById('loginScreen').style.display = 'none';
-        document.getElementById('mainContainer').style.display = 'flex';
-        loadData();
-      } else {
-        document.getElementById('errorMsg').style.display = 'block';
+        // Mostrar modal de acceso permitido
+        showAccessModal(true);
+        
+        // Después de 1.5 segundos, cargar el sistema
         setTimeout(() => {
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('mainContainer').style.display = 'flex';
+          document.getElementById('accessModal').classList.remove('show');
+          loadData();
+        }, 1500);
+      } else {
+        // Mostrar modal de acceso denegado
+        showAccessModal(false);
+        
+        // Después de 1.5 segundos, limpiar y pedir que intente de nuevo
+        setTimeout(() => {
+          document.getElementById('accessModal').classList.remove('show');
           document.querySelectorAll('.pin-input input').forEach(input => input.value = '');
           document.getElementById('pin1').focus();
-          document.getElementById('errorMsg').style.display = 'none';
-        }, 2000);
+        }, 1500);
       }
+    }
+
+    function showAccessModal(isSuccess) {
+      const modal = document.getElementById('accessModal');
+      const box = document.getElementById('accessBox');
+      const icon = document.getElementById('accessIcon');
+      const title = document.getElementById('accessTitle');
+      const message = document.getElementById('accessMessage');
+      
+      if (isSuccess) {
+        box.classList.remove('error');
+        box.classList.add('success');
+        icon.textContent = '✅';
+        title.textContent = 'Acceso Permitido';
+        message.textContent = 'Bienvenido al Sistema POS';
+      } else {
+        box.classList.remove('success');
+        box.classList.add('error');
+        icon.textContent = '❌';
+        title.textContent = 'Acceso Denegado';
+        message.textContent = 'PIN incorrecto. Intenta de nuevo';
+      }
+      
+      modal.classList.add('show');
     }
 
     function logout() {
