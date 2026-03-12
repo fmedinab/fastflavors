@@ -226,20 +226,33 @@
       background: #1a1a1a;
     }
 
+    .logo-container {
+      position: relative;
+      text-align: center;
+      margin-bottom: 15px;
+      padding-top: 10px;
+    }
+
+    .logo-img-header {
+      max-width: 90px;
+      height: auto;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    }
+
     .stats-container {
       max-width: 1200px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 15px;
       animation: fadeInUp 0.6s ease;
     }
 
     .stats-header {
       text-align: center;
-      margin-bottom: 40px;
-      padding: 30px;
+      margin-bottom: 30px;
+      padding: 25px 15px;
       background: var(--primary-color);
       color: white;
-      border-radius: 20px;
+      border-radius: 15px;
       box-shadow: var(--shadow-lg);
       position: relative;
       overflow: hidden;
@@ -247,9 +260,15 @@
     }
 
     .stats-header h1 {
-      margin: 0 0 10px 0;
-      font-size: 2.5rem;
+      margin: 10px 0 8px 0;
+      font-size: 2rem;
       text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .stats-header p {
+      margin: 5px 0 15px 0;
+      font-size: 0.95rem;
+      opacity: 0.95;
     }
 
     .theme-toggle {
@@ -570,19 +589,201 @@
     }
 
     /* Responsive */
-    @media (max-width: 768px) {
+    @media (max-width: 1024px) {
+      .stats-container {
+        padding: 12px;
+      }
+
+      .stats-header {
+        padding: 20px 12px;
+      }
+
       .stats-header h1 {
         font-size: 1.8rem;
       }
-      
+
+      .stats-grid {
+        gap: 15px;
+      }
+
       .stat-number {
-        font-size: 2.5rem;
+        font-size: 2.8rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .stats-container {
+        padding: 10px;
+      }
+
+      .logo-img-header {
+        max-width: 75px;
+      }
+
+      .stats-header {
+        margin-bottom: 20px;
+        padding: 18px 10px;
+        border-radius: 12px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.5rem;
+        margin: 8px 0 6px 0;
+      }
+
+      .stats-header p {
+        font-size: 0.9rem;
+        margin: 4px 0 12px 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 25px;
+      }
+
+      .stat-card {
+        padding: 15px;
+        border-radius: 12px;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        margin: 10px 0;
+      }
+
+      .stat-label {
+        font-size: 0.8rem;
+      }
+
+      .table-container {
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+      }
+
+      .table-container h2 {
+        font-size: 1.2rem;
+        margin: 0 0 15px 0;
       }
 
       .stats-table th,
       .stats-table td {
-        padding: 10px 8px;
+        padding: 8px 6px;
+        font-size: 0.8rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 10px 16px;
         font-size: 0.9rem;
+        margin: 6px 4px;
+      }
+
+      .theme-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .stats-container {
+        padding: 8px;
+      }
+
+      .logo-img-header {
+        max-width: 65px;
+      }
+
+      .stats-header {
+        margin-bottom: 18px;
+        padding: 15px 8px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.3rem;
+        margin: 6px 0 4px 0;
+      }
+
+      .stats-header p {
+        font-size: 0.85rem;
+        margin: 2px 0 10px 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        padding: 12px;
+      }
+
+      .stat-number {
+        font-size: 1.8rem;
+        margin: 8px 0;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+      }
+
+      .table-container {
+        padding: 12px;
+        margin-bottom: 15px;
+      }
+
+      .table-container h2 {
+        font-size: 1.1rem;
+        margin: 0 0 12px 0;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 6px 4px;
+        font-size: 0.75rem;
+      }
+
+      .badge {
+        padding: 4px 12px;
+        font-size: 0.7rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 8px 12px;
+        font-size: 0.8rem;
+        margin: 4px 2px;
+        display: block;
+        width: calc(100% - 4px);
+        margin-left: 2px;
+        margin-right: 2px;
+      }
+
+      .theme-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
+        top: 10px;
+        right: 10px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .stats-header h1 {
+        font-size: 1.2rem;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 5px 3px;
+        font-size: 0.7rem;
+      }
+
+      .stat-number {
+        font-size: 1.6rem;
       }
     }
 
@@ -660,6 +861,9 @@
 
   <div class="stats-container">
     <div class="stats-header">
+      <div class="logo-container">
+        <img src="../favicon.png" alt="Logo" class="logo-img-header">
+      </div>
       <h1>📊 Estadísticas de Reservas</h1>
       <p>Panel de control para administradores</p>
       <div>
