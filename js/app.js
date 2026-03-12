@@ -58,10 +58,9 @@ class ComedorApp {
   async init() {
     console.log('🚀 Inicializando aplicación...');
     
-    if (!Utils.esDiaHabil()) {
-      this.mostrarAlertaFinDeSemana();
-      return;
-    }
+    // ✅ Eliminado bloqueo hardcodeado de fines de semana
+    // El backend ahora verifica dinámicamente qué días están activos
+    // mediante isDiaActivo() que lee de Google Sheets
 
     // Cargar anuncios dinámicos
     await this.cargarAnuncios();
