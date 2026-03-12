@@ -1000,26 +1000,35 @@
 
         // Obtener deudas de todos los estudiantes
         console.log('💳 Cargando deudas...');
-        const deudasResponse = await api.getResumenDeudas();
-        console.log('💳 Datos de deudas:', deudasResponse);
+        const deudasResponse = await fetch(`${CONFIG.API_URL}?action=getPrestamos`);
+        const deudasData = await deudasResponse.json();
+        console.log('💳 Datos de deudas (getPrestamos):', deudasData);
         
         // Extraer array de deudas manteniendo compatibilidad con ambas estructuras
         let deudas = [];
-        if (deudasResponse.data?.deudas && Array.isArray(deudasResponse.data.deudas)) {
-          deudas = deudasResponse.data.deudas;
-        } else if (Array.isArray(deudasResponse.deudas)) {
-          deudas = deudasResponse.deudas;
-        } else if (Array.isArray(deudasResponse)) {
-          deudas = deudasResponse;
+        if (deudasData.data?.deudas && Array.isArray(deudasData.data.deudas)) {
+          deudas = deudasData.data.deudas;
+        } else if (deudasData.data?.prestamos && Array.isArray(deudasData.data.prestamos)) {
+          deudas = deudasData.data.prestamos;
+        } else if (Array.isArray(deudasData.deudas)) {
+          deudas = deudasData.deudas;
+        } else if (Array.isArray(deudasData.prestamos)) {
+          deudas = deudasData.prestamos;
+        } else if (Array.isArray(deudasData.data)) {
+          deudas = deudasData.data;
         }
         
+        // Filtrar solo los pendientes
+        const deudasPendientes = deudas.filter(d => d.estado?.toUpperCase() === 'PENDIENTE');
+        
         console.log('📋 Deudas procesadas:', {
-          cantidad: deudas.length,
-          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0)
+          total: deudas.length,
+          pendientes: deudasPendientes.length,
+          totalDeuda: deudasPendientes.reduce((sum, d) => sum + (d.deuda || d.precio || 0), 0)
         });
 
         // Renderizar deudas
-        renderDeudas(deudas);
+        renderDeudas(deudasPendientes);
 
         // Renderizar platos populares
         renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
