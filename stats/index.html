@@ -998,8 +998,20 @@
         // Renderizar detalle de hoy
         renderDetalleHoy(dataHoy.reservasDetalle);
 
-    // Renderizar deudas
-    renderDeudas(dataHoy.deudas);
+        // Obtener deudas de todos los estudiantes
+        console.log('💳 Cargando deudas...');
+        const deudasResponse = await api.getResumenDeudas();
+        console.log('💳 Datos de deudas:', deudasResponse);
+        const dataDeudas = deudasResponse.data || deudasResponse;
+        const deudas = dataDeudas.deudas || dataDeudas || [];
+        
+        console.log('📋 Deudas procesadas:', {
+          cantidad: deudas.length,
+          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0)
+        });
+
+        // Renderizar deudas
+        renderDeudas(deudas);
 
         // Renderizar platos populares
         renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
