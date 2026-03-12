@@ -445,19 +445,20 @@
     }
 
     .product-card {
-      background: white;
+      background: #2a2a2a;
       border-radius: 15px;
       padding: 15px;
       cursor: pointer;
       transition: all 0.3s;
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
       border: 3px solid transparent;
     }
 
     .product-card:hover {
       transform: translateY(-5px);
-      box-shadow: 0 10px 30px rgba(255, 87, 34, 0.3);
+      box-shadow: 0 10px 30px rgba(255, 87, 34, 0.4);
       border-color: var(--secondary);
+      background: #333;
     }
 
     .product-image {
@@ -474,22 +475,25 @@
     }
 
     .product-name {
-      font-size: 1.1rem;
-      font-weight: bold;
-      color: #333;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
       margin-bottom: 5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     .product-category {
-      font-size: 0.85rem;
-      color: #999;
+      font-size: 0.9rem;
+      color: #ffb74d;
       margin-bottom: 10px;
+      font-weight: 600;
     }
 
     .product-price {
-      font-size: 1.4rem;
-      color: var(--secondary);
+      font-size: 1.5rem;
+      color: #ff9500;
       font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
     }
 
     /* Loading */
@@ -532,6 +536,57 @@
 
       .product-image {
         height: 120px;
+      }
+
+      .product-card {
+        padding: 12px;
+      }
+
+      .product-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .product-category {
+        font-size: 0.85rem;
+        color: #ffb74d;
+        font-weight: 600;
+      }
+
+      .product-price {
+        font-size: 1.3rem;
+        color: #ff9500;
+        font-weight: bold;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+      }
+
+      .product-card {
+        padding: 10px;
+      }
+
+      .product-image {
+        height: 100px;
+        font-size: 2.5rem;
+      }
+
+      .product-name {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .product-category {
+        font-size: 0.8rem;
+      }
+
+      .product-price {
+        font-size: 1.2rem;
       }
     }
 
