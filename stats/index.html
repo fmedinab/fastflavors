@@ -1002,8 +1002,16 @@
         console.log('💳 Cargando deudas...');
         const deudasResponse = await api.getResumenDeudas();
         console.log('💳 Datos de deudas:', deudasResponse);
-        const dataDeudas = deudasResponse.data || deudasResponse;
-        const deudas = dataDeudas.deudas || dataDeudas || [];
+        
+        // Extraer array de deudas manteniendo compatibilidad con ambas estructuras
+        let deudas = [];
+        if (deudasResponse.data?.deudas && Array.isArray(deudasResponse.data.deudas)) {
+          deudas = deudasResponse.data.deudas;
+        } else if (Array.isArray(deudasResponse.deudas)) {
+          deudas = deudasResponse.deudas;
+        } else if (Array.isArray(deudasResponse)) {
+          deudas = deudasResponse;
+        }
         
         console.log('📋 Deudas procesadas:', {
           cantidad: deudas.length,
