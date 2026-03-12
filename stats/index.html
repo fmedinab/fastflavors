@@ -1465,11 +1465,48 @@
           <td><strong>${deuda.codigo || 'N/A'}</strong></td>
           <td>${deuda.grado || 'N/A'}</td>
           <td style="color: #e74c3c; font-weight: bold;">S/ ${(deuda.deuda || 0).toFixed(2)}</td>
-          <td>${deuda.ultimaReserva || 'N/A'}</td>
+          <td>${formatearFecha(deuda.ultimaReserva)}</td>
         </tr>
       `).join('');
       
       console.log('✅ Tabla de deudas renderizada con', deudasOrdenadas.length, 'registros');
+    }
+
+    // Función para formatear fechas
+    function formatearFecha(fecha) {
+      if (!fecha || fecha === '---' || fecha === 'N/A') {
+        return fecha || '---';
+      }
+
+      try {
+        // Si es un string en formato ISO (2026-03-12T05:00:00.000Z)
+        if (typeof fecha === 'string' && fecha.includes('T')) {
+          const date = new Date(fecha);
+          if (isNaN(date.getTime())) {
+            return fecha; // Retorna original si no se puede parsear
+          }
+          // Formato: YYYY-MM-DD
+          const año = date.getFullYear();
+          const mes = String(date.getMonth() + 1).padStart(2, '0');
+          const dia = String(date.getDate()).padStart(2, '0');
+          return `${año}-${mes}-${dia}`;
+        }
+
+        // Si es un string en formato YYYY-MM-DD, retornar tal cual
+        if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(fecha)) {
+          return fecha.split('T')[0]; // Remove time part if exists
+        }
+
+        // Si es un string en formato DD/MM/YYYY, retornar tal cual
+        if (typeof fecha === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(fecha)) {
+          return fecha;
+        }
+
+        return fecha || '---';
+      } catch (error) {
+        console.warn('Error al formatear fecha:', fecha, error);
+        return fecha || '---';
+      }
     }
 
     // Función para animar números
