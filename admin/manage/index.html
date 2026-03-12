@@ -1438,6 +1438,7 @@
           renderProducts(products);
           updateStats();
           renderFilters();
+          loadCategories(); // Cargar categorías dinámicamente desde productos
         } else {
           showError('Error al cargar productos: ' + (data.mensaje || data.message || ''));
         }
@@ -1445,6 +1446,68 @@
         console.error('Error loading products:', error);
         showError('Error de conexión: ' + error.message);
       }
+    }
+
+    function loadCategories() {
+      // Extraer categorías únicas de los productos existentes
+      const rawCategories = [...new Set(products.map(p => p.category).filter(c => c))];
+      
+      // Normalizar categorías (convertir a plural estándar)
+      const categoryMap = {
+        'Bebida': 'Bebidas',
+        'Comida': 'Comida',
+        'Snack': 'Snacks',
+        'Snacks': 'Snacks',
+        'Bebidas': 'Bebidas',
+        'Postre': 'Postres',
+        'Postres': 'Postres',
+        'Lácteo': 'Lácteos',
+        'Lácteos': 'Lácteos',
+        'Saludable': 'Saludable',
+        'Dulce': 'Dulces',
+        'Dulces': 'Dulces',
+        'Frugo': 'Bebidas', // Frugo es una bebida
+        'Otro': 'Otros',
+        'Otros': 'Otros'
+      };
+
+      // Mapear y deduplicar
+      const normalizedCategories = [...new Set(
+        rawCategories.map(cat => {
+          const trimmed = String(cat).trim();
+          return categoryMap[trimmed] || trimmed;
+        })
+      )].sort();
+
+      console.log('📋 Categorías normalizadas:', normalizedCategories);
+
+      // Llenar el select dinámicamente
+      const categorySelect = document.getElementById('productCategory');
+      if (categorySelect) {
+        const currentValue = categorySelect.value;
+        
+        categorySelect.innerHTML = '<option value="">Selecciona una categoría</option>' + 
+          normalizedCategories.map(cat => `<option value="${cat}">${getEmojiForCategory(cat)} ${cat}</option>`).join('');
+        
+        // Mantener el valor actual si existe
+        if (currentValue) {
+          categorySelect.value = currentValue;
+        }
+      }
+    }
+
+    function getEmojiForCategory(category) {
+      const emojiMap = {
+        'Comida': '🍔',
+        'Snacks': '🍪',
+        'Bebidas': '🥤',
+        'Postres': '🍦',
+        'Lácteos': '🥛',
+        'Saludable': '🍎',
+        'Dulces': '🍬',
+        'Otros': '📦'
+      };
+      return emojiMap[category] || '📦';
     }
 
     function renderProducts(productsToRender) {
