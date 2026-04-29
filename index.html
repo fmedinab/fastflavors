@@ -1,0 +1,573 @@
+<<<<<<< HEAD<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Fast Flavors - Sistema completo de comedor y préstamos estudiantiles">
+  <meta name="theme-color" content="#D32F2F">
+  <title>Fast Flavors - Portal Principal</title>
+  <style>
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF8700;
+      --accent: #F2A900;
+      --dark: #1A1A1A;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #1e1e1e; /* Dark theme default */
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 0;
+      padding-top: 130px;
+      padding-bottom: 100px;
+      overflow-x: hidden;
+      transition: all 0.3s ease;
+    }
+
+    /* Red Top Header Bar (matches reservas image) */
+    .top-header-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 120px;
+      background: #D32F2F;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 15px;
+    }
+
+    .logo-container {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 101;
+    }
+
+    .container {
+      max-width: 1200px;
+      width: 100%;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Header & Logo */
+    .header {
+      text-align: center;
+      color: #e0e0e0;
+      margin-top: 0px;
+      margin-bottom: 14px;
+      animation: fadeInDown 0.8s ease-out;
+      width: 100%;
+      padding: 0 10px;
+    }
+
+    .logo-img {
+      max-width: 200px;
+      margin-bottom: 8px;
+      animation: fadeInDown 1s ease-out;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+      /* NO WHITE BACKGROUND */
+      background: transparent !important;
+      mix-blend-mode: normal !important;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+    }
+
+    .subtitle {
+      font-size: 1.3rem;
+      opacity: 0.95;
+      margin-bottom: 3px;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .tagline {
+      font-size: 0.95rem;
+      opacity: 0.75;
+      color: #bbbbbb;
+      margin-bottom: 8px;
+    }
+
+    /* Cards Grid */
+    .systems-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 1000px;
+    }
+
+    .system-card {
+      background: #2d2d2d;
+      color: #e0e0e0;
+      border-radius: 16px;
+      padding: 24px 18px;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+      cursor: pointer;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .system-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 6px;
+      background: linear-gradient(90deg, var(--primary), var(--secondary));
+      transform: scaleX(0);
+      transition: transform 0.4s ease;
+    }
+
+    .system-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+    }
+
+    .system-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .card-icon {
+      font-size: 3.5rem;
+      margin-bottom: 10px;
+      display: inline-block;
+      transition: transform 0.3s ease;
+      filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+    }
+
+    .system-card:hover .card-icon {
+      transform: scale(1.15) rotate(5deg);
+    }
+
+    .card-title {
+      font-size: 1.55rem;
+      color: #FF5722; /* matching reservas accent */
+      margin-bottom: 8px;
+      font-weight: 800;
+    }
+
+    .card-description {
+      font-size: 0.95rem;
+      color: #b0b0b0;
+      line-height: 1.5;
+      margin-bottom: 12px;
+    }
+
+    .card-features {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+      align-items: center;
+    }
+
+    .feature-item {
+      display: inline-block;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      color: #e0e0e0;
+      font-weight: 500;
+    }
+
+    .card-badge {
+      display: inline-block;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 7px 20px;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(211, 47, 47, 0.4);
+    }
+
+    /* Special card borders explicitly matching reference */
+    .system-card.reservas {
+      border-top: 6px solid #FF5722;
+    }
+    .system-card.prestamos {
+      border-top: 6px solid #D32F2F;
+    }
+
+    /* Animations */
+    @keyframes fadeInDown { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .system-card { animation: fadeInUp 0.8s ease-out; }
+    .system-card:nth-child(1) { animation-delay: 0.1s; opacity: 0; animation-fill-mode: forwards; }
+    .system-card:nth-child(2) { animation-delay: 0.2s; opacity: 0; animation-fill-mode: forwards; }
+
+    /* Fix responsive */
+    @media (max-width: 768px) {
+      .header { margin-top: 12px; margin-bottom: 10px; }
+      .systems-grid { grid-template-columns: 1fr; gap: 12px; }
+      .system-card { padding: 18px 14px; }
+      body { padding-top: 125px; padding-bottom: 100px; }
+      .top-header-bar { height: 115px; }
+      .logo-img { max-width: 160px; }
+      .subtitle { font-size: 1.1rem; margin-bottom: 2px; }
+      .tagline { font-size: 0.85rem; }
+      .card-icon { font-size: 3rem; margin-bottom: 6px; }
+      .card-title { font-size: 1.35rem; margin-bottom: 6px; }
+      .card-description { font-size: 0.9rem; margin-bottom: 8px; }
+      .card-features { gap: 4px; margin-bottom: 10px; }
+      .feature-item { padding: 3px 10px; font-size: 0.75rem; }
+      .card-badge { padding: 6px 16px; font-size: 0.8rem; }
+      .site-banner { margin: 25px auto 0; }
+    }
+
+    @media (max-width: 480px) {
+      body { padding-top: 115px; padding-bottom: 90px; }
+      .top-header-bar { height: 100px; }
+      .header { margin-top: 8px; margin-bottom: 8px; padding: 0 8px; }
+      .logo-img { max-width: 130px; margin-bottom: 4px; }
+      .subtitle { font-size: 0.95rem; margin-bottom: 1px; }
+      .tagline { font-size: 0.75rem; margin-bottom: 6px; }
+      .systems-grid { gap: 10px; }
+      .system-card { padding: 14px 12px; border-radius: 12px; }
+      .card-icon { font-size: 2.5rem; margin-bottom: 4px; }
+      .card-title { font-size: 1.15rem; margin-bottom: 4px; }
+      .card-description { font-size: 0.8rem; line-height: 1.4; margin-bottom: 6px; }
+      .card-features { gap: 3px; margin-bottom: 8px; }
+      .feature-item { padding: 2px 8px; font-size: 0.7rem; }
+      .card-badge { padding: 5px 14px; font-size: 0.75rem; }
+      
+      .site-banner { margin: 20px auto 0; width: 98%; padding: 0 10px; }
+      .anuncios-slider { min-height: 60px; border-radius: 10px; }
+      .anuncio-card { padding: 10px 40px; gap: 8px; }
+      .emoji-anun { font-size: 2.2rem; }
+      .anuncio-content h3 { font-size: 1rem; margin-bottom: 1px; }
+      .anuncio-content p { font-size: 0.75rem; }
+      .slider-nav { width: 32px; height: 32px; font-size: 0.9rem; }
+      .slider-prev { left: 5px; }
+      .slider-next { right: 5px; }
+      .slider-dots { bottom: 3px; gap: 4px; }
+      .dot { width: 6px; height: 6px; }
+    }
+
+    @media (max-width: 360px) {
+      body { padding-top: 110px; padding-bottom: 85px; }
+      .top-header-bar { height: 95px; }
+      .logo-img { max-width: 100px; }
+      .subtitle { font-size: 0.85rem; }
+      .tagline { font-size: 0.7rem; }
+      .card-icon { font-size: 2rem; }
+      .card-title { font-size: 1rem; }
+      .card-description { font-size: 0.75rem; }
+      .site-banner { margin: 18px auto 0; }
+      .anuncio-card { padding: 8px 30px; gap: 6px; }
+      .emoji-anun { font-size: 1.8rem; }
+      .anuncio-content h3 { font-size: 0.85rem; }
+      .anuncio-content p { font-size: 0.65rem; }
+    }
+    
+    .site-banner {
+      position: relative;
+      top: auto;
+      left: auto;
+      transform: none;
+      width: 95%;
+      max-width: 1100px;
+      background: transparent;
+      overflow: hidden;
+      z-index: 50;
+      margin: 30px auto 0;
+      padding: 0 20px;
+    }
+    
+    .anuncios-slider {
+      display: flex;
+      width: 100%;
+      position: relative;
+      min-height: 70px;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.5);
+      border: 2px solid rgba(255,255,255,0.1);
+    }
+
+    .anuncio-card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      padding: 12px 50px;
+      box-sizing: border-box;
+      transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .emoji-anun {
+      font-size: 2.8rem;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6));
+      flex-shrink: 0;
+    }
+    .anuncio-content {
+      flex: 1;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+    .anuncio-content h3 {
+      margin: 0 0 2px 0;
+      font-size: 1.25rem;
+      font-weight: 900;
+      line-height: 1.2;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    }
+    .anuncio-content p {
+      margin: 0;
+      font-size: 0.85rem;
+      font-weight: 600;
+      line-height: 1.2;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    
+    .slider-nav {
+       position: absolute;
+       top: 50%;
+       transform: translateY(-50%);
+       background: white;
+       color: var(--primary);
+       border: 2px solid var(--primary);
+       width: 36px;
+       height: 36px;
+       border-radius: 50%;
+       font-size: 1rem;
+       font-weight: bold;
+       cursor: pointer;
+       z-index: 10;
+       display: flex;
+       align-items: center;
+       justify-content: center;
+       box-shadow: 0 4px 8px rgba(0,0,0,0.4);
+       transition: all 0.3s;
+    }
+    .slider-nav:hover { background: var(--primary); color: white; transform: translateY(-50%) scale(1.1); }
+    .slider-prev { left: 8px; }
+    .slider-next { right: 8px; }
+    
+    .slider-dots { 
+      position: absolute; 
+      bottom: 5px; 
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex; 
+      gap: 6px; 
+      z-index: 20; 
+    }
+    .dot {
+       width: 8px;
+       height: 8px;
+       border-radius: 50%;
+       background: rgba(255, 255, 255, 0.4);
+       cursor: pointer;
+       transition: all 0.3s;
+       border: 1px solid rgba(0,0,0,0.3);
+    }
+    .dot:hover { background: rgba(255, 255, 255, 0.6); transform: scale(1.2); }
+    .dot.active { background: white; box-shadow: 0 2px 6px rgba(0,0,0,0.4); }
+  </style>
+</head>
+<body>
+  <!-- Red Top Header Bar to match /reservas/ theme perfectly -->
+  <div class="top-header-bar">
+    <div class="logo-container">
+      <img src="logo.png" alt="Fast Flavors Logo" class="logo-img">
+    </div>
+  </div>
+
+  <div class="container">
+    
+    <!-- Header -->
+    <div class="header">
+      <h1 class="brand" style="display: none;">
+        <span class="brand-fast">Fast</span> 
+        <span class="brand-flavors">Flavors</span>
+      </h1>
+      <p class="subtitle">Fast Flavors</p>
+      <p class="tagline">Reservas de Menú & Punto de Venta</p>
+    </div>
+
+    <!-- Systems Grid -->
+    <div class="systems-grid">
+      
+      <!-- Sistema de Reservas -->
+      <a href="reservas/" class="system-card reservas">
+        <div class="card-icon">🍽️</div>
+        <h2 class="card-title">Reserva tu Menú</h2>
+        <p class="card-description">
+          Elige tu menú antes del receso.
+        </p>
+        <div class="card-features">
+          <span class="feature-item">📅 Turnos Mañana y Tarde</span>
+          <span class="feature-item">🍔 Menú del Día</span>
+          <span class="feature-item">⏰ Reserva Anticipada</span>
+        </div>
+        <span class="card-badge">🍽️ Ir a Reservas</span>
+      </a>
+
+      <!-- Sistema de Préstamos -->
+      <a href="loans/" class="system-card prestamos">
+        <div class="card-icon">�</div>
+        <h2 class="card-title">POS Ventas & Admin</h2>
+        <p class="card-description">
+          Terminal de punto de venta y gestión de productos para administradores.
+        </p>
+        <div class="card-features">
+          <span class="feature-item">🛒 Punto de Venta</span>
+          <span class="feature-item">📦 Gestión de Inventario</span>
+          <span class="feature-item">📊 Control de Deudas</span>
+        </div>
+        <span class="card-badge">🔐 Entrar al Sistema</span>
+      </a>
+
+    </div>
+
+  </div>
+
+  <!-- Anuncios Banner (Footer) -->
+  <div class="site-banner" id="anunciosContainer" style="display: none;">
+    <div class="anuncios-slider" id="anunciosSlider">
+      <div class="anuncio-card loading" style="background: #2ecc71; position: static; opacity: 1;">
+        <p style="color:white; margin:0; text-align:center; width:100%; font-weight: 600;">Cargando anuncios...</p>
+      </div>
+    </div>
+    
+    <button class="slider-nav slider-prev" id="sliderPrev" title="Anterior" style="display: none;">&#10094;</button>
+    <button class="slider-nav slider-next" id="sliderNext" title="Siguiente" style="display: none;">&#10095;</button>
+    
+    <div class="slider-dots" id="sliderDots"></div>
+  </div>
+
+  <!-- Scripts para anuncios -->
+  <script src="js/config.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      // Manejo de slider
+      let anuncios = [];
+      let currentIdx = 0;
+      let timer = null;
+      
+      const container = document.getElementById('anunciosContainer');
+      const slider = document.getElementById('anunciosSlider');
+      const dots = document.getElementById('sliderDots');
+      
+      try {
+        container.style.display = 'block';
+        const response = await api.request('getAnuncios');
+        
+        if (response.success && response.data.anuncios && response.data.anuncios.length > 0) {
+          anuncios = response.data.anuncios;
+          renderSlider();
+        } else {
+          container.style.display = 'none';
+        }
+      } catch (e) {
+        console.error('Error anuncios:', e);
+        container.style.display = 'none';
+      }
+
+      function renderSlider() {
+        slider.innerHTML = '';
+        dots.innerHTML = '';
+        
+        anuncios.forEach((a, i) => {
+          const isDark = a.color && (a.color.includes('d62300') || a.color.includes('#d6') || a.color.includes('D32F2F'));
+          const textColor = isDark ? 'white' : '#222';
+          const descColor = isDark ? '#f0f0f0' : '#333';
+          
+          slider.innerHTML += `
+            <div class="anuncio-card" style="background: ${a.color || '#2ecc71'}; left: 0; top: 0; opacity: ${i === 0 ? '1' : '0'}; transform: translateX(${i === 0 ? '0%' : '100%'});">
+                <div class="emoji-anun">${a.emoji || '✨'}</div>
+                <div class="anuncio-content">
+                  <h3 style="color: ${textColor};">${a.titulo}</h3>
+                  <p style="color: ${descColor};">${a.descripcion}</p>
+                </div>
+            </div>`;
+            
+          dots.innerHTML += `<div class="dot ${i===0?'active':''}" onclick="goToAnuncio(${i})"></div>`;
+        });
+
+        if (anuncios.length > 1) {
+          document.getElementById('sliderPrev').style.display = 'flex';
+          document.getElementById('sliderNext').style.display = 'flex';
+          
+          document.getElementById('sliderPrev').onclick = () => goToAnuncio(currentIdx - 1);
+          document.getElementById('sliderNext').onclick = () => goToAnuncio(currentIdx + 1);
+          
+          startTimer();
+        }
+      }
+
+      window.goToAnuncio = function(index) {
+        if (index < 0) index = anuncios.length - 1;
+        if (index >= anuncios.length) index = 0;
+        currentIdx = index;
+        
+        const cards = slider.querySelectorAll('.anuncio-card');
+        const allDots = dots.querySelectorAll('.dot');
+        
+        cards.forEach((c, i) => {
+          if (i === currentIdx) {
+            c.style.opacity = '1';
+            c.style.transform = 'translateX(0%)';
+          } else if (i < currentIdx) {
+            c.style.opacity = '0';
+            c.style.transform = 'translateX(-100%)';
+          } else {
+            c.style.opacity = '0';
+            c.style.transform = 'translateX(100%)';
+          }
+        });
+        allDots.forEach((d, i) => i === currentIdx ? d.classList.add('active') : d.classList.remove('active'));
+        
+        startTimer();
+      };
+      
+      function startTimer() {
+        if(timer) clearInterval(timer);
+        timer = setInterval(() => goToAnuncio(currentIdx + 1), 5000);
+      }
+    });
+  </script>
+</body>
+</html>
+

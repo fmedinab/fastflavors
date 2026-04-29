@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Menú - Fast Flavors</title>
+  <link rel="stylesheet" href="../../css/styles.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #f5f5f5;
+      color: #333;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+      background: white;
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .header h1 {
+      font-size: 2rem;
+      color: var(--primary);
+    }
+
+    .btn-add {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .btn-add:hover {
+      background: var(--primary-dark);
+      transform: scale(1.05);
+    }
+
+    .btn-back {
+      background: #999;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .btn-back:hover {
+      background: #777;
+    }
+
+    .filters {
+      display: flex;
+      gap: 15px;
+      margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .filter-group label {
+      font-weight: bold;
+      color: #555;
+    }
+
+    .filter-group select {
+      padding: 8px 12px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.95rem;
+    }
+
+    /* Tabla */
+    .table-container {
+      background: white;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: var(--primary);
+      color: white;
+    }
+
+    th {
+      padding: 15px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    tbody tr:hover {
+      background: #f9f9f9;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .badge-manana {
+      background: #FFF3CD;
+      color: #856404;
+    }
+
+    .badge-tarde {
+      background: #D1ECF1;
+      color: #0C5460;
+    }
+
+    .badge-activo {
+      background: #D4EDDA;
+      color: #155724;
+    }
+
+    .badge-inactivo {
+      background: #F8D7DA;
+      color: #721C24;
+    }
+
+    .action-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-edit, .btn-delete, .btn-toggle {
+      border: none;
+      padding: 8px 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-edit {
+      background: #007BFF;
+      color: white;
+    }
+
+    .btn-edit:hover {
+      background: #0056b3;
+    }
+
+    .btn-delete {
+      background: #DC3545;
+      color: white;
+    }
+
+    .btn-delete:hover {
+      background: #c82333;
+    }
+
+    .btn-toggle {
+      background: #28A745;
+      color: white;
+    }
+
+    .btn-toggle:hover {
+      background: #218838;
+    }
+
+    .btn-toggle.inactivo {
+      background: #6C757D;
+    }
+
+    .btn-toggle.inactivo:hover {
+      background: #5a6268;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 15px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .modal-header h2 {
+      font-size: 1.8rem;
+      color: var(--primary);
+    }
+
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.3s;
+    }
+
+    .close-btn:hover {
+      color: #333;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #ddd;
+      border-radius: 5px;
+      font-size: 0.95rem;
+      transition: border-color 0.3s;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .btn-guardar, .btn-cancelar {
+      flex: 1;
+      padding: 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: bold;
+      transition: all 0.3s;
+    }
+
+    .btn-guardar {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-guardar:hover {
+      background: var(--primary-dark);
+    }
+
+    .btn-cancelar {
+      background: #ddd;
+      color: #333;
+    }
+
+    .btn-cancelar:hover {
+      background: #bbb;
+    }
+
+    .loader {
+      display: none;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .loader.show {
+      display: block;
+    }
+
+    .spinner {
+      border: 4px solid #f3f3f3;
+      border-top: 4px solid var(--primary);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #333;
+      color: white;
+      padding: 15px 20px;
+      border-radius: 8px;
+      z-index: 2000;
+      animation: slideUp 0.3s ease-out;
+    }
+
+    .toast.success {
+      background: #28A745;
+    }
+
+    .toast.error {
+      background: #DC3545;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(100px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div>
+        <h1>🍽️ Gestión de Menú</h1>
+        <p style="color: #999; margin-top: 5px;">Administra los platos disponibles para cada turno</p>
+      </div>
+      <div>
+        <button class="btn-back" onclick="volverAlAdmin()">← Volver al Admin</button>
+        <button class="btn-add" onclick="abrirModalNuevoPlato()" style="margin-left: 10px;">+ Agregar Plato</button>
+      </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="filters">
+      <div class="filter-group">
+        <label>Turno:</label>
+        <select id="filterTurno" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+          <option value="MANANA">Mañana</option>
+          <option value="TARDE">Tarde</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Día:</label>
+        <select id="filterDia" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+          <option value="Lunes">Lunes</option>
+          <option value="Martes">Martes</option>
+          <option value="Miércoles">Miércoles</option>
+          <option value="Jueves">Jueves</option>
+          <option value="Viernes">Viernes</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label>Estado:</label>
+        <select id="filterActivo" onchange="aplicarFiltros()">
+          <option value="">Todos</option>
+          <option value="SI">Activos</option>
+          <option value="NO">Inactivos</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Tabla de platos -->
+    <div class="table-container">
+      <div id="loader" class="loader">
+        <div class="spinner"></div>
+        <p>Cargando platos...</p>
+      </div>
+      
+      <div id="tableWrapper" style="display: none;">
+        <table id="platosTable">
+          <thead>
+            <tr>
+              <th>Turno</th>
+              <th>Día</th>
+              <th>Plato</th>
+              <th>Descripción</th>
+              <th>Precio</th>
+              <th>Estado</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="platosBody">
+          </tbody>
+        </table>
+      </div>
+
+      <div id="emptyState" class="empty-state" style="display: none;">
+        <div class="empty-state-icon">📭</div>
+        <h3>No hay platos disponibles</h3>
+        <p>Agrega un plato nuevo para comenzar</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal para crear/editar plato -->
+  <div id="platoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Nuevo Plato</h2>
+        <button class="close-btn" onclick="cerrarModal()">&times;</button>
+      </div>
+
+      <form id="platoForm" onsubmit="guardarPlato(event)">
+        <div class="form-group">
+          <label>Turno *</label>
+          <select id="turno" required>
+            <option value="">Selecciona un turno</option>
+            <option value="MANANA">Mañana</option>
+            <option value="TARDE">Tarde</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Día *</label>
+          <select id="dia" required>
+            <option value="">Selecciona un día</option>
+            <option value="Lunes">Lunes</option>
+            <option value="Martes">Martes</option>
+            <option value="Miércoles">Miércoles</option>
+            <option value="Jueves">Jueves</option>
+            <option value="Viernes">Viernes</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre del Plato *</label>
+          <input type="text" id="plato" placeholder="ej: Arroz con Pollo" required>
+        </div>
+
+        <div class="form-group">
+          <label>Descripción</label>
+          <textarea id="descripcion" placeholder="Describe los ingredientes y detalles del plato"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Precio *</label>
+          <input type="number" id="precio" placeholder="5.00" step="0.01" min="0" required>
+        </div>
+
+        <div class="form-group">
+          <label style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="activo" checked>
+            <span>Plato activo</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn-guardar">Guardar</button>
+          <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../../js/config.js"></script>
+  <script>
+    // Variables globales
+    let platos = [];
+    let platoEditando = null;
+    const API_URL = CONFIG.API_URL; // Usar URL del config.js
+
+    // Cargar platos al inicio
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarPlatos();
+    });
+
+    /**
+     * Cargar todos los platos del menú
+     */
+    async function cargarPlatos() {
+      try {
+        document.getElementById('loader').classList.add('show');
+        document.getElementById('tableWrapper').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'none';
+
+        // Usar fetch con la URL correcta
+        const params = new URLSearchParams({
+          action: 'obtenerPlatos'
+        });
+
+        const response = await fetch(`${API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success && data.data && data.data.platos) {
+          platos = data.data.platos;
+          renderizarTabla(platos);
+        } else {
+          mostrarToast('Error: ' + (data.mensaje || 'No se pudo cargar los platos'), 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('Error al cargar platos: ' + error.message, 'error');
+      } finally {
+        document.getElementById('loader').classList.remove('show');
+      }
+    }
+
+    /**
+     * Renderizar tabla de platos
+     */
+    function renderizarTabla(platosFiltrados = platos) {
+      const tbody = document.getElementById('platosBody');
+      tbody.innerHTML = '';
+
+      if (platosFiltrados.length === 0) {
+        document.getElementById('tableWrapper').style.display = 'none';
+        document.getElementById('emptyState').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('tableWrapper').style.display = 'block';
+      document.getElementById('emptyState').style.display = 'none';
+
+      platosFiltrados.forEach(plato => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td><span class="badge ${plato.turno === 'MANANA' ? 'badge-manana' : 'badge-tarde'}">${plato.turno}</span></td>
+          <td>${plato.dia}</td>
+          <td><strong>${plato.plato}</strong></td>
+          <td style="font-size: 0.9rem; color: #666; max-width: 200px;">${plato.descripcion || '-'}</td>
+          <td><strong>S/ ${plato.precio.toFixed(2)}</strong></td>
+          <td><span class="badge ${plato.activo ? 'badge-activo' : 'badge-inactivo'}">${plato.activo ? 'Activo' : 'Inactivo'}</span></td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-edit" onclick="abrirModalEditar(${plato.rowNumber})">Editar</button>
+              <button class="btn-toggle ${plato.activo ? '' : 'inactivo'}" onclick="togglePlato(${plato.rowNumber}, ${!plato.activo})">${plato.activo ? 'Desactivar' : 'Activar'}</button>
+              <button class="btn-delete" onclick="eliminarPlato(${plato.rowNumber})">Eliminar</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    /**
+     * Aplicar filtros
+     */
+    function aplicarFiltros() {
+      const turno = document.getElementById('filterTurno').value;
+      const dia = document.getElementById('filterDia').value;
+      const activo = document.getElementById('filterActivo').value;
+
+      const filtrados = platos.filter(plato => {
+        let cumple = true;
+        if (turno && plato.turno !== turno) cumple = false;
+        if (dia && plato.dia !== dia) cumple = false;
+        if (activo === 'SI' && !plato.activo) cumple = false;
+        if (activo === 'NO' && plato.activo) cumple = false;
+        return cumple;
+      });
+
+      renderizarTabla(filtrados);
+    }
+
+    /**
+     * Abrir modal para nuevo plato
+     */
+    function abrirModalNuevoPlato() {
+      platoEditando = null;
+      document.getElementById('modalTitle').textContent = 'Nuevo Plato';
+      document.getElementById('platoForm').reset();
+      document.getElementById('activo').checked = true;
+      document.getElementById('platoModal').classList.add('show');
+    }
+
+    /**
+     * Abrir modal para editar plato
+     */
+    function abrirModalEditar(rowNumber) {
+      const plato = platos.find(p => p.rowNumber === rowNumber);
+      if (!plato) return;
+
+      platoEditando = plato;
+      document.getElementById('modalTitle').textContent = 'Editar Plato';
+      document.getElementById('turno').value = plato.turno;
+      document.getElementById('dia').value = plato.dia;
+      document.getElementById('plato').value = plato.plato;
+      document.getElementById('descripcion').value = plato.descripcion;
+      document.getElementById('precio').value = plato.precio;
+      document.getElementById('activo').checked = plato.activo;
+      document.getElementById('platoModal').classList.add('show');
+    }
+
+    /**
+     * Cerrar modal
+     */
+    function cerrarModal() {
+      document.getElementById('platoModal').classList.remove('show');
+      platoEditando = null;
+    }
+
+    /**
+     * Guardar plato (crear o editar)
+     */
+    async function guardarPlato(event) {
+      event.preventDefault();
+
+      const datosPlato = {
+        turno: document.getElementById('turno').value,
+        dia: document.getElementById('dia').value,
+        plato: document.getElementById('plato').value,
+        descripcion: document.getElementById('descripcion').value,
+        precio: parseFloat(document.getElementById('precio').value),
+        activo: document.getElementById('activo').checked
+      };
+
+      // Validación
+      if (!datosPlato.turno || !datosPlato.dia || !datosPlato.plato || !datosPlato.precio) {
+        mostrarToast('Por favor completa todos los campos requeridos', 'error');
+        return;
+      }
+
+      try {
+        let action = 'crearPlato';
+        let params = new URLSearchParams({
+          action: action,
+          postData: JSON.stringify(datosPlato)
+        });
+
+        // Si estamos editando
+        if (platoEditando) {
+          action = 'actualizarPlato';
+          datosPlato.rowNumber = platoEditando.rowNumber;
+          params = new URLSearchParams({
+            action: action,
+            postData: JSON.stringify(datosPlato)
+          });
+        }
+
+        const response = await fetch(`${API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+          mostrarToast(platoEditando ? '✅ Plato actualizado exitosamente' : '✅ Plato creado exitosamente', 'success');
+          cerrarModal();
+          cargarPlatos();
+        } else {
+          mostrarToast('Error: ' + (data.mensaje || 'No se pudo guardar'), 'error');
+        }
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('Error al guardar: ' + error.message, 'error');
+      }
+    }
+
+    /**
+     * Toggle estado de plato (activar/desactivar)
+     */
+    async function togglePlato(rowNumber, nuevoEstado) {
+      const plato = platos.find(p => p.rowNumber === rowNumber);
+      if (!plato) return;
+
+      try {
+        const datosActualizar = {
+          rowNumber: rowNumber,
+          activo: nuevoEstado
+        };
+
+        const params = new URLSearchParams({
+          action: 'actualizarPlato',
+          postData: JSON.stringify(datosActualizar)
+        });
+
+        const response = await fetch(`${API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+          mostrarToast(`✅ Plato ${nuevoEstado ? 'activado' : 'desactivado'}`, 'success');
+          cargarPlatos();
+        } else {
+          mostrarToast('Error al cambiar estado', 'error');
+        }
+      } catch (error) {
+        mostrarToast('Error: ' + error.message, 'error');
+      }
+    }
+
+    /**
+     * Eliminar plato
+     */
+    async function eliminarPlato(rowNumber) {
+      if (!confirm('¿Estás seguro de que deseas eliminar este plato?')) return;
+
+      try {
+        const params = new URLSearchParams({
+          action: 'eliminarPlato',
+          platoId: rowNumber
+        });
+
+        const response = await fetch(`${API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+          mostrarToast('✅ Plato eliminado exitosamente', 'success');
+          cargarPlatos();
+        } else {
+          mostrarToast('Error al eliminar', 'error');
+        }
+      } catch (error) {
+        mostrarToast('Error: ' + error.message, 'error');
+      }
+    }
+
+    /**
+     * Mostrar notificación toast
+     */
+    function mostrarToast(mensaje, tipo = 'success') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${tipo}`;
+      toast.textContent = mensaje;
+      document.body.appendChild(toast);
+
+      setTimeout(() => {
+        toast.remove();
+      }, 3000);
+    }
+
+    /**
+     * Volver al admin
+     */
+    function volverAlAdmin() {
+      window.location.href = '../index.html';
+    }
+  </script>
+</body>
+</html>

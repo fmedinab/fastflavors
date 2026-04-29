@@ -1,0 +1,1534 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estadísticas de Reservas - Fast Flavors</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="../favicon.png" type="image/png">
+  <link rel="shortcut icon" href="../favicon.png" type="image/png">
+  
+  <link rel="stylesheet" href="../css/styles.css">
+  <style>
+    /* Variables de colores - Alineados con página principal */
+    :root {
+      --primary-color: #d62300;
+      --primary-dark: #a01c00;
+      --secondary-color: #f5ebdc;
+      --accent-color: #ff9500;
+      --success-color: #27ae60;
+      --warning-color: #f39c12;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.1);
+      --shadow-md: 0 4px 15px rgba(0,0,0,0.15);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.2);
+    }
+
+    [data-theme="dark"] {
+      --primary-color: #d62300;
+      --primary-dark: #a01c00;
+      --secondary-color: #3a3a3a;
+      --accent-color: #ffa500;
+      --success-color: #48bb78;
+      --warning-color: #ed8936;
+      --shadow-sm: 0 2px 8px rgba(0,0,0,0.3);
+      --shadow-md: 0 4px 15px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,0.5);
+    }
+
+    /* Modal de autenticación PIN */
+    .auth-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-modal.hidden {
+      display: none;
+    }
+
+    .auth-card {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      animation: slideUp 0.4s ease;
+    }
+
+    [data-theme="dark"] .auth-card {
+      background: #2d2d2d;
+      color: white;
+    }
+
+    .auth-card h2 {
+      margin: 0 0 10px;
+      color: var(--primary-color);
+      font-size: 28px;
+    }
+
+    .auth-card p {
+      margin: 0 0 30px;
+      color: #666;
+      font-size: 14px;
+    }
+
+    [data-theme="dark"] .auth-card p {
+      color: #aaa;
+    }
+
+    .pin-input {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    .pin-digit {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      text-align: center;
+      border: 2px solid #ddd;
+      border-radius: 12px;
+      transition: all 0.3s ease;
+    }
+
+    .pin-digit:focus {
+      outline: none;
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 3px rgba(214, 35, 0, 0.1);
+    }
+
+    [data-theme="dark"] .pin-digit {
+      background: #1a1a1a;
+      border-color: #444;
+      color: white;
+    }
+
+    .btn-unlock {
+      width: 100%;
+      padding: 15px;
+      background: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    .btn-unlock:hover {
+      background: var(--primary-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(214, 35, 0, 0.3);
+    }
+
+    .btn-unlock:active {
+      transform: translateY(0);
+    }
+
+    .btn-unlock:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .error-message {
+      color: #e74c3c;
+      font-size: 14px;
+      margin-top: 10px;
+      min-height: 20px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-10px); }
+      75% { transform: translateX(10px); }
+    }
+
+    .shake {
+      animation: shake 0.4s ease;
+    }
+
+    /* Animaciones */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideInLeft {
+      from {
+        opacity: 0;
+        transform: translateX(-50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes rotate {
+      from {
+        transform: rotate(0deg);
+      }
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    body {
+      transition: background-color 0.3s ease;
+      padding-top: 100px;
+    }
+
+    [data-theme="dark"] body {
+      background: #1a1a1a;
+    }
+
+    /* Header superior con logo */
+    .top-header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 100px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 20px;
+    }
+
+    .logo-container {
+      position: absolute;
+      text-align: center;
+      padding: 0;
+    }
+
+    .logo-img-header {
+      max-width: 80px;
+      height: auto;
+      filter: drop-shadow(0 3px 6px rgba(0,0,0,0.3));
+      animation: fadeInDown 0.5s ease;
+    }
+
+    .stats-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px 15px;
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .stats-header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding: 20px 15px;
+      background: white;
+      color: var(--primary-color);
+      border-radius: 15px;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.4s ease;
+      border-left: 5px solid var(--primary-color);
+    }
+
+    [data-theme="dark"] .stats-header {
+      background: #2d3748;
+      color: white;
+      border-left-color: var(--accent-color);
+    }
+
+    .stats-header h1 {
+      margin: 5px 0 5px 0;
+      font-size: 1.8rem;
+      color: var(--primary-color);
+      font-weight: 700;
+    }
+
+    [data-theme="dark"] .stats-header h1 {
+      color: white;
+    }
+
+    .stats-header p {
+      margin: 3px 0 15px 0;
+      font-size: 0.9rem;
+      opacity: 0.85;
+      color: #666;
+    }
+
+    [data-theme="dark"] .stats-header p {
+      color: #aaa;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 1000;
+      background: white;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.5rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    [data-theme="dark"] .theme-toggle {
+      background: #2d3748;
+      color: #ffd700;
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1) rotate(180deg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: var(--shadow-sm);
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      animation: fadeInUp 0.6s ease backwards;
+    }
+
+    .stat-card:nth-child(1) { animation-delay: 0.1s; }
+    .stat-card:nth-child(2) { animation-delay: 0.2s; }
+    .stat-card:nth-child(3) { animation-delay: 0.3s; }
+    .stat-card:nth-child(4) { animation-delay: 0.4s; }
+    .stat-card:nth-child(5) { animation-delay: 0.5s; }
+    .stat-card:nth-child(6) { animation-delay: 0.6s; }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary-color);
+      transform: scaleX(0);
+      transition: transform 0.3s ease;
+    }
+
+    .stat-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-10px) scale(1.02);
+      box-shadow: var(--shadow-lg);
+    }
+
+    [data-theme="dark"] .stat-card {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+
+    .stat-card h3 {
+      color: var(--primary-color);
+      margin: 0 0 15px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    [data-theme="dark"] .stat-card h3 {
+      color: #ed8936;
+    }
+
+    .stat-number {
+      font-size: 3.5rem;
+      font-weight: 800;
+      color: var(--primary-color);
+      margin: 15px 0;
+      transition: all 0.5s ease;
+      animation: pulse 2s infinite;
+    }
+
+    [data-theme="dark"] .stat-number {
+      color: var(--accent-color);
+    }
+
+    .stat-label {
+      color: #718096;
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    [data-theme="dark"] .stat-label {
+      color: #a0aec0;
+    }
+
+    .table-container {
+      background: white;
+      padding: 25px;
+      border-radius: 15px;
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+      margin-bottom: 30px;
+      animation: slideInLeft 0.6s ease;
+      transition: all 0.3s ease;
+    }
+
+    .table-container:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    [data-theme="dark"] .table-container {
+      background: #2d3748;
+      color: #e2e8f0;
+      border: 1px solid #4a5568;
+    }
+
+    .table-container h2 {
+      margin: 0 0 20px 0;
+      color: var(--primary-color);
+      font-size: 1.5rem;
+      border-bottom: 3px solid var(--primary-color);
+      padding-bottom: 10px;
+    }
+
+    [data-theme="dark"] .table-container h2 {
+      color: #ed8936;
+      border-bottom-color: #ed8936;
+    }
+
+    .stats-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .stats-table th,
+    .stats-table td {
+      padding: 15px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e2e8f0;
+      transition: all 0.2s ease;
+    }
+
+    [data-theme="dark"] .stats-table th,
+    [data-theme="dark"] .stats-table td {
+      border-bottom-color: #4a5568;
+    }
+
+    .stats-table th {
+      background: var(--primary-color);
+      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+    }
+
+    .stats-table tbody tr {
+      transition: all 0.2s ease;
+    }
+
+    .stats-table tbody tr:hover {
+      background: #f7fafc;
+      transform: scale(1.01);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+
+    [data-theme="dark"] .stats-table tbody tr:hover {
+      background: #1a202c;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 16px;
+      border-radius: 25px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.2s ease;
+    }
+
+    .badge:hover {
+      transform: scale(1.1);
+    }
+
+    .badge-manana {
+      background: #ffd93d;
+      color: #6c4a00;
+      box-shadow: 0 2px 8px rgba(255, 217, 61, 0.4);
+    }
+
+    .badge-tarde {
+      background: #4dabf7;
+      color: white;
+      box-shadow: 0 2px 8px rgba(77, 171, 247, 0.4);
+    }
+
+    [data-theme="dark"] .badge-manana {
+      background: #f39c12;
+      color: white;
+    }
+
+    [data-theme="dark"] .badge-tarde {
+      background: #3498db;
+      color: white;
+    }
+
+    .btn-refresh {
+      background: var(--success-color);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px 5px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-refresh::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 0;
+      height: 0;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.3);
+      transform: translate(-50%, -50%);
+      transition: width 0.6s, height 0.6s;
+    }
+
+    .btn-refresh:hover::before {
+      width: 300px;
+      height: 300px;
+    }
+
+    .btn-refresh:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      background: #229954;
+    }
+
+    .btn-refresh:active {
+      transform: translateY(0);
+    }
+
+    .btn-back {
+      background: #636e72;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 10px 5px;
+      text-decoration: none;
+      display: inline-block;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.3s ease;
+    }
+
+    .btn-back:hover {
+      background: #2d3436;
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--text-light);
+      animation: pulse 1.5s infinite;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-light);
+      animation: fadeInUp 0.6s ease;
+    }
+
+    .empty-state .icon-empty {
+      font-size: 4rem;
+      margin-bottom: 20px;
+      animation: pulse 2s infinite;
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .stats-container {
+        padding: 15px 8px;
+      }
+
+      .stats-header {
+        padding: 18px 10px;
+        margin-bottom: 25px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .stats-grid {
+        gap: 15px;
+      }
+
+      .stat-number {
+        font-size: 2.8rem;
+      }
+
+      .theme-toggle {
+        width: 45px;
+        height: 45px;
+        font-size: 1.3rem;
+      }
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding-top: 90px;
+      }
+
+      .top-header {
+        height: 90px;
+      }
+
+      .stats-container {
+        padding: 12px;
+      }
+
+      .logo-img-header {
+        max-width: 70px;
+      }
+
+      .stats-header {
+        margin-bottom: 20px;
+        padding: 15px 10px;
+        border-radius: 12px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.4rem;
+        margin: 5px 0 4px 0;
+      }
+
+      .stats-header p {
+        font-size: 0.85rem;
+        margin: 3px 0 10px 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        margin-bottom: 25px;
+      }
+
+      .stat-card {
+        padding: 15px 12px;
+        border-radius: 12px;
+      }
+
+      .stat-card h3 {
+        font-size: 0.95rem;
+      }
+
+      .stat-number {
+        font-size: 2rem;
+        margin: 10px 0;
+      }
+
+      .stat-label {
+        font-size: 0.75rem;
+      }
+
+      .table-container {
+        padding: 15px 12px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+      }
+
+      .table-container h2 {
+        font-size: 1.15rem;
+        margin: 0 0 12px 0;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 8px 5px;
+        font-size: 0.75rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 10px 14px;
+        font-size: 0.85rem;
+        margin: 5px 3px;
+      }
+
+      .theme-toggle {
+        width: 43px;
+        height: 43px;
+        font-size: 1.2rem;
+        top: 15px;
+        right: 15px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding-top: 85px;
+      }
+
+      .top-header {
+        height: 85px;
+        padding: 8px 15px;
+      }
+
+      .stats-container {
+        padding: 10px;
+      }
+
+      .logo-img-header {
+        max-width: 60px;
+      }
+
+      .stats-header {
+        margin-bottom: 15px;
+        padding: 12px 8px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.2rem;
+        margin: 4px 0 3px 0;
+      }
+
+      .stats-header p {
+        font-size: 0.8rem;
+        margin: 2px 0 8px 0;
+      }
+
+      .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+        margin-bottom: 20px;
+      }
+
+      .stat-card {
+        padding: 12px 10px;
+      }
+
+      .stat-card h3 {
+        font-size: 0.9rem;
+      }
+
+      .stat-number {
+        font-size: 1.8rem;
+        margin: 8px 0;
+      }
+
+      .stat-label {
+        font-size: 0.7rem;
+      }
+
+      .table-container {
+        padding: 12px 10px;
+        margin-bottom: 15px;
+      }
+
+      .table-container h2 {
+        font-size: 1rem;
+        margin: 0 0 10px 0;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 5px 3px;
+        font-size: 0.7rem;
+      }
+
+      .badge {
+        padding: 3px 10px;
+        font-size: 0.65rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 8px 10px;
+        font-size: 0.75rem;
+        margin: 3px 0;
+        display: block;
+        width: 100%;
+      }
+
+      .theme-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
+        top: 8px;
+        right: 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      body {
+        padding-top: 80px;
+      }
+
+      .top-header {
+        height: 80px;
+      }
+
+      .logo-img-header {
+        max-width: 55px;
+      }
+
+      .stats-header h1 {
+        font-size: 1.1rem;
+      }
+
+      .stats-header p {
+        font-size: 0.75rem;
+      }
+
+      .stats-table th,
+      .stats-table td {
+        padding: 4px 2px;
+        font-size: 0.65rem;
+      }
+
+      .stat-number {
+        font-size: 1.6rem;
+      }
+
+      .stat-card h3 {
+        font-size: 0.85rem;
+      }
+
+      .btn-refresh,
+      .btn-back {
+        padding: 6px 8px;
+        font-size: 0.7rem;
+      }
+    }
+
+    /* Dark Mode */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #e0e0e0;
+      }
+      .auth-card, .stat-card, .table-container, .btn-home {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+      .stat-title {
+        color: #b0b0b0;
+      }
+      .stat-value {
+        color: #e0e0e0;
+      }
+      .stats-table th {
+        background: #2d2d2d;
+        color: #e0e0e0;
+        border-bottom-color: #444;
+      }
+      .stats-table td {
+        border-bottom-color: #333;
+        color: #e0e0e0;
+      }
+      .stats-table tr:hover {
+        background: #252525;
+      }
+      .btn-update {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #444;
+      }
+      .btn-update:hover {
+        background: #444;
+      }
+      .table-title {
+        color: #e0e0e0;
+      }
+      .pin-input {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+      .auth-icon {
+        color: #e0e0e0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Header superior con logo -->
+  <div class="top-header">
+    <div class="logo-container">
+      <img src="../favicon.png" alt="Logo Fast Flavors" class="logo-img-header">
+    </div>
+  </div>
+
+  <!-- Modal de autenticación -->
+  <div id="authModal" class="auth-modal">
+    <div class="auth-card">
+      <h2>🔐 Acceso Restringido</h2>
+      <p>Ingresa el PIN de administrador</p>
+      <div class="pin-input">
+        <input type="password" class="pin-digit" maxlength="1" id="digit1" autofocus>
+        <input type="password" class="pin-digit" maxlength="1" id="digit2">
+        <input type="password" class="pin-digit" maxlength="1" id="digit3">
+        <input type="password" class="pin-digit" maxlength="1" id="digit4">
+      </div>
+      <button class="btn-unlock" onclick="verificarPIN()">Desbloquear</button>
+      <div class="error-message" id="errorMessage"></div>
+    </div>
+  </div>
+
+  <!-- Toggle de tema -->
+  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema">
+    <span id="themeIcon">🌙</span>
+  </button>
+
+  <div class="stats-container">
+    <div class="stats-header">
+      <h1>📊 Estadísticas de Reservas</h1>
+      <p>Panel de control para administradores</p>
+      <div>
+        <button class="btn-refresh" onclick="cargarEstadisticas()">
+          <span id="refreshIcon">🔄</span> Actualizar
+        </button>
+        <a href="../" class="btn-back">← Volver al menú</a>
+      </div>
+    </div>
+
+    <!-- Estadísticas de HOY -->
+    <div id="estadisticasHoy" class="stats-grid">
+      <div class="stat-card">
+        <h3>🍽️ Reservas Hoy</h3>
+        <div class="stat-number" id="totalHoy">-</div>
+        <div class="stat-label">Estudiantes</div>
+      </div>
+      <div class="stat-card">
+        <h3>📦 Platos Totales</h3>
+        <div class="stat-number" id="totalPlatos">-</div>
+        <div class="stat-label">Platos reservados</div>
+      </div>
+      <div class="stat-card">
+        <h3>💰 Ingresos Hoy</h3>
+        <div class="stat-number" id="totalIngresos">-</div>
+        <div class="stat-label">Soles</div>
+      </div>
+      <div class="stat-card">
+        <h3>🌅 Turno Mañana</h3>
+        <div class="stat-number" id="totalManana">-</div>
+        <div class="stat-label">Reservas</div>
+      </div>
+      <div class="stat-card">
+        <h3>🌆 Turno Tarde</h3>
+        <div class="stat-number" id="totalTarde">-</div>
+        <div class="stat-label">Reservas</div>
+      </div>
+      <div class="stat-card">
+        <h3>📈 Total General</h3>
+        <div class="stat-number" id="totalGeneral">-</div>
+        <div class="stat-label">Todas las reservas</div>
+      </div>
+    </div>
+
+    <!-- Tabla de últimos 7 días -->
+    <div class="table-container">
+      <h2>📅 Últimos 7 Días</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Día</th>
+            <th>🌅 Mañana</th>
+            <th>🌆 Tarde</th>
+            <th>📊 Total</th>
+          </tr>
+        </thead>
+        <tbody id="tabla7Dias">
+          <tr>
+            <td colspan="5" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detalle de reservas de HOY -->
+    <div class="table-container">
+      <h2>📋 Detalle de Reservas de Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Hora</th>
+            <th>Turno</th>
+            <th>Estudiante</th>
+            <th>Código</th>
+            <th>Plato</th>
+            <th>Cant.</th>
+            <th>Total</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDetalleHoy">
+          <tr>
+            <td colspan="7" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Platos más solicitados HOY -->
+    <div class="table-container">
+      <h2>🏆 Platos Más Solicitados Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Plato</th>
+            <th>Cantidad</th>
+            <th>Porcentaje</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPlatosPopulares">
+          <tr>
+            <td colspan="3" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- SECCIÓN DE DEUDAS -->
+    <div class="table-container">
+      <h2>💳 Listado de Deudas Pendientes</h2>
+      <div style="margin-bottom: 20px;">
+        <div class="stat-card" style="display: inline-block; width: auto; padding: 15px 30px; min-width: 250px;">
+          <div style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">DEUDA TOTAL</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: #e74c3c;">S/ <span id="deudaTotal">0.00</span></div>
+        </div>
+        <div class="stat-card" style="display: inline-block; width: auto; padding: 15px 30px; min-width: 250px; margin-left: 15px;">
+          <div style="color: var(--primary-color); font-size: 0.9rem; font-weight: 600; margin-bottom: 8px;">ESTUDIANTES CON DEUDA</div>
+          <div style="font-size: 2.5rem; font-weight: 800; color: var(--primary-color);"><span id="contadorDeudores">0</span></div>
+        </div>
+      </div>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Estudiante</th>
+            <th>Código</th>
+            <th>Grado</th>
+            <th>Deuda Total</th>
+            <th>Última Reserva</th>
+          </tr>
+        </thead>
+        <tbody id="tablaDeudas">
+          <tr>
+            <td colspan="5" class="loading">Cargando deudas...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Platos más solicitados HOY (OCULTO - para mantener estructura) -->
+  <div style="display: none;">
+    <div class="table-container">
+      <h2>🏆 Platos Más Solicitados Hoy</h2>
+      <table class="stats-table">
+        <thead>
+          <tr>
+            <th>Plato</th>
+            <th>Cantidad</th>
+            <th>Porcentaje</th>
+          </tr>
+        </thead>
+        <tbody id="tablaPlatosPopulares">
+          <tr>
+            <td colspan="3" class="loading">Cargando...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/utils.js"></script>
+  <script src="../js/api.js"></script>
+  <script>
+    // ==================== SISTEMA DE AUTENTICACIÓN ====================
+    const PIN_CORRECTO = '2026'; // Cambiar este PIN según necesites
+    const SESSION_KEY = 'stats_authenticated';
+    const SESSION_DURATION = 3600000; // 1 hora en milisegundos
+
+    // Verificar sesión al cargar página
+    (function verificarSesionInicial() {
+      const session = localStorage.getItem(SESSION_KEY);
+      if (session) {
+        const sessionData = JSON.parse(session);
+        const ahora = Date.now();
+        if (ahora - sessionData.timestamp < SESSION_DURATION) {
+          desbloquearPanel();
+          return;
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
+      }
+      configurarInputsPIN();
+    })();
+
+    function configurarInputsPIN() {
+      const inputs = [
+        document.getElementById('digit1'),
+        document.getElementById('digit2'),
+        document.getElementById('digit3'),
+        document.getElementById('digit4')
+      ];
+
+      inputs.forEach((input, index) => {
+        // Auto-focus al siguiente input
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < 3) {
+            inputs[index + 1].focus();
+          }
+        });
+
+        // Backspace regresa al anterior
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            inputs[index - 1].focus();
+          }
+          if (e.key === 'Enter') {
+            verificarPIN();
+          }
+        });
+
+        // Solo permitir números
+        input.addEventListener('input', (e) => {
+          e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+      });
+    }
+
+    function verificarPIN() {
+      const digit1 = document.getElementById('digit1').value;
+      const digit2 = document.getElementById('digit2').value;
+      const digit3 = document.getElementById('digit3').value;
+      const digit4 = document.getElementById('digit4').value;
+      const pinIngresado = digit1 + digit2 + digit3 + digit4;
+      const errorMsg = document.getElementById('errorMessage');
+      const authCard = document.querySelector('.auth-card');
+
+      if (pinIngresado.length !== 4) {
+        errorMsg.textContent = '⚠️ Completa los 4 dígitos';
+        return;
+      }
+
+      if (pinIngresado === PIN_CORRECTO) {
+        // Guardar sesión
+        localStorage.setItem(SESSION_KEY, JSON.stringify({
+          timestamp: Date.now()
+        }));
+        errorMsg.textContent = '✅ Acceso concedido';
+        errorMsg.style.color = '#27ae60';
+        setTimeout(desbloquearPanel, 500);
+      } else {
+        errorMsg.textContent = '❌ PIN incorrecto';
+        errorMsg.style.color = '#e74c3c';
+        authCard.classList.add('shake');
+        setTimeout(() => authCard.classList.remove('shake'), 400);
+        // Limpiar inputs
+        document.getElementById('digit1').value = '';
+        document.getElementById('digit2').value = '';
+        document.getElementById('digit3').value = '';
+        document.getElementById('digit4').value = '';
+        document.getElementById('digit1').focus();
+      }
+    }
+
+    function desbloquearPanel() {
+      const authModal = document.getElementById('authModal');
+      authModal.style.opacity = '0';
+      setTimeout(() => {
+        authModal.classList.add('hidden');
+      }, 300);
+    }
+
+    // ==================== TEMA ====================
+    // Inicializar tema
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      const theme = savedTheme || (prefersDark ? 'dark' : 'light');
+      setTheme(theme);
+    }
+
+    function setTheme(theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+      const icon = document.getElementById('themeIcon');
+      if (icon) {
+        icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+      }
+    }
+
+    function toggleTheme() {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      setTheme(newTheme);
+    }
+
+    // Cargar estadísticas al iniciar
+    document.addEventListener('DOMContentLoaded', () => {
+      initTheme();
+      cargarEstadisticas();
+    });
+
+    async function cargarEstadisticas() {
+      const refreshIcon = document.getElementById('refreshIcon');
+      if (refreshIcon) {
+        refreshIcon.style.animation = 'rotate 1s linear infinite';
+      }
+
+      try {
+        Utils.showLoader();
+        console.log('📊 Cargando estadísticas...');
+
+        // Obtener resumen general
+        const resumen = await api.getEstadisticasResumen();
+        console.log('📦 Resumen:', resumen);
+        const dataResumen = resumen.data || resumen;
+
+        // Obtener estadísticas de hoy
+        const hoy = new Date();
+        const fechaHoy = `${String(hoy.getDate()).padStart(2, '0')}/${String(hoy.getMonth() + 1).padStart(2, '0')}/${hoy.getFullYear()}`;
+        console.log('📅 Buscando datos para:', fechaHoy);
+        
+        const estadisticasHoy = await api.getEstadisticas();
+        console.log('📊 Estadísticas de hoy:', estadisticasHoy);
+        const dataHoy = estadisticasHoy.data || estadisticasHoy;
+        console.log('🔍 Datos detallados:', {
+          totalReservas: dataHoy.totalReservas,
+          totalPlatos: dataHoy.totalPlatos,
+          totalIngresos: dataHoy.totalIngresos,
+          reservasPorTurno: dataHoy.reservasPorTurno,
+          cantidadReservasDetalle: dataHoy.reservasDetalle?.length
+        });
+
+        // Actualizar cards de resumen con animación
+        animarNumero('totalHoy', dataHoy.totalReservas || 0);
+        animarNumero('totalPlatos', dataHoy.totalPlatos || 0);
+        document.getElementById('totalIngresos').textContent = 'S/ ' + (dataHoy.totalIngresos || 0).toFixed(2);
+        animarNumero('totalManana', dataHoy.reservasPorTurno?.MANANA || 0);
+        animarNumero('totalTarde', dataHoy.reservasPorTurno?.TARDE || 0);
+        animarNumero('totalGeneral', dataResumen.totalGeneral || 0);
+        
+        console.log('✅ Estadísticas actualizadas');
+
+        // Renderizar tabla de últimos 7 días
+        renderTabla7Dias(dataResumen.ultimos7Dias);
+
+        // Renderizar detalle de hoy
+        renderDetalleHoy(dataHoy.reservasDetalle);
+
+        // Obtener deudas de todos los estudiantes
+        console.log('💳 Cargando deudas...');
+        const deudasResponse = await api.getResumenDeudas();
+        console.log('💳 Respuesta completa de deudas:', deudasResponse);
+        console.log('💳 Success:', deudasResponse?.success);
+        console.log('💳 Data:', deudasResponse?.data);
+        console.log('💳 Resumen:', deudasResponse?.data?.resumen);
+        
+        // Extraer array de deudas del resumen
+        let deudas = [];
+        if (deudasResponse && deudasResponse.success && deudasResponse.data && deudasResponse.data.resumen && Array.isArray(deudasResponse.data.resumen)) {
+          // Ya vienen agregadas desde el backend
+          deudas = deudasResponse.data.resumen.map(est => ({
+            nombre: est.nombre || '',
+            codigo: est.codigo || '',
+            grado: est.grado || '',
+            deuda: est.totalDeuda || 0,
+            ultimaReserva: est.ultimaReserva || '---',
+            cantidadItems: est.cantidadItems || 0
+          }));
+          console.log('✅ Deudas mapeadas correctamente:', deudas);
+        } else {
+          console.warn('⚠️ Respuesta inesperada de getResumenDeudas:', {
+            success: deudasResponse?.success,
+            hasData: !!deudasResponse?.data,
+            hasResumen: !!deudasResponse?.data?.resumen,
+            isArray: Array.isArray(deudasResponse?.data?.resumen)
+          });
+        }
+        
+        console.log('📋 Deudas procesadas:', {
+          cantidad: deudas.length,
+          totalDeuda: deudas.reduce((sum, d) => sum + (d.deuda || 0), 0),
+          deudas: deudas
+        });
+
+        // Renderizar deudas
+        renderDeudas(deudas);
+
+        // Renderizar platos populares
+        renderPlatosPopulares(dataHoy.reservasPorPlato, dataHoy.totalReservas);
+
+      } catch (error) {
+        console.error('Error al cargar estadísticas:', error);
+        Utils.showToast('Error al cargar estadísticas', 'error');
+      } finally {
+        Utils.hideLoader();
+        const refreshIcon = document.getElementById('refreshIcon');
+        if (refreshIcon) {
+          refreshIcon.style.animation = '';
+        }
+      }
+    }
+
+    function renderTabla7Dias(datos) {
+      const tbody = document.getElementById('tabla7Dias');
+      
+      if (!datos || datos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state">No hay datos disponibles</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = datos.map(dia => `
+        <tr>
+          <td><strong>${dia.fecha}</strong></td>
+          <td>${dia.dia}</td>
+          <td><span class="badge badge-manana">${dia.manana}</span></td>
+          <td><span class="badge badge-tarde">${dia.tarde}</span></td>
+          <td><strong>${dia.total}</strong></td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDetalleHoy(reservas) {
+      const tbody = document.getElementById('tablaDetalleHoy');
+      
+      if (!reservas || reservas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" class="empty-state"><div class="icon-empty">📭</div><p>No hay reservas para hoy</p></td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = reservas.map(r => `
+        <tr>
+          <td>${r.hora}</td>
+          <td><span class="badge badge-${r.turno.toLowerCase()}">${r.turno}</span></td>
+          <td>${r.estudiante}</td>
+          <td>${r.codigo}</td>
+          <td>${r.plato}</td>
+          <td><strong>${r.cantidad || 1}</strong></td>
+          <td>S/ ${(r.precioTotal || 0).toFixed(2)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderPlatosPopulares(platos, total) {
+      const tbody = document.getElementById('tablaPlatosPopulares');
+      
+      if (!platos || Object.keys(platos).length === 0) {
+        tbody.innerHTML = '<tr><td colspan="3" class="empty-state">No hay datos disponibles</td></tr>';
+        return;
+      }
+
+      // Convertir objeto a array y ordenar por cantidad
+      const platosArray = Object.entries(platos)
+        .map(([nombre, cantidad]) => ({
+          nombre,
+          cantidad,
+          porcentaje: total > 0 ? ((cantidad / total) * 100).toFixed(1) : 0
+        }))
+        .sort((a, b) => b.cantidad - a.cantidad);
+
+      tbody.innerHTML = platosArray.map((plato, index) => `
+        <tr>
+          <td>${index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : '📌'} ${plato.nombre}</td>
+          <td><strong>${plato.cantidad}</strong></td>
+          <td>${plato.porcentaje}%</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderDeudas(deudas) {
+      const tbody = document.getElementById('tablaDeudas');
+      const deudaTotal = document.getElementById('deudaTotal');
+      const contadorDeudores = document.getElementById('contadorDeudores');
+      
+      console.log('🎨 Renderizando deudas:', {
+        cantidad: deudas?.length,
+        deudas: deudas
+      });
+      
+      if (!deudas || deudas.length === 0) {
+        console.log('✅ Sin deudas para mostrar');
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-state"><div class="icon-empty">✅</div><p>¡No hay deudas pendientes!</p></td></tr>';
+        deudaTotal.textContent = '0.00';
+        contadorDeudores.textContent = '0';
+        return;
+      }
+
+      // Calcular total de deudas
+      const total = deudas.reduce((sum, d) => sum + (d.deuda || 0), 0);
+      
+      console.log('📊 Total de deudas calculado:', total);
+      
+      // Actualizar números
+      document.getElementById('deudaTotal').textContent = total.toFixed(2);
+      contadorDeudores.textContent = deudas.length;
+
+      // Ordenar por deuda descendente
+      const deudasOrdenadas = [...deudas].sort((a, b) => (b.deuda || 0) - (a.deuda || 0));
+
+      tbody.innerHTML = deudasOrdenadas.map((deuda, index) => `
+        <tr>
+          <td>${deuda.nombre || 'N/A'}</td>
+          <td><strong>${deuda.codigo || 'N/A'}</strong></td>
+          <td>${deuda.grado || 'N/A'}</td>
+          <td style="color: #e74c3c; font-weight: bold;">S/ ${(deuda.deuda || 0).toFixed(2)}</td>
+          <td>${formatearFecha(deuda.ultimaReserva)}</td>
+        </tr>
+      `).join('');
+      
+      console.log('✅ Tabla de deudas renderizada con', deudasOrdenadas.length, 'registros');
+    }
+
+    // Función para formatear fechas
+    function formatearFecha(fecha) {
+      if (!fecha || fecha === '---' || fecha === 'N/A') {
+        return fecha || '---';
+      }
+
+      try {
+        // Si es un string en formato ISO (2026-03-12T05:00:00.000Z)
+        if (typeof fecha === 'string' && fecha.includes('T')) {
+          const date = new Date(fecha);
+          if (isNaN(date.getTime())) {
+            return fecha; // Retorna original si no se puede parsear
+          }
+          // Formato: YYYY-MM-DD
+          const año = date.getFullYear();
+          const mes = String(date.getMonth() + 1).padStart(2, '0');
+          const dia = String(date.getDate()).padStart(2, '0');
+          return `${año}-${mes}-${dia}`;
+        }
+
+        // Si es un string en formato YYYY-MM-DD, retornar tal cual
+        if (typeof fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(fecha)) {
+          return fecha.split('T')[0]; // Remove time part if exists
+        }
+
+        // Si es un string en formato DD/MM/YYYY, retornar tal cual
+        if (typeof fecha === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(fecha)) {
+          return fecha;
+        }
+
+        return fecha || '---';
+      } catch (error) {
+        console.warn('Error al formatear fecha:', fecha, error);
+        return fecha || '---';
+      }
+    }
+
+    // Función para animar números
+    function animarNumero(elementId, valorFinal) {
+      const elemento = document.getElementById(elementId);
+      if (!elemento) return;
+      
+      const duracion = 1000; // 1 segundo
+      const incremento = valorFinal / (duracion / 16); // 60 FPS
+      let valorActual = 0;
+      
+      const intervalo = setInterval(() => {
+        valorActual += incremento;
+        if (valorActual >= valorFinal) {
+          elemento.textContent = Math.round(valorFinal);
+          clearInterval(intervalo);
+        } else {
+          elemento.textContent = Math.round(valorActual);
+        }
+      }, 16);
+    }
+  </script>
+</body>
+</html>

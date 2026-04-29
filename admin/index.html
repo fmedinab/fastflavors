@@ -1,0 +1,2166 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POS Admin - Sistema de Préstamos</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary: #D32F2F;
+      --primary-dark: #B71C1C;
+      --secondary: #FF5722;
+      --accent: #FFA726;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-width: 1400px;
+      width: 100%;
+      height: 90vh;
+      display: flex;
+      overflow: hidden;
+    }
+
+    /* Login Screen */
+    .login-screen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 9999;
+    }
+
+    .login-box {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .login-box h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 30px;
+    }
+
+    .login-box .logo {
+      font-size: 3rem;
+      margin-bottom: 15px;
+    }
+
+    .login-box .brand {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 20px;
+    }
+
+    .login-box .brand-text {
+      color: var(--accent);
+    }
+
+    .pin-input {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin: 30px 0;
+    }
+
+    .pin-input input {
+      width: 60px;
+      height: 70px;
+      font-size: 2rem;
+      text-align: center;
+      border: 3px solid #e0e0e0;
+      border-radius: 10px;
+      transition: all 0.3s;
+    }
+
+    .pin-input input:focus {
+      outline: none;
+      border-color: var(--secondary);
+      transform: scale(1.1);
+    }
+
+    .error-msg {
+      color: #e74c3c;
+      margin-top: 15px;
+      display: none;
+    }
+
+    /* Access Modal */
+    .access-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10002;
+    }
+
+    .access-modal.show {
+      display: flex;
+    }
+
+    .access-box {
+      background: white;
+      border-radius: 20px;
+      padding: 60px 40px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+      animation: slideIn 0.5s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateY(-50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .access-icon {
+      font-size: 5rem;
+      margin-bottom: 20px;
+      animation: bounce 0.6s ease-out;
+    }
+
+    @keyframes bounce {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.2);
+      }
+    }
+
+    .access-box h2 {
+      font-size: 2rem;
+      margin-bottom: 15px;
+      font-weight: bold;
+    }
+
+    .access-box.success h2 {
+      color: #27ae60;
+    }
+
+    .access-box.error h2 {
+      color: #e74c3c;
+    }
+
+    .access-box p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 350px;
+      background: #f8f9fa;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .sidebar-brand {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      padding: 20px;
+      color: white;
+      text-align: center;
+    }
+
+    .sidebar-brand h1 {
+      font-size: 1.8rem;
+      margin-bottom: 5px;
+    }
+
+    .sidebar-brand .brand-text {
+      color: var(--accent);
+    }
+
+    .sidebar-content {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .sidebar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      gap: 10px;
+    }
+
+    .sidebar-header h2 {
+      font-size: 1.5rem;
+      color: #333;
+    }
+
+    .header-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-manage {
+      background: var(--secondary);
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-manage:hover {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
+
+    .logout-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      transition: all 0.3s;
+    }
+
+    .logout-btn:hover {
+      background: #c0392b;
+      transform: scale(1.05);
+    }
+
+    .search-section {
+      margin-bottom: 20px;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .student-info {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 20px;
+    }
+
+    .student-info h3 {
+      font-size: 1.3rem;
+      margin-bottom: 10px;
+    }
+
+    .student-info p {
+      font-size: 0.95rem;
+      opacity: 0.9;
+      margin: 5px 0;
+    }
+
+    .cart-items {
+      flex: 1;
+      overflow-y: auto;
+      margin-bottom: 20px;
+    }
+
+    .cart-item {
+      background: white;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .cart-item-info h4 {
+      font-size: 1rem;
+      color: #333;
+      margin-bottom: 5px;
+    }
+
+    .cart-item-price {
+      font-size: 1.1rem;
+      color: var(--secondary);
+      font-weight: bold;
+    }
+
+    .remove-btn {
+      background: #e74c3c;
+      color: white;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s;
+    }
+
+    .remove-btn:hover {
+      background: #c0392b;
+      transform: rotate(90deg);
+    }
+
+    .cart-total {
+      background: #333;
+      color: white;
+      padding: 20px;
+      border-radius: 15px;
+      margin-bottom: 15px;
+    }
+
+    .cart-total h3 {
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      opacity: 0.8;
+    }
+
+    .cart-total-amount {
+      font-size: 2.5rem;
+      font-weight: bold;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 18px;
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      border: none;
+      border-radius: 12px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .submit-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(255, 87, 34, 0.4);
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Products Section */
+    .products-section {
+      flex: 1;
+      padding: 30px;
+      overflow-y: auto;
+    }
+
+    .products-header {
+      margin-bottom: 30px;
+    }
+
+    .products-header h1 {
+      font-size: 2rem;
+      color: #333;
+      margin-bottom: 10px;
+    }
+
+    .products-filter {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 20px;
+    }
+
+    .filter-btn {
+      padding: 10px 20px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.95rem;
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+      color: white;
+      border-color: var(--secondary);
+    }
+
+    .products-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .product-card {
+      background: #2a2a2a;
+      border-radius: 15px;
+      padding: 15px;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+      border: 3px solid transparent;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 30px rgba(255, 87, 34, 0.4);
+      border-color: var(--secondary);
+      background: #333;
+    }
+
+    .product-image {
+      width: 100%;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      background: linear-gradient(135deg, #D32F2F20 0%, #FF572220 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 3rem;
+    }
+
+    .product-name {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 5px;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .product-category {
+      font-size: 0.9rem;
+      color: #ffb74d;
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .product-price {
+      font-size: 1.5rem;
+      color: #ff9500;
+      font-weight: bold;
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 50px;
+      font-size: 1.2rem;
+      color: #999;
+    }
+
+    /* Empty State */
+    .empty-state {
+      text-align: center;
+      padding: 50px;
+      color: #999;
+    }
+
+    .empty-state-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        height: auto;
+        min-height: 90vh;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-height: 50vh;
+      }
+
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 15px;
+      }
+
+      .product-image {
+        height: 120px;
+      }
+
+      .product-card {
+        padding: 12px;
+      }
+
+      .product-name {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffffff;
+      }
+
+      .product-category {
+        font-size: 0.85rem;
+        color: #ffb74d;
+        font-weight: 600;
+      }
+
+      .product-price {
+        font-size: 1.3rem;
+        color: #ff9500;
+        font-weight: bold;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 12px;
+      }
+
+      .product-card {
+        padding: 10px;
+      }
+
+      .product-image {
+        height: 100px;
+        font-size: 2.5rem;
+      }
+
+      .product-name {
+        font-size: 1rem;
+        font-weight: 700;
+      }
+
+      .product-category {
+        font-size: 0.8rem;
+      }
+
+      .product-price {
+        font-size: 1.2rem;
+      }
+    }
+
+    /* Success Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 10000;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .modal-icon {
+      font-size: 4rem;
+      margin-bottom: 20px;
+    }
+
+    .modal-content h2 {
+      font-size: 1.8rem;
+      color: #27ae60;
+      margin-bottom: 15px;
+    }
+
+    .modal-content p {
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 20px;
+    }
+
+    .modal-close-btn {
+      padding: 12px 30px;
+      background: var(--secondary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .modal-close-btn:hover {
+      background: var(--accent);
+      transform: scale(1.05);
+    }
+
+    /* Dark Mode Support */
+    @media (prefers-color-scheme: dark) {
+      .container {
+        background: #1e1e1e;
+        color: #e0e0e0;
+      }
+      
+      .sidebar {
+        background: #2d2d2d;
+      }
+      
+      .sidebar-header h2 {
+        color: #e0e0e0;
+      }
+
+      .login-box, .modal-content, .cart-item, .product-card {
+        background: #2d2d2d;
+        color: #e0e0e0;
+      }
+
+      .filter-btn {
+        background: #2d2d2d;
+        border-color: #444;
+        color: #e0e0e0;
+      }
+
+      .filter-btn.active {
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--accent) 100%);
+        color: white;
+        border-color: var(--secondary);
+      }
+
+      .cart-item-info h4, .product-card h3, .products-header h1 {
+        color: #e0e0e0;
+      }
+
+      .search-input {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #444;
+      }
+
+      .pin-input input {
+        background: #333;
+        color: #e0e0e0;
+        border-color: #555;
+      }
+    }
+
+    /* Diagnóstico Modal */
+    .diagnostic-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .diagnostic-modal.show {
+      display: flex;
+    }
+
+    .diagnostic-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 700px;
+      width: 100%;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+
+    .diagnostic-box h2 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+
+    .diagnostic-box .subtitle {
+      color: #666;
+      margin-bottom: 20px;
+      font-size: 0.95rem;
+    }
+
+    .diagnostic-status {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin: 15px 0;
+      border-left: 4px solid #ccc;
+    }
+
+    .diagnostic-status.ok {
+      background: #d4edda;
+      border-left-color: #28a745;
+      color: #155724;
+    }
+
+    .diagnostic-status.error {
+      background: #f8d7da;
+      border-left-color: #dc3545;
+      color: #721c24;
+    }
+
+    .diagnostic-status.loading {
+      background: #fff3cd;
+      border-left-color: #ffc107;
+      color: #856404;
+    }
+
+    .diagnostic-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
+    .diagnostic-btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+    }
+
+    .diagnostic-btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .diagnostic-btn.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .diagnostic-btn.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .diagnostic-btn.secondary:hover {
+      background: #5a6268;
+    }
+
+    .btn-diagnostic {
+      background: #6c757d;
+      color: white;
+      border: none;
+      padding: 8px 15px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-weight: bold;
+      transition: all 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-diagnostic:hover {
+      background: #5a6268;
+      transform: scale(1.05);
+    }
+
+    .diagnostic-code {
+      background: #2d2d2d;
+      color: #f8f8f2;
+      padding: 10px;
+      border-radius: 6px;
+      font-family: 'Courier New', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    /* Student Registration Modal */
+    .student-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.9);
+      z-index: 10001;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .student-modal.show {
+      display: flex;
+    }
+
+    .student-modal-box {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .student-modal-box h2 {
+      color: var(--primary);
+      margin-bottom: 10px;
+      font-size: 1.8rem;
+    }
+
+    .student-modal-box .subtitle {
+      color: #666;
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: bold;
+      color: #333;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    .form-group label .required {
+      color: var(--primary);
+      margin-left: 3px;
+    }
+
+    .form-group input,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    .form-group .hint {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 5px;
+    }
+
+    .form-buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+
+    .form-button {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+      flex: 1;
+      font-size: 1rem;
+    }
+
+    .form-button.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .form-button.primary:hover {
+      background: var(--primary-dark);
+    }
+
+    .form-button.secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .form-button.secondary:hover {
+      background: #5a6268;
+    }
+
+    .form-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    /* Search Suggestions */
+    .search-suggestions {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: white;
+      border-radius: 0 0 10px 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      max-height: 300px;
+      overflow-y: auto;
+      z-index: 1000;
+      display: none;
+      margin-top: -10px;
+    }
+
+    .search-suggestions.show {
+      display: block;
+    }
+
+    .search-suggestion-item {
+      padding: 12px 15px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+    }
+
+    .search-suggestion-item:last-child {
+      border-bottom: none;
+    }
+
+    .search-suggestion-item:hover {
+      background: #f8f9fa;
+    }
+
+    .search-suggestion-item .name {
+      font-weight: bold;
+      color: #333;
+      font-size: 0.95rem;
+    }
+
+    .search-suggestion-item .details {
+      font-size: 0.85rem;
+      color: #666;
+      margin-top: 3px;
+    }
+
+    .search-suggestion-create {
+      padding: 15px;
+      background: #fff3cd;
+      border-top: 2px solid #ffc107;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+
+    .search-suggestion-create:hover {
+      background: #ffe69c;
+    }
+
+    .search-suggestion-create .icon {
+      font-size: 1.5rem;
+      margin-bottom: 5px;
+    }
+
+    .search-suggestion-create .text {
+      font-weight: bold;
+      color: #856404;
+    }
+
+    .search-section {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Access Modal -->
+  <div class="access-modal" id="accessModal">
+    <div class="access-box" id="accessBox">
+      <div class="access-icon" id="accessIcon">✅</div>
+      <h2 id="accessTitle">Acceso Permitido</h2>
+      <p id="accessMessage">Bienvenido al Sistema POS</p>
+    </div>
+  </div>
+
+  <!-- Login Screen -->
+  <div class="login-screen" id="loginScreen">
+    <div class="login-box">
+      <div class="logo">🏪</div>
+      <div class="brand">Fast <span class="brand-text">Flavors</span></div>
+      <h1>🔐 Admin POS</h1>
+      <p style="color: #666; margin-bottom: 20px;">Ingrese PIN de administrador</p>
+      <div class="pin-input">
+        <input type="password" maxlength="1" id="pin1" autocomplete="off">
+        <input type="password" maxlength="1" id="pin2" autocomplete="off">
+        <input type="password" maxlength="1" id="pin3" autocomplete="off">
+        <input type="password" maxlength="1" id="pin4" autocomplete="off">
+      </div>
+      <p class="error-msg" id="errorMsg">❌ PIN incorrecto</p>
+    </div>
+  </div>
+
+  <!-- Success Modal -->
+  <div class="modal" id="successModal">
+    <div class="modal-content">
+      <div class="modal-icon">✅</div>
+      <h2>¡Préstamo registrado!</h2>
+      <p id="successMessage"></p>
+      <button class="modal-close-btn" onclick="closeModal()">Aceptar</button>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="container" style="display: none;" id="mainContainer">
+    
+    <!-- Sidebar (Cart) -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <h1>Fast <span class="brand-text">Flavors</span></h1>
+        <p style="font-size: 0.9rem; opacity: 0.9;">Sistema POS</p>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="sidebar-header">
+          <h2>🛒 Carrito</h2>
+          <div class="header-buttons">
+            <button class="btn-diagnostic" onclick="openDiagnostic()" title="Diagnóstico Backend">🔧</button>
+            <a href="manage/" class="btn-manage" title="Gestionar Productos">📦</a>
+            <a href="../stats/" class="btn-manage" title="Estadísticas y Deudas">📊</a>
+            <a href="https://docs.google.com/spreadsheets/d/1nl0hupwDw-yHVCC0skvqgY7bNpLS854TD7PvHbCTAiI" target="_blank" class="btn-manage" title="Google Sheets">📈</a>
+            <button class="logout-btn" onclick="logout()">🚪</button>
+          </div>
+        </div>
+
+        <!-- Student Search -->
+        <div class="search-section">
+          <input 
+            type="text" 
+            class="search-input" 
+            id="studentSearch" 
+            placeholder="🔍 Buscar estudiante (código o nombre)..."
+            autocomplete="off"
+          >
+          <div class="search-suggestions" id="searchSuggestions"></div>
+        </div>
+
+      <!-- Student Info -->
+      <div class="student-info" id="studentInfo" style="display: none;">
+        <h3 id="studentName">Estudiante</h3>
+        <p id="studentCode"></p>
+        <p id="studentGrade"></p>
+        <p id="studentDeuda" style="font-size: 1.1rem; margin-top: 10px;">💰 Deuda total: S/ 0.00</p>
+      </div>
+
+      <!-- Cart Items -->
+      <div class="cart-items" id="cartItems">
+        <div class="empty-state">
+          <div class="empty-state-icon">🛒</div>
+          <p>Carrito vacío</p>
+        </div>
+      </div>
+
+      <!-- Cart Total -->
+      <div class="cart-total">
+        <h3>TOTAL A PRESTAR</h3>
+        <div class="cart-total-amount">S/ <span id="cartTotal">0.00</span></div>
+      </div>
+
+      <button class="submit-btn" id="submitBtn" onclick="submitLoan()" disabled>
+        💳 Registrar Préstamo
+      </button>
+      
+      <button class="submit-btn" id="payBtn" onclick="openPaymentModal()" disabled style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); margin-top: 10px;">
+        💰 Registrar Pago
+      </button>
+      </div>
+    </div>
+
+    <!-- Products Section -->
+    <div class="products-section">
+      <div class="products-header">
+        <h1>📦 Productos Disponibles</h1>
+        <div class="products-filter" id="productsFilter">
+          <button class="filter-btn active" data-category="all">Todos</button>
+        </div>
+      </div>
+      <div class="products-grid" id="productsGrid">
+        <div class="loading">⏳ Cargando productos...</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Diagnostic Modal -->
+  <div class="diagnostic-modal" id="diagnosticModal">
+    <div class="diagnostic-box">
+      <h2>🔧 Diagnóstico Backend</h2>
+      <p class="subtitle">Verificación de conexión con Google Apps Script</p>
+      
+      <div id="diagnosticResults">
+        <div class="diagnostic-status loading">
+          <strong>⏳ Listo para probar</strong><br>
+          Haz clic en "Probar Conexión" para verificar el backend.
+        </div>
+      </div>
+
+      <div class="diagnostic-buttons">
+        <button class="diagnostic-btn primary" onclick="runDiagnostic()">🔌 Probar Conexión</button>
+        <button class="diagnostic-btn secondary" onclick="closeDiagnostic()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Payment Modal -->
+  <div class="student-modal" id="paymentModal">
+    <div class="student-modal-box">
+      <h2>💰 Registrar Pago</h2>
+      <p class="subtitle">Ingrese el monto que el estudiante está pagando</p>
+      
+      <div id="paymentStudentInfo" style="background: #e8f5e9; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <h3 style="margin: 0 0 10px 0; color: #2e7d32;">👤 <span id="payStudentName">-</span></h3>
+        <p style="margin: 5px 0; color: #555;">📝 Código: <strong id="payStudentCode">-</strong></p>
+        <p style="margin: 5px 0; color: #d32f2f; font-size: 1.2rem;">💰 Deuda Total: <strong id="payStudentDebt">S/ 0.00</strong></p>
+      </div>
+      
+      <form id="paymentForm" onsubmit="submitPayment(event)">
+        <div class="form-group">
+          <label>Monto a Pagar <span class="required">*</span></label>
+          <input 
+            type="number" 
+            id="paymentAmount" 
+            required 
+            step="0.01" 
+            min="0.01" 
+            placeholder="0.00"
+            autocomplete="off"
+            style="font-size: 1.5rem; font-weight: bold;"
+          >
+          <div class="hint">💡 Puede ingresar el monto total o un pago parcial. El sistema pagará los productos uno por uno hasta que se agote el monto.</div>
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" class="form-button primary" id="savePaymentBtn">✅ Confirmar Pago</button>
+          <button type="button" class="form-button secondary" onclick="closePaymentModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Student Registration Modal -->
+  <div class="student-modal" id="studentModal">
+    <div class="student-modal-box">
+      <h2>👤 Registrar Estudiante</h2>
+      <p class="subtitle">Complete los datos del nuevo estudiante</p>
+      
+      <form id="studentForm" onsubmit="saveStudent(event)">
+        <div class="form-group">
+          <label>Código <span class="required">*</span></label>
+          <input type="text" id="studentCodigo" required autocomplete="off">
+          <div class="hint">Código único del estudiante</div>
+        </div>
+
+        <div class="form-group">
+          <label>Nombre Completo <span class="required">*</span></label>
+          <input type="text" id="studentNombre" required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Grado</label>
+          <input type="text" id="studentGrado" placeholder="Ej: 3ro" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Sección</label>
+          <input type="text" id="studentSeccion" placeholder="Ej: A" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Nivel Educativo</label>
+          <select id="studentEducacion">
+            <option value="">Seleccionar...</option>
+            <option value="Inicial">Inicial</option>
+            <option value="Primaria">Primaria</option>
+            <option value="Secundaria">Secundaria</option>
+            <option value="Superior">Superior</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Email</label>
+          <input type="email" id="studentEmail" placeholder="estudiante@colegio.edu.pe" autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label>Teléfono</label>
+          <input type="tel" id="studentTelefono" placeholder="987654321" autocomplete="off">
+        </div>
+
+        <div class="form-buttons">
+          <button type="submit" class="form-button primary" id="saveStudentBtn">💾 Guardar Estudiante</button>
+          <button type="button" class="form-button secondary" onclick="closeStudentModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script>
+    // Estado global
+    const state = {
+      currentStudent: null,
+      cart: [],
+      products: [],
+      students: []
+    };
+
+    const ADMIN_PIN = '2026'; // Cambiar según necesidad
+
+    // ========== LOGIN ==========
+    document.addEventListener('DOMContentLoaded', () => {
+      setupPinInput();
+    });
+
+    function setupPinInput() {
+      const inputs = [
+        document.getElementById('pin1'),
+        document.getElementById('pin2'),
+        document.getElementById('pin3'),
+        document.getElementById('pin4')
+      ];
+
+      inputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+          if (e.target.value.length === 1 && index < 3) {
+            inputs[index + 1].focus();
+          }
+          
+          if (index === 3 && e.target.value.length === 1) {
+            checkPin();
+          }
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Backspace' && e.target.value === '' && index > 0) {
+            inputs[index - 1].focus();
+          }
+        });
+      });
+
+      inputs[0].focus();
+    }
+
+    function checkPin() {
+      const pin = Array.from(document.querySelectorAll('.pin-input input'))
+        .map(input => input.value)
+        .join('');
+
+      if (pin === ADMIN_PIN) {
+        // Mostrar modal de acceso permitido
+        showAccessModal(true);
+        
+        // Después de 1.5 segundos, cargar el sistema
+        setTimeout(() => {
+          document.getElementById('loginScreen').style.display = 'none';
+          document.getElementById('mainContainer').style.display = 'flex';
+          document.getElementById('accessModal').classList.remove('show');
+          loadData();
+        }, 1500);
+      } else {
+        // Mostrar modal de acceso denegado
+        showAccessModal(false);
+        
+        // Después de 1.5 segundos, limpiar y pedir que intente de nuevo
+        setTimeout(() => {
+          document.getElementById('accessModal').classList.remove('show');
+          document.querySelectorAll('.pin-input input').forEach(input => input.value = '');
+          document.getElementById('pin1').focus();
+        }, 1500);
+      }
+    }
+
+    function showAccessModal(isSuccess) {
+      const modal = document.getElementById('accessModal');
+      const box = document.getElementById('accessBox');
+      const icon = document.getElementById('accessIcon');
+      const title = document.getElementById('accessTitle');
+      const message = document.getElementById('accessMessage');
+      
+      if (isSuccess) {
+        box.classList.remove('error');
+        box.classList.add('success');
+        icon.textContent = '✅';
+        title.textContent = 'Acceso Permitido';
+        message.textContent = 'Bienvenido al Sistema POS';
+      } else {
+        box.classList.remove('success');
+        box.classList.add('error');
+        icon.textContent = '❌';
+        title.textContent = 'Acceso Denegado';
+        message.textContent = 'PIN incorrecto. Intenta de nuevo';
+      }
+      
+      modal.classList.add('show');
+    }
+
+    function logout() {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('mainContainer').style.display = 'none';
+      document.querySelectorAll('.pin-input input').forEach(input => input.value = '');
+      document.getElementById('pin1').focus();
+      state.currentStudent = null;
+      state.cart = [];
+      updateCart();
+    }
+
+    // ========== DATA LOADING ==========
+    async function loadData() {
+      try {
+        await Promise.all([
+          loadProducts(),
+          loadStudents()
+        ]);
+      } catch (error) {
+        console.error('Error loading data:', error);
+        alert('Error al cargar datos. Verifica la conexión.');
+      }
+    }
+
+    async function loadProducts() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getProducts`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // El backend devuelve data.data.products
+          const products = data.data?.products || data.products || [];
+          state.products = products;
+          renderProducts(state.products);
+          renderCategories(state.products);
+        }
+      } catch (error) {
+        console.error('Error loading products:', error);
+        document.getElementById('productsGrid').innerHTML = 
+          '<div class="empty-state"><div class="empty-state-icon">❌</div><p>Error al cargar productos</p></div>';
+      }
+    }
+
+    async function loadStudents() {
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudents`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // El backend devuelve data.data.students
+          const students = data.data?.students || data.students || [];
+          state.students = students;
+        }
+      } catch (error) {
+        console.error('Error loading students:', error);
+      }
+    }
+
+    // ========== RENDERING ==========
+    function renderProducts(products) {
+      const grid = document.getElementById('productsGrid');
+      
+      if (products.length === 0) {
+        grid.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📦</div><p>No hay productos disponibles</p></div>';
+        return;
+      }
+
+      grid.innerHTML = products.map(product => `
+        <div class="product-card" onclick="addToCart(${product.id})">
+          <div class="product-image">${product.emoji || '📦'}</div>
+          <div class="product-name">${product.name}</div>
+          <div class="product-category">${product.category}</div>
+          <div class="product-price">S/ ${product.price.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    function renderCategories(products) {
+      const categories = ['all', ...new Set(products.map(p => p.category))];
+      const filterContainer = document.getElementById('productsFilter');
+      
+      filterContainer.innerHTML = categories.map(cat => `
+        <button class="filter-btn ${cat === 'all' ? 'active' : ''}" 
+                onclick="filterProducts('${cat}')" 
+                data-category="${cat}">
+          ${cat === 'all' ? 'Todos' : cat}
+        </button>
+      `).join('');
+    }
+
+    function filterProducts(category) {
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.category === category);
+      });
+
+      const filtered = category === 'all' 
+        ? state.products 
+        : state.products.filter(p => p.category === category);
+      
+      renderProducts(filtered);
+    }
+
+    // ========== CART MANAGEMENT ==========
+    function addToCart(productId) {
+      if (!state.currentStudent) {
+        alert('⚠️ Primero selecciona un estudiante');
+        document.getElementById('studentSearch').focus();
+        return;
+      }
+
+      const product = state.products.find(p => p.id === productId);
+      if (product) {
+        state.cart.push({
+          id: Date.now(),
+          productId: product.id,
+          name: product.name,
+          price: product.price,
+          emoji: product.emoji
+        });
+        updateCart();
+      }
+    }
+
+    function removeFromCart(cartId) {
+      state.cart = state.cart.filter(item => item.id !== cartId);
+      updateCart();
+    }
+
+    function updateCart() {
+      const cartItems = document.getElementById('cartItems');
+      const totalElement = document.getElementById('cartTotal');
+      const submitBtn = document.getElementById('submitBtn');
+      const payBtn = document.getElementById('payBtn');
+
+      if (state.cart.length === 0) {
+        cartItems.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🛒</div><p>Carrito vacío</p></div>';
+        totalElement.textContent = '0.00';
+        submitBtn.disabled = true;
+      } else {
+        const total = state.cart.reduce((sum, item) => sum + item.price, 0);
+        
+        cartItems.innerHTML = state.cart.map(item => `
+          <div class="cart-item">
+            <div class="cart-item-info">
+              <h4>${item.emoji} ${item.name}</h4>
+              <div class="cart-item-price">S/ ${item.price.toFixed(2)}</div>
+            </div>
+            <button class="remove-btn" onclick="removeFromCart(${item.id})">×</button>
+          </div>
+        `).join('');
+
+        totalElement.textContent = total.toFixed(2);
+        submitBtn.disabled = !state.currentStudent || state.cart.length === 0;
+      }
+      
+      // Actualizar botón de pago independientemente del carrito
+      if (payBtn && state.currentStudent) {
+        const deuda = state.currentStudent.deudaTotal || 0;
+        payBtn.disabled = deuda <= 0;
+        if (deuda > 0) {
+          payBtn.textContent = `💰 Pagar Deuda (S/ ${deuda.toFixed(2)})`;
+        } else {
+          payBtn.textContent = '💰 Sin Deuda';
+        }
+      } else if (payBtn) {
+        payBtn.disabled = true;
+        payBtn.textContent = '💰 Registrar Pago';
+      }
+    }
+    
+
+    // ========== STUDENT SEARCH ==========
+    let searchAbortController = null;
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const searchInput = document.getElementById('studentSearch');
+      let searchTimeout;
+
+      searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+
+        if (query.length < 2) {
+          hideSearchSuggestions();
+          return;
+        }
+
+        searchTimeout = setTimeout(() => {
+          searchStudentRealtime(query);
+        }, 300);
+      });
+
+      // Close suggestions when clicking outside
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.search-section')) {
+          hideSearchSuggestions();
+        }
+      });
+    });
+
+    async function searchStudentRealtime(query) {
+      // Cancel previous request
+      if (searchAbortController) {
+        searchAbortController.abort();
+      }
+      searchAbortController = new AbortController();
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=searchStudent&query=${encodeURIComponent(query)}`, {
+          signal: searchAbortController.signal
+        });
+        const data = await response.json();
+
+        if (data.success) {
+          showSearchResults(data.data || data, query);
+        } else {
+          console.warn('⚠️ Búsqueda sin éxito:', data.message);
+          hideSearchSuggestions();
+        }
+      } catch (error) {
+        if (error.name !== 'AbortError') {
+          console.error('❌ Error searching student:', error);
+          hideSearchSuggestions();
+        }
+      }
+    }
+
+    function showSearchResults(searchData, query) {
+      const suggestionsDiv = document.getElementById('searchSuggestions');
+      
+      // Compatibilidad: el backend devuelve 'students', no 'results'
+      const students = searchData.students || searchData.results || [];
+      
+      if (searchData.found && students.length > 0) {
+        // Show found students
+        let html = '';
+        students.forEach((student, index) => {
+          // Guardar el estudiante en una variable temporal accesible globalmente
+          if (!window.tempStudents) window.tempStudents = {};
+          window.tempStudents[index] = student;
+          
+          html += `
+            <div class="search-suggestion-item" onclick="selectStudentFromSearch(window.tempStudents[${index}])">
+              <div class="name">${student.nombre}</div>
+              <div class="details">📝 ${student.codigo} | 🎓 ${student.grado || 'N/A'} - ${student.seccion || 'N/A'}</div>
+            </div>
+          `;
+        });
+        suggestionsDiv.innerHTML = html;
+        suggestionsDiv.classList.add('show');
+      } else if (!searchData.found && searchData.suggestion) {
+        // Show create new student option
+        const suggestion = searchData.suggestion;
+        suggestionsDiv.innerHTML = `
+          <div class="search-suggestion-create" onclick='openStudentModal("${query}")'>
+            <div class="icon">➕</div>
+            <div class="text">Crear Nuevo Estudiante</div>
+            <div class="details" style="font-size: 0.85rem; margin-top: 5px; color: #856404;">
+              "${suggestion.query}" no encontrado. Haz clic para registrar.
+            </div>
+          </div>
+        `;
+        suggestionsDiv.classList.add('show');
+      } else {
+        hideSearchSuggestions();
+      }
+    }
+
+    function hideSearchSuggestions() {
+      const suggestionsDiv = document.getElementById('searchSuggestions');
+      suggestionsDiv.classList.remove('show');
+      suggestionsDiv.innerHTML = '';
+      
+      // Limpiar datos temporales
+      if (window.tempStudents) {
+        window.tempStudents = {};
+      }
+    }
+
+    function selectStudentFromSearch(student) {
+      hideSearchSuggestions();
+      document.getElementById('studentSearch').value = student.nombre;
+      selectStudent(student);
+    }
+
+    async function searchStudent(query) {
+      const student = state.students.find(s => 
+        s.codigo.toLowerCase().includes(query.toLowerCase()) ||
+        s.nombre.toLowerCase().includes(query.toLowerCase())
+      );
+
+      if (student) {
+        selectStudent(student);
+      }
+    }
+
+    async function selectStudent(student) {
+      state.currentStudent = student;
+      
+      // Get student debt
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudentDebt&studentCode=${student.codigo}`);
+        const data = await response.json();
+        
+        if (data.success) {
+          // El backend puede devolver data.data.totalDebt o data.totalDebt
+          student.deudaTotal = data.data?.totalDebt || data.totalDebt || 0;
+        }
+      } catch (error) {
+        console.error('Error getting student debt:', error);
+      }
+
+      const studentInfo = document.getElementById('studentInfo');
+      document.getElementById('studentName').textContent = student.nombre;
+      document.getElementById('studentCode').textContent = `📝 Código: ${student.codigo}`;
+      
+      // Show grade/section or additional info if available
+      let gradeText = '';
+      if (student.grado && student.seccion) {
+        gradeText = `🎓 ${student.grado} - ${student.seccion}`;
+      } else if (student.nivel) {
+        gradeText = `🎓 ${student.nivel}`;
+      }
+      document.getElementById('studentGrade').textContent = gradeText;
+      
+      // Mostrar deuda con color según el monto
+      const deuda = student.deudaTotal || 0;
+      const deudaElement = document.getElementById('studentDeuda');
+      deudaElement.textContent = `💰 Deuda total: S/ ${deuda.toFixed(2)}`;
+      
+      // Cambiar color según la deuda
+      if (deuda > 0) {
+        deudaElement.style.color = '#d32f2f';
+        deudaElement.style.fontWeight = 'bold';
+      } else {
+        deudaElement.style.color = '#27ae60';
+        deudaElement.style.fontWeight = 'normal';
+      }
+      
+      studentInfo.style.display = 'block';
+
+      updateCart();
+      
+      // Actualizar botón de pago según la deuda
+      const payBtn = document.getElementById('payBtn');
+      if (payBtn) {
+        payBtn.disabled = !student.deudaTotal || student.deudaTotal <= 0;
+        if (student.deudaTotal && student.deudaTotal > 0) {
+          payBtn.textContent = `💰 Pagar Deuda (S/ ${student.deudaTotal.toFixed(2)})`;
+        } else {
+          payBtn.textContent = '💰 Registrar Pago';
+        }
+      }
+    }
+
+    // ========== STUDENT REGISTRATION MODAL ==========
+    function openStudentModal(searchQuery = '') {
+      const modal = document.getElementById('studentModal');
+      modal.classList.add('show');
+      
+      // Pre-fill code or name if search query exists
+      if (searchQuery) {
+        // Try to detect if it's a code (usually shorter) or name
+        if (searchQuery.length <= 10 && /^[A-Z0-9]+$/i.test(searchQuery)) {
+          document.getElementById('studentCodigo').value = searchQuery.toUpperCase();
+        } else {
+          document.getElementById('studentNombre').value = searchQuery;
+        }
+      }
+      
+      // Focus first empty field
+      setTimeout(() => {
+        const codigoInput = document.getElementById('studentCodigo');
+        const nombreInput = document.getElementById('studentNombre');
+        if (!codigoInput.value) {
+          codigoInput.focus();
+        } else if (!nombreInput.value) {
+          nombreInput.focus();
+        }
+      }, 100);
+    }
+
+    function closeStudentModal() {
+      const modal = document.getElementById('studentModal');
+      modal.classList.remove('show');
+      document.getElementById('studentForm').reset();
+    }
+
+    async function saveStudent(event) {
+      event.preventDefault();
+      
+      const saveBtn = document.getElementById('saveStudentBtn');
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Guardando...';
+      
+      const studentData = {
+        codigo: document.getElementById('studentCodigo').value.trim(),
+        nombre: document.getElementById('studentNombre').value.trim(),
+        grado: document.getElementById('studentGrado').value.trim(),
+        seccion: document.getElementById('studentSeccion').value.trim(),
+        educacion: document.getElementById('studentEducacion').value,
+        email: document.getElementById('studentEmail').value.trim(),
+        telefono: document.getElementById('studentTelefono').value.trim()
+      };
+
+      try {
+        const params = new URLSearchParams({
+          action: 'createStudent',
+          ...studentData
+        });
+
+        const response = await fetch(`${CONFIG.API_URL}?${params.toString()}`);
+        const data = await response.json();
+
+        if (data.success) {
+          showSuccessModal('✅ Estudiante Registrado', `${studentData.nombre} ha sido registrado exitosamente.`);
+          closeStudentModal();
+          
+          // Reload students and select the new one
+          await loadStudents();
+          const newStudent = state.students.find(s => s.codigo === studentData.codigo);
+          if (newStudent) {
+            document.getElementById('studentSearch').value = newStudent.nombre;
+            selectStudent(newStudent);
+          }
+        } else {
+          alert('❌ Error: ' + (data.mensaje || data.error || 'No se pudo registrar el estudiante'));
+        }
+      } catch (error) {
+        console.error('Error saving student:', error);
+        alert('❌ Error de conexión al guardar estudiante');
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '💾 Guardar Estudiante';
+      }
+    }
+
+    // ========== SUBMIT LOAN ==========
+    async function submitLoan() {
+      if (!state.currentStudent || state.cart.length === 0) {
+        return;
+      }
+
+      const submitBtn = document.getElementById('submitBtn');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '⏳ Procesando...';
+
+      try {
+        const loanData = {
+          studentCode: state.currentStudent.codigo,
+          items: state.cart.map(item => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price
+          })),
+          total: state.cart.reduce((sum, item) => sum + item.price, 0)
+        };
+
+        // Crear FormData con el JSON como parámetro
+        const formData = new FormData();
+        formData.append('action', 'createLoan');
+        formData.append('data', JSON.stringify(loanData));
+
+        const response = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const total = data.data?.total || loanData.total;
+          showSuccessModal('✅ Préstamo Registrado', `Préstamo de S/ ${total.toFixed(2)} registrado para ${state.currentStudent.nombre}`);
+          
+          // Reset
+          state.cart = [];
+          updateCart();
+          
+          // Reload student debt
+          if (state.currentStudent) {
+            selectStudent(state.currentStudent);
+          }
+        } else {
+          alert('❌ Error: ' + (data.mensaje || data.message || 'No se pudo registrar el préstamo'));
+        }
+      } catch (error) {
+        console.error('Error submitting loan:', error);
+        alert('❌ Error al registrar préstamo: ' + error.message);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '💳 Registrar Préstamo';
+      }
+    }
+
+    // ========== PAYMENT FUNCTIONS ==========
+    function openPaymentModal() {
+      if (!state.currentStudent) {
+        alert('⚠️ Primero selecciona un estudiante');
+        return;
+      }
+
+      const deuda = state.currentStudent.deudaTotal || 0;
+      
+      if (deuda <= 0) {
+        alert('✅ Este estudiante no tiene deudas pendientes');
+        return;
+      }
+
+      // Llenar información del modal
+      document.getElementById('payStudentName').textContent = state.currentStudent.nombre;
+      document.getElementById('payStudentCode').textContent = state.currentStudent.codigo;
+      document.getElementById('payStudentDebt').textContent = `S/ ${deuda.toFixed(2)}`;
+      
+      // Sugerir pagar el total
+      document.getElementById('paymentAmount').value = deuda.toFixed(2);
+      
+      // Mostrar modal
+      const modal = document.getElementById('paymentModal');
+      modal.classList.add('show');
+      
+      // Focus en el input
+      setTimeout(() => {
+        document.getElementById('paymentAmount').select();
+      }, 100);
+    }
+
+    function closePaymentModal() {
+      const modal = document.getElementById('paymentModal');
+      modal.classList.remove('show');
+      document.getElementById('paymentForm').reset();
+    }
+
+    async function submitPayment(event) {
+      event.preventDefault();
+      
+      const saveBtn = document.getElementById('savePaymentBtn');
+      const montoPago = parseFloat(document.getElementById('paymentAmount').value);
+      const deudaTotal = state.currentStudent.deudaTotal || 0;
+      
+      if (montoPago <= 0) {
+        alert('❌ El monto debe ser mayor a cero');
+        return;
+      }
+      
+      if (montoPago > deudaTotal) {
+        const confirmar = confirm(`⚠️ El monto (S/ ${montoPago.toFixed(2)}) es mayor que la deuda (S/ ${deudaTotal.toFixed(2)}).\n\n¿Deseas continuar?`);
+        if (!confirmar) return;
+      }
+      
+      saveBtn.disabled = true;
+      saveBtn.textContent = '⏳ Procesando pago...';
+      
+      try {
+        const paymentData = {
+          codigoEstudiante: state.currentStudent.codigo,
+          montoPago: montoPago
+        };
+
+        const formData = new FormData();
+        formData.append('action', 'registrarPago');
+        formData.append('data', JSON.stringify(paymentData));
+
+        const response = await fetch(CONFIG.API_URL, {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          const montoPagado = data.data?.montoPagado || montoPago;
+          const excedente = data.data?.excedente || 0;
+          const itemsPagados = data.data?.itemsPagados || 0;
+          
+          let mensaje = `✅ Pago registrado exitosamente\n\n`;
+          mensaje += `💰 Monto pagado: S/ ${montoPagado.toFixed(2)}\n`;
+          mensaje += `📦 Ítems pagados: ${itemsPagados}\n`;
+          
+          if (excedente > 0) {
+            mensaje += `\n💡 Excedente: S/ ${excedente.toFixed(2)}\n(La deuda ha sido pagada completamente)`;
+          }
+          
+          // Calcular nueva deuda
+          const nuevaDeuda = (state.currentStudent.deudaTotal || 0) - montoPagado;
+          if (nuevaDeuda > 0) {
+            mensaje += `\n\n⚠️ Deuda restante: S/ ${nuevaDeuda.toFixed(2)}`;
+          } else {
+            mensaje += `\n\n🎉 ¡Deuda saldada completamente!`;
+          }
+          
+          showSuccessModal('💰 Pago Registrado', mensaje);
+          closePaymentModal();
+          
+          // Recargar deuda del estudiante
+          await selectStudent(state.currentStudent);
+        } else {
+          alert('❌ Error: ' + (data.mensaje || data.message || 'No se pudo registrar el pago'));
+        }
+      } catch (error) {
+        console.error('Error submitting payment:', error);
+        alert('❌ Error al registrar pago: ' + error.message);
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.textContent = '✅ Confirmar Pago';
+      }
+    }
+
+    function showSuccessModal(title, message) {
+      const modal = document.getElementById('successModal');
+      const messageEl = document.getElementById('successMessage');
+      
+      // If message element supports title, update it
+      if (messageEl) {
+        messageEl.textContent = message || title;
+      }
+      
+      if (modal) {
+        modal.style.display = 'flex';
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('successModal').style.display = 'none';
+    }
+
+    // ========== DIAGNOSTIC FUNCTIONS ==========
+    function openDiagnostic() {
+      document.getElementById('diagnosticModal').classList.add('show');
+      // Auto-run diagnostic
+      setTimeout(runDiagnostic, 300);
+    }
+
+    function closeDiagnostic() {
+      document.getElementById('diagnosticModal').classList.remove('show');
+    }
+
+    async function runDiagnostic() {
+      const resultsDiv = document.getElementById('diagnosticResults');
+      
+      // Test 1: API URL
+      resultsDiv.innerHTML = `
+        <div class="diagnostic-status loading">
+          <strong>🔍 Verificando configuración...</strong>
+        </div>
+      `;
+
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      if (!CONFIG.API_URL || CONFIG.API_URL.includes('AKfycbx...')) {
+        resultsDiv.innerHTML = `
+          <div class="diagnostic-status error">
+            <strong>❌ URL del API no configurada</strong><br>
+            La URL en <code>js/config.js</code> no está configurada correctamente.<br>
+            URL actual: <code>${CONFIG.API_URL}</code>
+          </div>
+        `;
+        return;
+      }
+
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status ok">
+          <strong>✅ URL configurada</strong><br>
+          ${CONFIG.API_URL}
+        </div>
+      `;
+
+      // Test 2: Connection
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>🔌 Probando conexión con backend...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getConfiguracion`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Backend conectado</strong><br>
+              Spreadsheet ID: ${data.spreadsheetId || 'Configurado'}<br>
+              Zona horaria: ${data.timezone || 'America/Lima'}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>❌ Error en respuesta</strong><br>
+              ${data.message || 'El backend respondió con error'}
+            </div>
+          `;
+          return;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ No se puede conectar al backend</strong><br>
+            Error: ${error.message}<br><br>
+            <strong>Posibles causas:</strong>
+            <ul style="margin-left: 20px; margin-top: 10px;">
+              <li>URL incorrecta en config.js</li>
+              <li>Apps Script no desplegado como Web App</li>
+              <li>Permisos no configurados (debe ser "Anyone")</li>
+            </ul>
+          </div>
+        `;
+        return;
+      }
+
+      // Test 3: Products
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>📦 Cargando productos...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getProducts`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        // El backend devuelve data.data.products
+        const products = data.data?.products || data.products || [];
+
+        if (data.success && products.length > 0) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Productos cargados</strong><br>
+              ${products.length} productos encontrados<br>
+              Categorías: ${[...new Set(products.map(p => p.category))].join(', ')}
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>⚠️ No se encontraron productos</strong><br>
+              ${data.message || 'La hoja Productos está vacía o no existe'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ Error al cargar productos</strong><br>
+            ${error.message}
+          </div>
+        `;
+      }
+
+      // Test 4: Students
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status loading">
+          <strong>👥 Cargando estudiantes...</strong>
+        </div>
+      `;
+
+      try {
+        const response = await fetch(`${CONFIG.API_URL}?action=getStudents`, {
+          method: 'GET',
+          cache: 'no-cache'
+        });
+
+        const data = await response.json();
+
+        // El backend devuelve data.data.students
+        const students = data.data?.students || data.students || [];
+
+        if (data.success && students.length > 0) {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status ok">
+              <strong>✅ Estudiantes cargados</strong><br>
+              ${students.length} estudiantes registrados
+            </div>
+          `;
+        } else {
+          resultsDiv.innerHTML += `
+            <div class="diagnostic-status error">
+              <strong>⚠️ No se encontraron estudiantes</strong><br>
+              ${data.message || 'La hoja Estudiantes está vacía o no existe'}
+            </div>
+          `;
+        }
+      } catch (error) {
+        resultsDiv.innerHTML += `
+          <div class="diagnostic-status error">
+            <strong>❌ Error al cargar estudiantes</strong><br>
+            ${error.message}
+          </div>
+        `;
+      }
+
+      // Final status
+      resultsDiv.innerHTML += `
+        <div class="diagnostic-status ok">
+          <strong>✅ Diagnóstico completado</strong><br>
+          Si ves errores arriba, revisa el archivo <code>BACKEND_SETUP.md</code> para instrucciones.
+        </div>
+      `;
+    }
+  </script>
+
+</body>
+</html>

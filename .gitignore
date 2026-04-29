@@ -1,0 +1,40 @@
+# Archivos del sistema operativo
+.DS_Store
+Thumbs.db
+
+# Archivos de editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencias (si se agregan en el futuro)
+node_modules/
+package-lock.json
+
+# Variables de entorno
+.env
+.env.local
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Archivos de backup
+*.bak
+*backup*
+
+# Archivos específicos del proyecto
+# Descomentar si quieres ignorar configuración local
+# js/config.js
+
+#backend
+*code.gs
+*migracion.gs
+*test-backend.html
+*resumen_automatico.gs
