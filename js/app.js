@@ -211,7 +211,7 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
-      // ✨ MEJORA: Mostrar notificación si el turno fue substituido
+      // ✨ MEJORA: Mostrar notificación y previsualización si el turno fue substituido
       if (data.turnoFueSubstituido) {
         this.turnoActual = data.turnoActual;
         
@@ -223,11 +223,82 @@ class ComedorApp {
           }
         });
         
-        // Mostrar notificación
+        // Mostrar banner de previsualización con el primer plato disponible
+        if (this.menu.length > 0) {
+          const primerPlato = this.menu[0];
+          const icono = this.obtenerIconoPlato(primerPlato.nombre);
+          const horaSiguiente = data.horaLimiteTurno || '14:00'; // Hora cuando inicia el turno siguiente
+          
+          const banner = document.createElement('div');
+          banner.id = 'bannerTurnoSiguiente';
+          banner.style.cssText = `
+            background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+            color: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            animation: slideDown 0.3s ease-out;
+          `;
+          
+          banner.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+              <div style="font-size: 2.5rem;">${icono}</div>
+              <div style="text-align: left;">
+                <div style="font-size: 1.2rem; font-weight: bold;">Para tu turno ${data.nombreTurno}</div>
+                <div style="font-size: 0.95rem; opacity: 0.9;">
+                  <strong>${primerPlato.nombre}</strong>
+                </div>
+                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
+                  Disponible desde las <strong>${horaSiguiente}</strong>
+                </div>
+                <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
+                  💰 ${Utils.formatPrice(primerPlato.precio)}
+                </div>
+              </div>
+            </div>
+          `;
+          
+          // Agregar estilos de animación
+          const style = document.createElement('style');
+          style.textContent = `
+            @keyframes slideDown {
+              from {
+                transform: translateY(-20px);
+                opacity: 0;
+              }
+              to {
+                transform: translateY(0);
+                opacity: 1;
+              }
+            }
+          `;
+          if (!document.querySelector('style[data-banner-animation]')) {
+            style.setAttribute('data-banner-animation', 'true');
+            document.head.appendChild(style);
+          }
+          
+          const menuContainer = document.getElementById('menuContainer');
+          if (menuContainer) {
+            // Remover banner anterior si existe
+            const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+            if (bannerAnterior) bannerAnterior.remove();
+            
+            // Insertar nuevo banner
+            menuContainer.insertAdjacentElement('beforebegin', banner);
+          }
+        }
+        
+        // Mostrar notificación adicional
         Utils.showToast(
-          `⚠️ ${data.nombreTurno}: ${data.mensaje || 'Turno actualizado automáticamente'}`,
+          `⏰ Turno cambiado a ${data.nombreTurno}`,
           'info'
         );
+      } else {
+        // Si no fue substituido, remover banner anterior si existe
+        const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+        if (bannerAnterior) bannerAnterior.remove();
       }
       
       // Verificar si el día no está disponible
@@ -364,6 +435,14 @@ class ComedorApp {
   obtenerIconoPlato(nombrePlato) {
     const nombre = nombrePlato.toLowerCase();
     
+    // Aeropuerto (plato específico)
+    if (nombre.includes('aeropuerto')) return '✈️';
+    
+    // Salteados
+    if (nombre.includes('salteado') || nombre.includes('saltado') || nombre.includes('salteados')) return '🍳';
+    if (nombre.includes('tallarín salteado') || nombre.includes('tallarines salteados')) return '🍝';
+    if (nombre.includes('pollo salteado') || nombre.includes('pollo saltado')) return '🍗';
+    
     // Arroz y pollo
     if (nombre.includes('arroz') && nombre.includes('pollo')) return '🍗';
     if (nombre.includes('pollo')) return '🍗';
@@ -372,21 +451,24 @@ class ComedorApp {
     if (nombre.includes('lomo') || nombre.includes('bistec')) return '🥩';
     if (nombre.includes('carne')) return '🥩';
     if (nombre.includes('res')) return '🥩';
+    if (nombre.includes('asado')) return '🍖';
     
     // Pescados y mariscos
     if (nombre.includes('pescado') || nombre.includes('trucha') || nombre.includes('atún')) return '🐟';
     if (nombre.includes('ceviche') || nombre.includes('camarón') || nombre.includes('mariscos')) return '🦐';
     
-    // Pasta
-    if (nombre.includes('pasta') || nombre.includes('spaguetti') || nombre.includes('tallarín')) return '🍝';
+    // Pasta - Tallarines
+    if (nombre.includes('tallarín') || nombre.includes('tallarines')) return '🍝';
+    if (nombre.includes('pasta') || nombre.includes('spaguetti')) return '🍝';
     if (nombre.includes('lasagna') || nombre.includes('lasaña')) return '🍝';
     
     // Arroz
-    if (nombre.includes('arroz')) return '🍚';
     if (nombre.includes('chaufa')) return '🍛';
+    if (nombre.includes('arroz')) return '🍚';
     
-    // Sopas
+    // Sopas y caldos
     if (nombre.includes('sopa') || nombre.includes('caldo')) return '🍲';
+    if (nombre.includes('consomé') || nombre.includes('consomé')) return '🍲';
     
     // Ensaladas
     if (nombre.includes('ensalada')) return '🥗';
@@ -409,10 +491,11 @@ class ComedorApp {
     
     // Postres
     if (nombre.includes('postre') || nombre.includes('torta') || nombre.includes('pastel')) return '🍰';
+    if (nombre.includes('flan') || nombre.includes('pudín')) return '🍮';
     
     // Desayunos
     if (nombre.includes('huevo') || nombre.includes('tortilla')) return '🍳';
-    if (nombre.includes('pan')) return '🥖';
+    if (nombre.includes('pan') || nombre.includes('tostada')) return '🥖';
     
     // Por defecto - platillo genérico
     return '🍽️';
