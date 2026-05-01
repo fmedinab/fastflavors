@@ -227,7 +227,10 @@ class ComedorApp {
         if (this.menu.length > 0) {
           const primerPlato = this.menu[0];
           const icono = this.obtenerIconoPlato(primerPlato.nombre);
-          const horaSiguiente = data.horaLimiteTurno || '14:00'; // Hora cuando inicia el turno siguiente
+          // Usar hora de INICIO del turno siguiente (se obtiene desde Google Sheets de forma dinámica)
+          const horaInicio = data.horaInicioTurnoSiguiente || '13:30'; // Fallback si no viene del backend
+          
+          console.log('🎯 Banner turno siguiente - horaInicioTurnoSiguiente:', data.horaInicioTurnoSiguiente);
           
           const banner = document.createElement('div');
           banner.id = 'bannerTurnoSiguiente';
@@ -251,7 +254,7 @@ class ComedorApp {
                   <strong>${primerPlato.nombre}</strong>
                 </div>
                 <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
-                  Disponible desde las <strong>${horaSiguiente}</strong>
+                  Disponible desde las <strong>${horaInicio}</strong>
                 </div>
                 <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
                   💰 ${Utils.formatPrice(primerPlato.precio)}
