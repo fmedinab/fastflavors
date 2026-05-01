@@ -211,9 +211,28 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
+      // ✨ MEJORA: Mostrar notificación si el turno fue substituido
+      if (data.turnoFueSubstituido) {
+        this.turnoActual = data.turnoActual;
+        
+        // Actualizar el botón activo visualmente
+        document.querySelectorAll('.btn-turno').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.turno === data.turnoActual) {
+            btn.classList.add('active');
+          }
+        });
+        
+        // Mostrar notificación
+        Utils.showToast(
+          `⚠️ ${data.nombreTurno}: ${data.mensaje || 'Turno actualizado automáticamente'}`,
+          'info'
+        );
+      }
+      
       // Verificar si el día no está disponible
       if (data.diaDisponible === false) {
-        this.mostrarDiaNoDisponible(data.mensaje);
+        this.mostrarDiaNoDisponible(data.mensaje || data.razon);
         return;
       }
       
