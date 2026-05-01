@@ -33,13 +33,13 @@ class API {
       }
 
       const data = await response.json();
-      console.log('📦 API Response:', data);
+      // console.log('📦 API Response:', data);
       
       // No lanzar error aquí, dejar que el caller maneje success/failure
       return data;
 
     } catch (error) {
-      console.error('Error en petición:', error);
+      // console.error('Error en petición:', error);
       throw error;
     }
   }

@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Gestión de Menú - Fast Flavors</title>
-  <link rel="stylesheet" href="../../css/styles.css">
   <style>
     * {
       margin: 0;
@@ -411,75 +410,82 @@
   </style>
 </head>
 <body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <div>
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">Fast <span class="logo-text">Flavors</span></div>
+      <div class="header-title">
         <h1>🍽️ Gestión de Menú</h1>
-        <p style="color: #999; margin-top: 5px;">Administra los platos disponibles para cada turno</p>
+        <p>Administra los platos disponibles para cada turno</p>
       </div>
-      <div>
-        <button class="btn-back" onclick="volverAlAdmin()">← Volver al Admin</button>
-        <button class="btn-add" onclick="abrirModalNuevoPlato()" style="margin-left: 10px;">+ Agregar Plato</button>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" onclick="volverAlAdmin()">← Volver</button>
+      <button class="btn btn-primary" onclick="abrirModalNuevoPlato()">+ Nuevo Plato</button>
+    </div>
+  </div>
+
+  <!-- Container -->
+  <div class="container">
+    <!-- Stats Cards -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <h3>Total de Platos</h3>
+        <div class="value" id="totalPlatos">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Platos Activos</h3>
+        <div class="value" id="platosActivos">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Mañana</h3>
+        <div class="value" id="platosMañana">0</div>
+      </div>
+      <div class="stat-card">
+        <h3>Tarde</h3>
+        <div class="value" id="platosTarde">0</div>
       </div>
     </div>
 
-    <!-- Filtros -->
-    <div class="filters">
-      <div class="filter-group">
-        <label>Turno:</label>
-        <select id="filterTurno" onchange="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option value="MANANA">Mañana</option>
-          <option value="TARDE">Tarde</option>
-        </select>
+    <!-- Menu Section -->
+    <div class="menu-section">
+      <div class="section-header">
+        <h2>📋 Lista de Platos</h2>
+        <button class="btn btn-primary" onclick="abrirModalNuevoPlato()">+ Agregar</button>
       </div>
-      <div class="filter-group">
-        <label>Día:</label>
-        <select id="filterDia" onchange="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option value="Lunes">Lunes</option>
-          <option value="Martes">Martes</option>
-          <option value="Miércoles">Miércoles</option>
-          <option value="Jueves">Jueves</option>
-          <option value="Viernes">Viernes</option>
-        </select>
-      </div>
-      <div class="filter-group">
-        <label>Estado:</label>
-        <select id="filterActivo" onchange="aplicarFiltros()">
-          <option value="">Todos</option>
-          <option value="SI">Activos</option>
-          <option value="NO">Inactivos</option>
-        </select>
-      </div>
-    </div>
 
-    <!-- Tabla de platos -->
-    <div class="table-container">
-      <div id="loader" class="loader">
-        <div class="spinner"></div>
-        <p>Cargando platos...</p>
+      <!-- Filtros -->
+      <div class="filter-bar" id="filterBar"></div>
+
+      <!-- Loading -->
+      <div class="loader-container">
+        <div id="loader" class="loader show">
+          <div class="spinner"></div>
+          <p>Cargando platos...</p>
+        </div>
       </div>
-      
+
+      <!-- Tabla -->
       <div id="tableWrapper" style="display: none;">
-        <table id="platosTable">
-          <thead>
-            <tr>
-              <th>Turno</th>
-              <th>Día</th>
-              <th>Plato</th>
-              <th>Descripción</th>
-              <th>Precio</th>
-              <th>Estado</th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="platosBody">
-          </tbody>
-        </table>
+        <div class="table-container">
+          <table id="platosTable">
+            <thead>
+              <tr>
+                <th>Turno</th>
+                <th>Día</th>
+                <th>Plato</th>
+                <th>Descripción</th>
+                <th>Precio</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="platosBody"></tbody>
+          </table>
+        </div>
       </div>
 
+      <!-- Empty State -->
       <div id="emptyState" class="empty-state" style="display: none;">
         <div class="empty-state-icon">📭</div>
         <h3>No hay platos disponibles</h3>
@@ -488,7 +494,7 @@
     </div>
   </div>
 
-  <!-- Modal para crear/editar plato -->
+  <!-- Modal -->
   <div id="platoModal" class="modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -499,7 +505,7 @@
       <form id="platoForm" onsubmit="guardarPlato(event)">
         <div class="form-group">
           <label>Turno *</label>
-          <select id="turno" required>
+          <select id="turno" class="form-control" required>
             <option value="">Selecciona un turno</option>
             <option value="MANANA">Mañana</option>
             <option value="TARDE">Tarde</option>
@@ -508,7 +514,7 @@
 
         <div class="form-group">
           <label>Día *</label>
-          <select id="dia" required>
+          <select id="dia" class="form-control" required>
             <option value="">Selecciona un día</option>
             <option value="Lunes">Lunes</option>
             <option value="Martes">Martes</option>
@@ -520,29 +526,29 @@
 
         <div class="form-group">
           <label>Nombre del Plato *</label>
-          <input type="text" id="plato" placeholder="ej: Arroz con Pollo" required>
+          <input type="text" id="plato" class="form-control" placeholder="ej: Arroz con Pollo" required>
         </div>
 
         <div class="form-group">
           <label>Descripción</label>
-          <textarea id="descripcion" placeholder="Describe los ingredientes y detalles del plato"></textarea>
+          <textarea id="descripcion" class="form-control" style="resize: vertical; min-height: 100px;" placeholder="Describe los ingredientes y detalles del plato"></textarea>
         </div>
 
         <div class="form-group">
           <label>Precio *</label>
-          <input type="number" id="precio" placeholder="5.00" step="0.01" min="0" required>
+          <input type="number" id="precio" class="form-control" placeholder="5.00" step="0.01" min="0" required>
         </div>
 
         <div class="form-group">
-          <label style="display: flex; align-items: center; gap: 10px;">
-            <input type="checkbox" id="activo" checked>
+          <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="activo" checked style="width: 20px; height: 20px; cursor: pointer;">
             <span>Plato activo</span>
           </label>
         </div>
 
         <div class="form-actions">
-          <button type="submit" class="btn-guardar">Guardar</button>
-          <button type="button" class="btn-cancelar" onclick="cerrarModal()">Cancelar</button>
+          <button type="submit" class="btn btn-primary">Guardar</button>
+          <button type="button" class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
         </div>
       </form>
     </div>
@@ -550,35 +556,28 @@
 
   <script src="../../js/config.js"></script>
   <script>
-    // Variables globales
     let platos = [];
     let platoEditando = null;
-    const API_URL = CONFIG.API_URL; // Usar URL del config.js
+    const API_URL = CONFIG.API_URL;
 
-    // Cargar platos al inicio
     document.addEventListener('DOMContentLoaded', () => {
       cargarPlatos();
+      renderizarFiltros();
     });
 
-    /**
-     * Cargar todos los platos del menú
-     */
     async function cargarPlatos() {
       try {
         document.getElementById('loader').classList.add('show');
         document.getElementById('tableWrapper').style.display = 'none';
         document.getElementById('emptyState').style.display = 'none';
 
-        // Usar fetch con la URL correcta
-        const params = new URLSearchParams({
-          action: 'obtenerPlatos'
-        });
-
+        const params = new URLSearchParams({ action: 'obtenerPlatos' });
         const response = await fetch(`${API_URL}?${params.toString()}`);
         const data = await response.json();
 
         if (data.success && data.data && data.data.platos) {
           platos = data.data.platos;
+          actualizarEstadisticas();
           renderizarTabla(platos);
         } else {
           mostrarToast('Error: ' + (data.mensaje || 'No se pudo cargar los platos'), 'error');
@@ -591,9 +590,44 @@
       }
     }
 
-    /**
-     * Renderizar tabla de platos
-     */
+    function actualizarEstadisticas() {
+      const total = platos.length;
+      const activos = platos.filter(p => p.activo).length;
+      const manana = platos.filter(p => p.turno === 'MANANA').length;
+      const tarde = platos.filter(p => p.turno === 'TARDE').length;
+
+      document.getElementById('totalPlatos').textContent = total;
+      document.getElementById('platosActivos').textContent = activos;
+      document.getElementById('platosMañana').textContent = manana;
+      document.getElementById('platosTarde').textContent = tarde;
+    }
+
+    function renderizarFiltros() {
+      const filterBar = document.getElementById('filterBar');
+      filterBar.innerHTML = `
+        <button class="filter-btn active" onclick="aplicarFiltro('')">Todos</button>
+        <button class="filter-btn" onclick="aplicarFiltro('MANANA')">Mañana</button>
+        <button class="filter-btn" onclick="aplicarFiltro('TARDE')">Tarde</button>
+        <button class="filter-btn" onclick="aplicarFiltro('activo')">Activos</button>
+        <button class="filter-btn" onclick="aplicarFiltro('inactivo')">Inactivos</button>
+      `;
+    }
+
+    function aplicarFiltro(filtro) {
+      let filtrados = platos;
+
+      if (filtro === 'MANANA') filtrados = platos.filter(p => p.turno === 'MANANA');
+      else if (filtro === 'TARDE') filtrados = platos.filter(p => p.turno === 'TARDE');
+      else if (filtro === 'activo') filtrados = platos.filter(p => p.activo);
+      else if (filtro === 'inactivo') filtrados = platos.filter(p => !p.activo);
+
+      renderizarTabla(filtrados);
+
+      // Actualizar botones activos
+      document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+
     function renderizarTabla(platosFiltrados = platos) {
       const tbody = document.getElementById('platosBody');
       tbody.innerHTML = '';
@@ -609,18 +643,22 @@
 
       platosFiltrados.forEach(plato => {
         const row = document.createElement('tr');
+        const turnoClass = plato.turno === 'MANANA' ? 'manana' : 'tarde';
+        const estadoClass = plato.activo ? 'status-active' : 'status-inactive';
+        const estadoText = plato.activo ? '✅ Activo' : '❌ Inactivo';
+
         row.innerHTML = `
-          <td><span class="badge ${plato.turno === 'MANANA' ? 'badge-manana' : 'badge-tarde'}">${plato.turno}</span></td>
-          <td>${plato.dia}</td>
-          <td><strong>${plato.plato}</strong></td>
-          <td style="font-size: 0.9rem; color: #666; max-width: 200px;">${plato.descripcion || '-'}</td>
-          <td><strong>S/ ${plato.precio.toFixed(2)}</strong></td>
-          <td><span class="badge ${plato.activo ? 'badge-activo' : 'badge-inactivo'}">${plato.activo ? 'Activo' : 'Inactivo'}</span></td>
+          <td><span class="turno-badge ${turnoClass}">${plato.turno}</span></td>
+          <td><span class="dia-text">${plato.dia}</span></td>
+          <td><span class="plato-name">${plato.plato}</span></td>
+          <td><span class="descripcion-text">${plato.descripcion || '-'}</span></td>
+          <td><span class="precio">S/ ${plato.precio.toFixed(2)}</span></td>
+          <td><span class="${estadoClass}">${estadoText}</span></td>
           <td>
             <div class="action-buttons">
-              <button class="btn-edit" onclick="abrirModalEditar(${plato.rowNumber})">Editar</button>
-              <button class="btn-toggle ${plato.activo ? '' : 'inactivo'}" onclick="togglePlato(${plato.rowNumber}, ${!plato.activo})">${plato.activo ? 'Desactivar' : 'Activar'}</button>
-              <button class="btn-delete" onclick="eliminarPlato(${plato.rowNumber})">Eliminar</button>
+              <button class="btn-icon btn-edit" onclick="abrirModalEditar(${plato.rowNumber})">✏️ Editar</button>
+              <button class="btn-icon btn-toggle" onclick="togglePlato(${plato.rowNumber}, ${!plato.activo})">${plato.activo ? '🔒' : '🔓'}</button>
+              <button class="btn-icon btn-delete" onclick="eliminarPlato(${plato.rowNumber})">🗑️</button>
             </div>
           </td>
         `;
@@ -628,29 +666,6 @@
       });
     }
 
-    /**
-     * Aplicar filtros
-     */
-    function aplicarFiltros() {
-      const turno = document.getElementById('filterTurno').value;
-      const dia = document.getElementById('filterDia').value;
-      const activo = document.getElementById('filterActivo').value;
-
-      const filtrados = platos.filter(plato => {
-        let cumple = true;
-        if (turno && plato.turno !== turno) cumple = false;
-        if (dia && plato.dia !== dia) cumple = false;
-        if (activo === 'SI' && !plato.activo) cumple = false;
-        if (activo === 'NO' && plato.activo) cumple = false;
-        return cumple;
-      });
-
-      renderizarTabla(filtrados);
-    }
-
-    /**
-     * Abrir modal para nuevo plato
-     */
     function abrirModalNuevoPlato() {
       platoEditando = null;
       document.getElementById('modalTitle').textContent = 'Nuevo Plato';
@@ -659,9 +674,6 @@
       document.getElementById('platoModal').classList.add('show');
     }
 
-    /**
-     * Abrir modal para editar plato
-     */
     function abrirModalEditar(rowNumber) {
       const plato = platos.find(p => p.rowNumber === rowNumber);
       if (!plato) return;
@@ -677,17 +689,11 @@
       document.getElementById('platoModal').classList.add('show');
     }
 
-    /**
-     * Cerrar modal
-     */
     function cerrarModal() {
       document.getElementById('platoModal').classList.remove('show');
       platoEditando = null;
     }
 
-    /**
-     * Guardar plato (crear o editar)
-     */
     async function guardarPlato(event) {
       event.preventDefault();
 
@@ -700,7 +706,6 @@
         activo: document.getElementById('activo').checked
       };
 
-      // Validación
       if (!datosPlato.turno || !datosPlato.dia || !datosPlato.plato || !datosPlato.precio) {
         mostrarToast('Por favor completa todos los campos requeridos', 'error');
         return;
@@ -708,20 +713,16 @@
 
       try {
         let action = 'crearPlato';
-        let params = new URLSearchParams({
-          action: action,
-          postData: JSON.stringify(datosPlato)
-        });
 
-        // Si estamos editando
         if (platoEditando) {
           action = 'actualizarPlato';
           datosPlato.rowNumber = platoEditando.rowNumber;
-          params = new URLSearchParams({
-            action: action,
-            postData: JSON.stringify(datosPlato)
-          });
         }
+
+        const params = new URLSearchParams({
+          action: action,
+          postData: JSON.stringify(datosPlato)
+        });
 
         const response = await fetch(`${API_URL}?${params.toString()}`);
         const data = await response.json();
@@ -734,18 +735,11 @@
           mostrarToast('Error: ' + (data.mensaje || 'No se pudo guardar'), 'error');
         }
       } catch (error) {
-        console.error('Error:', error);
         mostrarToast('Error al guardar: ' + error.message, 'error');
       }
     }
 
-    /**
-     * Toggle estado de plato (activar/desactivar)
-     */
     async function togglePlato(rowNumber, nuevoEstado) {
-      const plato = platos.find(p => p.rowNumber === rowNumber);
-      if (!plato) return;
-
       try {
         const datosActualizar = {
           rowNumber: rowNumber,
@@ -771,9 +765,6 @@
       }
     }
 
-    /**
-     * Eliminar plato
-     */
     async function eliminarPlato(rowNumber) {
       if (!confirm('¿Estás seguro de que deseas eliminar este plato?')) return;
 
@@ -797,23 +788,27 @@
       }
     }
 
-    /**
-     * Mostrar notificación toast
-     */
     function mostrarToast(mensaje, tipo = 'success') {
       const toast = document.createElement('div');
-      toast.className = `toast ${tipo}`;
+      toast.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: ${tipo === 'success' ? '#4CAF50' : '#D32F2F'};
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        z-index: 2000;
+        font-weight: bold;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: slideUp 0.3s ease-out;
+      `;
       toast.textContent = mensaje;
       document.body.appendChild(toast);
 
-      setTimeout(() => {
-        toast.remove();
-      }, 3000);
+      setTimeout(() => toast.remove(), 3000);
     }
 
-    /**
-     * Volver al admin
-     */
     function volverAlAdmin() {
       window.location.href = '../index.html';
     }

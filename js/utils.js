@@ -175,7 +175,7 @@ const Utils = {
       this.showToast('Copiado al portapapeles', 'success');
       return true;
     } catch (err) {
-      console.error('Error al copiar:', err);
+      // console.error('Error al copiar:', err);
       return false;
     }
   },
@@ -211,7 +211,7 @@ const Utils = {
       localStorage.setItem(key, JSON.stringify(data));
       return true;
     } catch (error) {
-      console.error('Error al guardar en localStorage:', error);
+      // console.error('Error al guardar en localStorage:', error);
       return false;
     }
   },
@@ -224,7 +224,7 @@ const Utils = {
       const data = localStorage.getItem(key);
       return data ? JSON.parse(data) : null;
     } catch (error) {
-      console.error('Error al leer de localStorage:', error);
+      // console.error('Error al leer de localStorage:', error);
       return null;
     }
   },
@@ -237,7 +237,7 @@ const Utils = {
       localStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.error('Error al eliminar de localStorage:', error);
+      // console.error('Error al eliminar de localStorage:', error);
       return false;
     }
   }

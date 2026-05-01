@@ -230,8 +230,8 @@ class ComedorApp {
           // Usar hora de INICIO del turno siguiente (se obtiene desde Google Sheets de forma dinámica)
           const horaInicio = data.horaInicioTurnoSiguiente || '13:30'; // Fallback si no viene del backend
           
-          console.log('🎯 Banner turno siguiente - horaInicioTurnoSiguiente:', data.horaInicioTurnoSiguiente);
-          console.log('🎯 turnoFueSubstituido:', data.turnoFueSubstituido);
+          // console.log('🎯 Banner turno siguiente - horaInicioTurnoSiguiente:', data.horaInicioTurnoSiguiente);
+          // console.log('🎯 turnoFueSubstituido:', data.turnoFueSubstituido);
           
           const banner = document.createElement('div');
           banner.id = 'bannerTurnoSiguiente';
