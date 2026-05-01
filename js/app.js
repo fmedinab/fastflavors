@@ -211,8 +211,8 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
-      // ✨ MEJORA: Mostrar notificación y previsualización si el turno fue substituido
-      if (data.turnoFueSubstituido) {
+      // ✨ MEJORA: Mostrar previsualización si hay turno siguiente disponible (substituido o futura)
+      if (data.turnoFueSubstituido || data.horaInicioTurnoSiguiente) {
         this.turnoActual = data.turnoActual;
         
         // Actualizar el botón activo visualmente
@@ -231,6 +231,7 @@ class ComedorApp {
           const horaInicio = data.horaInicioTurnoSiguiente || '13:30'; // Fallback si no viene del backend
           
           console.log('🎯 Banner turno siguiente - horaInicioTurnoSiguiente:', data.horaInicioTurnoSiguiente);
+          console.log('🎯 turnoFueSubstituido:', data.turnoFueSubstituido);
           
           const banner = document.createElement('div');
           banner.id = 'bannerTurnoSiguiente';
