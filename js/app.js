@@ -11,6 +11,7 @@ class ComedorApp {
     this.maxSelecciones = 2; // ⚙️ CAMBIAR AQUÍ: Máximo de platos totales por persona
     this.turnoActual = CONFIG.TURNO_DEFAULT;
     this.puedeReservar = true;
+    this.disponibilidadTurnos = {}; // 🚀 Guardar disponibilidad para evitar duplicados
     
     // Anuncios/Slider
     this.anuncios = [];
@@ -61,12 +62,15 @@ class ComedorApp {
     // El backend ahora verifica dinámicamente qué días están activos
     // mediante isDiaActivo() que lee de Google Sheets
 
-    // Cargar anuncios dinámicos
-    await this.cargarAnuncios();
-
     this.setupEventListeners();
+    
+    // 🚀 OPTIMIZACIÓN: Paralelizar carga de disponibilidad y menú
+    // Anuncios se cargan después (no bloquean menú principal)
     await this.verificarDisponibilidadTurnos();
     await this.cambiarTurno(this.turnoActual);
+    
+    // Cargar anuncios en background (no bloqueante)
+    this.cargarAnuncios();
   }
 
   /**
@@ -74,7 +78,9 @@ class ComedorApp {
    */
   async verificarDisponibilidadTurnos() {
     try {
+      Utils.showLoader();
       const disponibilidad = await api.checkTodosLosTurnos();
+      this.disponibilidadTurnos = disponibilidad; // 🚀 Guardar para reutilizar
       
       document.querySelectorAll('.btn-turno').forEach(btn => {
         const turno = btn.dataset.turno;
@@ -148,6 +154,9 @@ class ComedorApp {
       }
       
     } catch (error) {
+      console.error('Error en verificarDisponibilidadTurnos:', error);
+    } finally {
+      Utils.hideLoader();
     }
   }
 
@@ -164,7 +173,19 @@ class ComedorApp {
       }
     });
     
-    await this.verificarDisponibilidad(turno);
+    // 🚀 OPTIMIZACIÓN: Ya verificamos disponibilidad en verificarDisponibilidadTurnos()
+    // Solo actualizamos puedeReservar basado en datos ya obtenidos
+    if (this.disponibilidadTurnos && this.disponibilidadTurnos[turno]) {
+      this.puedeReservar = this.disponibilidadTurnos[turno].disponible;
+      const alerta = document.getElementById('alertaTurnoCerrado');
+      if (!this.puedeReservar && alerta) {
+        alerta.style.display = 'block';
+        alerta.textContent = this.disponibilidadTurnos[turno].mensaje;
+      } else if (alerta) {
+        alerta.style.display = 'none';
+      }
+    }
+    
     await this.cargarMenu(turno);
   }
 

@@ -8,6 +8,59 @@ class API {
   constructor() {
     this.baseURL = CONFIG.API_URL;
     this.cache = {};
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutos de caché
+    this.cacheTimestamps = {};
+  }
+
+  /**
+   * Obtener item del caché si no ha expirado
+   */
+  getFromCache(key) {
+    const now = Date.now();
+    const timestamp = this.cacheTimestamps[key] || 0;
+    const cacheAge = now - timestamp;
+    
+    // Si el caché tiene menos de 5 minutos, devolverlo
+    if (this.cache[key] && cacheAge < this.cacheTimeout) {
+      return this.cache[key];
+    }
+    
+    // Si expiró, limpiar
+    delete this.cache[key];
+    delete this.cacheTimestamps[key];
+    return null;
+  }
+
+  /**
+   * Guardar en caché
+   */
+  setCache(key, value) {
+    this.cache[key] = value;
+    this.cacheTimestamps[key] = Date.now();
+  }
+
+  /**
+   * 🚀 Fetch con timeout automático (15 segundos max)
+   */
+  async fetchWithTimeout(url, timeoutMs = 15000) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    
+    try {
+      const response = await fetch(url, {
+        method: 'GET',
+        cache: 'no-cache',
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        throw new Error(`Petición excedió ${timeoutMs}ms`);
+      }
+      throw error;
+    }
   }
 
   /**
@@ -22,11 +75,8 @@ class API {
 
       const url = `${this.baseURL}?${queryParams.toString()}`;
       
-      // Fetch simple sin headers personalizados (no activa preflight)
-      const response = await fetch(url, {
-        method: 'GET',
-        cache: 'no-cache'
-      });
+      // 🚀 Usar fetch con timeout
+      const response = await this.fetchWithTimeout(url);
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -109,17 +159,24 @@ class API {
   }
 
   /**
-   * Obtener el menú del día según el turno
+   * Obtener el menú del día según el turno - 🚀 MEJORADO CON CACHÉ
    */
   async getMenuDelDia(turno, forceRefresh = false) {
     const cacheKey = `menu_${turno}`;
-    if (this.cache[cacheKey] && !forceRefresh) {
-      console.log('📦 Menú cargado desde caché');
-      return this.cache[cacheKey];
+    
+    // 🚀 Intentar caché primero si no es refresh forzado
+    if (!forceRefresh) {
+      const cached = this.getFromCache(cacheKey);
+      if (cached) {
+        console.log('📦 Menú cargado desde caché:', cacheKey);
+        return cached;
+      }
     }
 
     const data = await this.get('getMenuDelDia', { turno });
-    this.cache[cacheKey] = data;
+    
+    // 💾 Guardar en caché mejorado
+    this.setCache(cacheKey, data);
     return data;
   }
 
@@ -131,39 +188,49 @@ class API {
   }
 
   /**
-   * Verificar disponibilidad de todos los turnos
+   * Verificar disponibilidad de todos los turnos - 🚀 PARALELIZADO
    */
   async checkTodosLosTurnos() {
     console.log('🔎 Iniciando verificación de todos los turnos...');
     const turnos = Object.keys(CONFIG.TURNOS);
     console.log('📝 Turnos a verificar:', turnos);
-    const resultados = {};
     
-    for (const turno of turnos) {
-      try {
-        console.log(`⏳ Verificando turno: ${turno}`);
-        const response = await this.checkDisponibilidad(turno);
-        console.log(`📦 Respuesta para ${turno}:`, response);
-        
-        const data = response.data || response;
-        resultados[turno] = {
-          disponible: data.puedeReservar || false,
-          mensaje: data.mensaje || '',
-          horaLimite: data.horaLimite || '',
-          razon: data.razon || null,
-          horaInicio: data.horaInicio || null
-        };
-        
-        console.log(`✔️ ${turno} procesado:`, resultados[turno]);
-      } catch (error) {
-        console.error(`❌ Error verificando turno ${turno}:`, error);
-        resultados[turno] = {
-          disponible: false,
-          mensaje: 'Error al verificar',
-          horaLimite: ''
-        };
-      }
-    }
+    // 🚀 Usar Promise.all para paralelizar todas las llamadas
+    const promesas = turnos.map(turno => 
+      this.checkDisponibilidad(turno)
+        .then(response => {
+          console.log(`📦 Respuesta para ${turno}:`, response);
+          const data = response.data || response;
+          return {
+            turno,
+            resultado: {
+              disponible: data.puedeReservar || false,
+              mensaje: data.mensaje || '',
+              horaLimite: data.horaLimite || '',
+              razon: data.razon || null,
+              horaInicio: data.horaInicio || null
+            }
+          };
+        })
+        .catch(error => {
+          console.error(`❌ Error verificando turno ${turno}:`, error);
+          return {
+            turno,
+            resultado: {
+              disponible: false,
+              mensaje: 'Error al verificar',
+              horaLimite: ''
+            }
+          };
+        })
+    );
+    
+    const resultadosArray = await Promise.all(promesas);
+    const resultados = {};
+    resultadosArray.forEach(({ turno, resultado }) => {
+      resultados[turno] = resultado;
+      console.log(`✔️ ${turno} procesado:`, resultado);
+    });
     
     console.log('✅ Resultados finales de disponibilidad:', resultados);
     return resultados;
