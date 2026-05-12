@@ -12,6 +12,9 @@
   <link rel="icon" href="../favicon.png" type="image/png">
   <link rel="shortcut icon" href="../favicon.png" type="image/png">
   
+  <!-- 🚀 Preload CSS crítico para renderizado rápido -->
+  <link rel="preload" href="../css/styles.css" as="style">
+  
   <!-- Estilos -->
   <link rel="stylesheet" href="../css/styles.css">
 </head>
@@ -250,34 +253,45 @@
   </div>
 
   <!-- Scripts -->
-  <script src="../js/config.js"></script>
-  <script src="../js/utils.js"></script>
-  <script src="../js/api.js"></script>
-  <script src="../js/app.js"></script>
+  <script defer src="../js/config.js"></script>
+  <script defer src="../js/utils.js"></script>
+  <script defer src="../js/api.js"></script>
+  <script defer src="../js/app.js"></script>
 
-  <script>
+  <script defer>
     // Mostrar día actual
-    document.getElementById('diaActual').textContent = `📅 ${Utils.getDiaSemana()}, ${Utils.getFechaHoy()}`;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('diaActual').textContent = `📅 ${Utils.getDiaSemana()}, ${Utils.getFechaHoy()}`;
+    });
 
-    // Radio Player
-    const radioToggle = document.getElementById('radioToggle');
-    const radioStream = document.getElementById('radioStream');
+    // 🚀 Radio Player - Lazy Load (solo cuando usuario interactúa)
+    let radioToggle = null;
+    let radioStream = null;
     let isPlaying = false;
 
-    radioToggle.addEventListener('click', () => {
-      if (isPlaying) {
-        radioStream.pause();
-        radioToggle.textContent = '🎵';
-        radioToggle.style.animation = 'none';
-        isPlaying = false;
-      } else {
-        radioStream.play().catch(err => {
-          console.error('Error al reproducir radio:', err);
-          Utils.showToast('Error al cargar la radio', 'error');
+    document.addEventListener('DOMContentLoaded', () => {
+      radioToggle = document.getElementById('radioToggle');
+      radioStream = document.getElementById('radioStream');
+      
+      if (radioToggle) {
+        radioToggle.addEventListener('click', () => {
+          if (isPlaying) {
+            radioStream.pause();
+            radioToggle.textContent = '🎵';
+            radioToggle.style.animation = 'none';
+            isPlaying = false;
+          } else {
+            radioStream.play().catch(err => {
+              console.error('Error al reproducir radio:', err);
+              if (Utils && Utils.showToast) {
+                Utils.showToast('Error al cargar la radio', 'error');
+              }
+            });
+            radioToggle.textContent = '🔊';
+            radioToggle.style.animation = 'pulse 1.5s infinite';
+            isPlaying = true;
+          }
         });
-        radioToggle.textContent = '🔊';
-        radioToggle.style.animation = 'pulse 1.5s infinite';
-        isPlaying = true;
       }
     });
   </script>

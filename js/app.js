@@ -190,36 +190,6 @@ class ComedorApp {
   }
 
   /**
-   * Verificar si aún se pueden hacer reservas para el turno
-   */
-  async verificarDisponibilidad(turno) {
-    try {
-      Utils.showLoader();
-      const response = await api.checkDisponibilidad(turno);
-      
-      // El backend envía los datos en response.data
-      const data = response.data || response;
-      
-      this.puedeReservar = data.puedeReservar;
-      
-      const alerta = document.getElementById('alertaTurnoCerrado');
-      if (!this.puedeReservar && alerta) {
-        alerta.style.display = 'block';
-        alerta.textContent = data.razon === 'turno_no_iniciado' 
-          ? `⏳ ${response.mensaje}`
-          : `⚠️ ${response.mensaje}`;
-      } else if (alerta) {
-        alerta.style.display = 'none';
-      }
-      
-    } catch (error) {
-      Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
-    } finally {
-      Utils.hideLoader();
-    }
-  }
-
-  /**
    * Cargar menú del día según el turno
    */
   async cargarMenu(turno) {
@@ -232,96 +202,16 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
-      // ✨ MEJORA: Mostrar previsualización si hay turno siguiente disponible (substituido o futura)
-      if (data.turnoFueSubstituido || data.horaInicioTurnoSiguiente) {
-        this.turnoActual = data.turnoActual;
-        
-        // Actualizar el botón activo visualmente
-        document.querySelectorAll('.btn-turno').forEach(btn => {
-          btn.classList.remove('active');
-          if (btn.dataset.turno === data.turnoActual) {
-            btn.classList.add('active');
-          }
-        });
-        
-        // Mostrar banner de previsualización con el primer plato disponible
-        if (this.menu.length > 0) {
-          const primerPlato = this.menu[0];
-          const icono = this.obtenerIconoPlato(primerPlato.nombre);
-          // Usar hora de INICIO del turno siguiente (se obtiene desde Google Sheets de forma dinámica)
-          const horaInicio = data.horaInicioTurnoSiguiente || '13:30'; // Fallback si no viene del backend
-          
-          // console.log('🎯 Banner turno siguiente - horaInicioTurnoSiguiente:', data.horaInicioTurnoSiguiente);
-          // console.log('🎯 turnoFueSubstituido:', data.turnoFueSubstituido);
-          
-          const banner = document.createElement('div');
-          banner.id = 'bannerTurnoSiguiente';
-          banner.style.cssText = `
-            background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-            color: white;
-            padding: 20px;
-            margin-bottom: 20px;
-            border-radius: 12px;
-            text-align: center;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            animation: slideDown 0.3s ease-out;
-          `;
-          
-          banner.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-              <div style="font-size: 2.5rem;">${icono}</div>
-              <div style="text-align: left;">
-                <div style="font-size: 1.2rem; font-weight: bold;">Para tu turno ${data.nombreTurno}</div>
-                <div style="font-size: 0.95rem; opacity: 0.9;">
-                  <strong>${primerPlato.nombre}</strong>
-                </div>
-                <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
-                  Disponible desde las <strong>${horaInicio}</strong>
-                </div>
-                <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-                  💰 ${Utils.formatPrice(primerPlato.precio)}
-                </div>
-              </div>
-            </div>
-          `;
-          
-          // Agregar estilos de animación
-          const style = document.createElement('style');
-          style.textContent = `
-            @keyframes slideDown {
-              from {
-                transform: translateY(-20px);
-                opacity: 0;
-              }
-              to {
-                transform: translateY(0);
-                opacity: 1;
-              }
-            }
-          `;
-          if (!document.querySelector('style[data-banner-animation]')) {
-            style.setAttribute('data-banner-animation', 'true');
-            document.head.appendChild(style);
-          }
-          
-          const menuContainer = document.getElementById('menuContainer');
-          if (menuContainer) {
-            // Remover banner anterior si existe
-            const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-            if (bannerAnterior) bannerAnterior.remove();
-            
-            // Insertar nuevo banner
-            menuContainer.insertAdjacentElement('beforebegin', banner);
-          }
-        }
-        
-        // Mostrar notificación adicional
-        Utils.showToast(
-          `⏰ Turno cambiado a ${data.nombreTurno}`,
-          'info'
-        );
+      // 🚀 MEJORA OPTIMIZADA: Mostrar previsualización del TURNO SIGUIENTE (no el actual)
+      // Calcular turno siguiente: MAÑANA→TARDE, TARDE→MAÑANA (siguiente día)
+      const turnoSiguiente = turno === 'MANANA' ? 'TARDE' : 'MANANA';
+      
+      // Solo mostrar banner si no es cerrado (hay menú para mostrar)
+      if (this.menu.length > 0 && !this.puedeReservar) {
+        // 🎯 Cargar menú del turno SIGUIENTE para previsualización (sin bloquear)
+        this.cargarMenuTurnoSiguiente(turnoSiguiente);
       } else {
-        // Si no fue substituido, remover banner anterior si existe
+        // Si se puede reservar, remover banner anterior
         const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
         if (bannerAnterior) bannerAnterior.remove();
       }
@@ -337,6 +227,79 @@ class ComedorApp {
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
     } finally {
       Utils.hideLoader();
+    }
+  }
+
+  /**
+   * 🚀 Cargar menú del turno siguiente para previsualización (async, no bloqueante)
+   */
+  async cargarMenuTurnoSiguiente(turnoSiguiente) {
+    try {
+      const response = await api.getMenuDelDia(turnoSiguiente);
+      const data = response.data || response;
+      
+      if (data.menu && data.menu.length > 0) {
+        const primerPlato = data.menu[0];
+        const icono = this.obtenerIconoPlato(primerPlato.nombre);
+        const horaInicio = data.horaInicio || (turnoSiguiente === 'MANANA' ? '10:00 AM' : '5:30 PM');
+        const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
+        
+        const banner = document.createElement('div');
+        banner.id = 'bannerTurnoSiguiente';
+        banner.style.cssText = `
+          background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+          color: white;
+          padding: 20px;
+          margin-bottom: 20px;
+          border-radius: 12px;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          animation: slideDown 0.3s ease-out;
+        `;
+        
+        banner.innerHTML = `
+          <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+            <div style="font-size: 2.5rem;">${icono}</div>
+            <div style="text-align: left;">
+              <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
+              <div style="font-size: 0.95rem; opacity: 0.9;">
+                <strong>${primerPlato.nombre}</strong>
+              </div>
+              <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
+                Disponible desde las <strong>${horaInicio}</strong>
+              </div>
+              <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
+                💰 ${Utils.formatPrice(primerPlato.precio)}
+              </div>
+            </div>
+          </div>
+        `;
+        
+        // Agregar estilos de animación si no existen
+        if (!document.querySelector('style[data-banner-animation]')) {
+          const style = document.createElement('style');
+          style.setAttribute('data-banner-animation', 'true');
+          style.textContent = `
+            @keyframes slideDown {
+              from { transform: translateY(-20px); opacity: 0; }
+              to { transform: translateY(0); opacity: 1; }
+            }
+          `;
+          document.head.appendChild(style);
+        }
+        
+        const menuContainer = document.getElementById('menuContainer');
+        if (menuContainer) {
+          // Remover banner anterior si existe
+          const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+          if (bannerAnterior) bannerAnterior.remove();
+          
+          // Insertar nuevo banner
+          menuContainer.insertAdjacentElement('beforebegin', banner);
+        }
+      }
+    } catch (error) {
+      console.error('Error cargando previsualización del turno siguiente:', error);
     }
   }
 
