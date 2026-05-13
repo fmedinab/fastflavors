@@ -281,34 +281,20 @@ class ComedorApp {
       let data = response.data || response;
       
       if (data.menu && data.menu.length > 0) {
-        // 🎯 Obtener el plato del DÍA SIGUIENTE, filtrando por TURNO y DÍA
         const diaMañana = this.obtenerDiaSiguiente();
         
-        console.log(`🎯 Buscando: Turno=${turnoSiguiente}, Día=${diaMañana}`);
-        console.log('📋 Platos disponibles:', data.menu.map(p => `${p.Turno || p.turno} - ${p.Dia || p.dia} - ${p.Plato || p.nombre}`));
-        
-        // Filtrar PRIMERO por turno, LUEGO por día
         let platoMañana = data.menu.find(p => {
           const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
           const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
-          
-          const coincideTurno = turnoDelPlato === turnoSiguiente.toUpperCase();
-          const coincideDia = diaDelPlato === diaMañana.toLowerCase();
-          
-          console.log(`  ✓ "${turnoDelPlato}" == "${turnoSiguiente}" (${coincideTurno}), "${diaDelPlato}" == "${diaMañana.toLowerCase()}" (${coincideDia})`);
-          
-          return coincideTurno && coincideDia;
+          return turnoDelPlato === turnoSiguiente.toUpperCase() && diaDelPlato === diaMañana.toLowerCase();
         });
         
-        // Si no hay menú del turno pedido, intentar del turno OPUESTO como fallback
         if (!platoMañana && data.menu.length === 0) {
-          console.warn(`⚠️ No hay platos del turno ${turnoSiguiente}. Intentando turno opuesto...`);
           const turnoOpuesto = turnoSiguiente === 'MANANA' ? 'TARDE' : 'MANANA';
           const responseOpuesto = await api.getMenuDelDia(turnoOpuesto, true);
           const dataOpuesto = responseOpuesto.data || responseOpuesto;
           
           if (dataOpuesto.menu && dataOpuesto.menu.length > 0) {
-            console.log(`✓ Usando turno opuesto: ${turnoOpuesto}`);
             platoMañana = dataOpuesto.menu.find(p => 
               (p.dia || p.Dia || '').toLowerCase() === diaMañana.toLowerCase()
             ) || dataOpuesto.menu[0];
@@ -316,9 +302,6 @@ class ComedorApp {
           }
         }
         
-        console.log('🎯 Plato encontrado:', platoMañana);
-        
-        // Si no hay plato específico, buscar solo por turno
         const platoAMostrar = platoMañana || (
           data.menu.find(p => {
             const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
@@ -327,18 +310,13 @@ class ComedorApp {
         );
         
         if (!platoAMostrar) {
-          console.warn('⚠️ No hay platos disponibles para mostrar');
           return;
         }
         
-        console.log('✅ Plato a mostrar:', platoAMostrar);
-        
         return this.mostrarBannerTurnoSiguiente(platoAMostrar, turnoSiguiente);
-      } else {
-        console.warn('⚠️ Menú vacío para turno siguiente');
       }
     } catch (error) {
-      console.error('❌ Error cargando previsualización del turno siguiente:', error);
+      // Error silencioso
     }
   }
 
@@ -466,7 +444,7 @@ class ComedorApp {
   crearCardPlato(plato) {
     const card = document.createElement('div');
     card.className = 'menu-card';
-    card.dataset.platoId = plato.id; // Agregar data attribute para debug
+    card.dataset.platoId = plato.id;
     
     // Verificar si este plato está en el array de seleccionados
     const platoSeleccionado = this.menusSeleccionados.find(p => p.id === plato.id);

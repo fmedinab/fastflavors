@@ -159,57 +159,43 @@ class API {
   }
 
   /**
-   * Obtener el menú del día según el turno - 🚀 MEJORADO CON CACHÉ
+   * Obtener el menú del día según el turno con caché
    */
   async getMenuDelDia(turno, forceRefresh = false) {
     const cacheKey = `menu_${turno}`;
     
-    // 🚀 Si es refresh forzado, limpiar caché primero
     if (forceRefresh) {
-      console.log(`🗑️ Limpiando caché forzadamente: ${cacheKey}`);
       delete this.cache[cacheKey];
       delete this.cacheTimestamps[cacheKey];
     }
     
-    // 🚀 Intentar caché primero si no es refresh forzado
     if (!forceRefresh) {
       const cached = this.getFromCache(cacheKey);
       if (cached) {
-        console.log('📦 Menú cargado desde caché:', cacheKey);
-        // Validar que el caché sea del turno correcto
         if (cached.data && cached.data.menu && cached.data.menu.length > 0) {
           const turnoEnCache = (cached.data.menu[0].turno || cached.data.menu[0].Turno || '').toUpperCase();
-          if (turnoEnCache !== turno.toUpperCase()) {
-            console.warn(`⚠️ Caché corrupto: contiene turno ${turnoEnCache} en lugar de ${turno}. Obteniendo frescos...`);
-            delete this.cache[cacheKey];
-            delete this.cacheTimestamps[cacheKey];
-          } else {
+          if (turnoEnCache === turno.toUpperCase()) {
             return cached;
           }
+          delete this.cache[cacheKey];
+          delete this.cacheTimestamps[cacheKey];
         }
       }
     }
 
-    console.log(`📡 Obteniendo menú FRESCO para turno: ${turno}`);
     const data = await this.get('getMenuDelDia', { turno });
     
-    // 🔍 Validar que el backend retorne datos del turno correcto
     if (data.data && data.data.menu && data.data.menu.length > 0) {
       const turnoDelBackend = (data.data.menu[0].turno || data.data.menu[0].Turno || '').toUpperCase();
-      console.log(`✓ Backend retornó turno: ${turnoDelBackend}, esperado: ${turno.toUpperCase()}`);
       
       if (turnoDelBackend !== turno.toUpperCase()) {
-        console.error(`❌ ERROR: Backend retornó turno INCORRECTO. Pidió ${turno} pero retornó ${turnoDelBackend}`);
-        // Filtrar solo platos del turno pedido
         const menuFiltrado = data.data.menu.filter(p => 
           (p.turno || p.Turno || '').toUpperCase() === turno.toUpperCase()
         );
         data.data.menu = menuFiltrado;
-        console.log(`✓ Menú filtrado: ${menuFiltrado.length} platos del turno ${turno}`);
       }
     }
     
-    // 💾 Guardar en caché mejorado
     this.setCache(cacheKey, data);
     return data;
   }
@@ -222,18 +208,14 @@ class API {
   }
 
   /**
-   * Verificar disponibilidad de todos los turnos - 🚀 PARALELIZADO
+   * Verificar disponibilidad de todos los turnos en paralelo
    */
   async checkTodosLosTurnos() {
-    console.log('🔎 Iniciando verificación de todos los turnos...');
     const turnos = Object.keys(CONFIG.TURNOS);
-    console.log('📝 Turnos a verificar:', turnos);
     
-    // 🚀 Usar Promise.all para paralelizar todas las llamadas
     const promesas = turnos.map(turno => 
       this.checkDisponibilidad(turno)
         .then(response => {
-          console.log(`📦 Respuesta para ${turno}:`, response);
           const data = response.data || response;
           return {
             turno,
@@ -246,8 +228,7 @@ class API {
             }
           };
         })
-        .catch(error => {
-          console.error(`❌ Error verificando turno ${turno}:`, error);
+        .catch(() => {
           return {
             turno,
             resultado: {
@@ -263,10 +244,8 @@ class API {
     const resultados = {};
     resultadosArray.forEach(({ turno, resultado }) => {
       resultados[turno] = resultado;
-      console.log(`✔️ ${turno} procesado:`, resultado);
     });
     
-    console.log('✅ Resultados finales de disponibilidad:', resultados);
     return resultados;
   }
 
@@ -318,7 +297,7 @@ class API {
    */
   clearCache() {
     this.cache = {};
-    console.log('🗑️ Caché limpiado');
+    this.cacheTimestamps = {};
   }
 
   // ========== SISTEMA DE PRÉSTAMOS ==========
