@@ -253,6 +253,16 @@ class ComedorApp {
   }
 
   /**
+   * 🚀 Obtener el nombre del día siguiente (ej: "Miércoles")
+   */
+  obtenerDiaSiguiente() {
+    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const mañana = new Date();
+    mañana.setDate(mañana.getDate() + 1);
+    return dias[mañana.getDay()];
+  }
+
+  /**
    * 🚀 Cargar menú del turno siguiente para previsualización (async, no bloqueante)
    */
   async cargarMenuTurnoSiguiente(turnoSiguiente) {
@@ -261,8 +271,16 @@ class ComedorApp {
       const data = response.data || response;
       
       if (data.menu && data.menu.length > 0) {
-        const primerPlato = data.menu[0];
-        const icono = this.obtenerIconoPlato(primerPlato.nombre);
+        // 🎯 Obtener el plato del DÍA SIGUIENTE, no solo del turno
+        const diaMañana = this.obtenerDiaSiguiente();
+        const platoMañana = data.menu.find(p => 
+          p.dia && p.dia.toLowerCase() === diaMañana.toLowerCase()
+        );
+        
+        // Si no hay plato específico para mañana, usar el primero disponible
+        const platoAMostrar = platoMañana || data.menu[0];
+        
+        const icono = this.obtenerIconoPlato(platoAMostrar.nombre);
         const horaInicio = data.horaInicio || (turnoSiguiente === 'MANANA' ? '10:00 AM' : '5:30 PM');
         const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
         
@@ -285,13 +303,13 @@ class ComedorApp {
             <div style="text-align: left;">
               <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
               <div style="font-size: 0.95rem; opacity: 0.9;">
-                <strong>${primerPlato.nombre}</strong>
+                <strong>${platoAMostrar.nombre}</strong>
               </div>
               <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
                 Disponible desde las <strong>${horaInicio}</strong>
               </div>
               <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-                💰 ${Utils.formatPrice(primerPlato.precio)}
+                💰 ${Utils.formatPrice(platoAMostrar.precio)}
               </div>
             </div>
           </div>
