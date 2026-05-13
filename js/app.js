@@ -271,16 +271,38 @@ class ComedorApp {
       const data = response.data || response;
       
       if (data.menu && data.menu.length > 0) {
-        // 🎯 Obtener el plato del DÍA SIGUIENTE, no solo del turno
+        // 🎯 Obtener el plato del DÍA SIGUIENTE, filtrando por TURNO y DÍA
         const diaMañana = this.obtenerDiaSiguiente();
-        const platoMañana = data.menu.find(p => 
-          p.dia && p.dia.toLowerCase() === diaMañana.toLowerCase()
+        
+        console.log(`🎯 Buscando: Turno=${turnoSiguiente}, Día=${diaMañana}`);
+        console.log('📋 Platos disponibles:', data.menu.map(p => `${p.Turno || p.turno} - ${p.Dia || p.dia} - ${p.Plato || p.plato}`));
+        
+        // Filtrar PRIMERO por turno, LUEGO por día para evitar mezclar turnos
+        const platoMañana = data.menu.find(p => {
+          const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
+          const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
+          
+          const coincideTurno = turnoDelPlato === turnoSiguiente.toUpperCase();
+          const coincideDia = diaDelPlato === diaMañana.toLowerCase();
+          
+          console.log(`  ✓ Comparando: "${turnoDelPlato}" == "${turnoSiguiente}" (${coincideTurno}), "${diaDelPlato}" == "${diaMañana.toLowerCase()}" (${coincideDia})`);
+          
+          return coincideTurno && coincideDia;
+        });
+        
+        console.log('🎯 Plato encontrado:', platoMañana);
+        
+        // Si no hay plato específico, buscar solo por turno
+        const platoAMostrar = platoMañana || (
+          data.menu.find(p => {
+            const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
+            return turnoDelPlato === turnoSiguiente.toUpperCase();
+          }) || data.menu[0]
         );
         
-        // Si no hay plato específico para mañana, usar el primero disponible
-        const platoAMostrar = platoMañana || data.menu[0];
+        console.log('✅ Plato a mostrar:', platoAMostrar);
         
-        const icono = this.obtenerIconoPlato(platoAMostrar.nombre);
+        const icono = this.obtenerIconoPlato(platoAMostrar.nombre || platoAMostrar.Plato);
         const horaInicio = data.horaInicio || (turnoSiguiente === 'MANANA' ? '10:00 AM' : '5:30 PM');
         const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
         
@@ -303,13 +325,13 @@ class ComedorApp {
             <div style="text-align: left;">
               <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
               <div style="font-size: 0.95rem; opacity: 0.9;">
-                <strong>${platoAMostrar.nombre}</strong>
+                <strong>${platoAMostrar.nombre || platoAMostrar.Plato}</strong>
               </div>
               <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
                 Disponible desde las <strong>${horaInicio}</strong>
               </div>
               <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-                💰 ${Utils.formatPrice(platoAMostrar.precio)}
+                💰 ${Utils.formatPrice(platoAMostrar.precio || platoAMostrar.Precio)}
               </div>
             </div>
           </div>
@@ -339,7 +361,7 @@ class ComedorApp {
         }
       }
     } catch (error) {
-      console.error('Error cargando previsualización del turno siguiente:', error);
+      console.error('❌ Error cargando previsualización del turno siguiente:', error);
     }
   }
 
@@ -463,8 +485,8 @@ class ComedorApp {
   obtenerIconoPlato(nombrePlato) {
     const nombre = nombrePlato.toLowerCase();
     
-    // Aeropuerto (plato específico)
-    if (nombre.includes('aeropuerto')) return '✈️';
+    // Aeropuerto (plato específico - fusión asiática-latinoamericana)
+    if (nombre.includes('aeropuerto')) return '🍛';
     
     // Salteados
     if (nombre.includes('salteado') || nombre.includes('saltado') || nombre.includes('salteados')) return '🍳';
