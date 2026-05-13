@@ -202,13 +202,10 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
-      // 🚀 MEJORA OPTIMIZADA: Mostrar previsualización del TURNO SIGUIENTE (no el actual)
-      // Calcular turno siguiente: MAÑANA→TARDE, TARDE→MAÑANA (siguiente día)
-      const turnoSiguiente = turno === 'MANANA' ? 'TARDE' : 'MANANA';
-      
-      // Solo mostrar banner si no es cerrado (hay menú para mostrar)
+      // 🚀 MEJORA OPTIMIZADA: Mostrar previsualización del TURNO SIGUIENTE inteligentemente
+      // Calcular turno siguiente según la hora actual
       if (this.menu.length > 0 && !this.puedeReservar) {
-        // 🎯 Cargar menú del turno SIGUIENTE para previsualización (sin bloquear)
+        const turnoSiguiente = this.calcularTurnoSiguiente();
         this.cargarMenuTurnoSiguiente(turnoSiguiente);
       } else {
         // Si se puede reservar, remover banner anterior
@@ -228,6 +225,31 @@ class ComedorApp {
     } finally {
       Utils.hideLoader();
     }
+  }
+
+  /**
+   * 🚀 Calcular el turno siguiente de forma inteligente según la hora actual
+   */
+  calcularTurnoSiguiente() {
+    const now = new Date();
+    const horaActual = now.getHours() + (now.getMinutes() / 60);
+    
+    // Horas límite de los turnos (en formato 24h)
+    const HORA_LIMITE_MANANA = 10; // 10:00 AM
+    const HORA_LIMITE_TARDE = 17.5; // 5:30 PM
+    
+    // Si es antes de las 10 AM → próximo es TARDE
+    if (horaActual < HORA_LIMITE_MANANA) {
+      return 'TARDE';
+    }
+    
+    // Si es entre 10 AM y 5:30 PM → próximo es TARDE
+    if (horaActual >= HORA_LIMITE_MANANA && horaActual < HORA_LIMITE_TARDE) {
+      return 'TARDE';
+    }
+    
+    // Si es después de 5:30 PM → próximo es MAÑANA (del siguiente día)
+    return 'MANANA';
   }
 
   /**
