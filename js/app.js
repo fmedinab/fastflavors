@@ -195,6 +195,15 @@ class ComedorApp {
   async cargarMenu(turno) {
     try {
       Utils.showLoader();
+      
+      // 🚀 Limpiar caché para este turno si está corrupto
+      const cacheKey = `menu_${turno}`;
+      if (api.cache[cacheKey]) {
+        console.log(`🗑️ Limpiando caché: ${cacheKey}`);
+        delete api.cache[cacheKey];
+        delete api.cacheTimestamps[cacheKey];
+      }
+      
       const response = await api.getMenuDelDia(turno);
       
       // El backend envía los datos en response.data
@@ -267,7 +276,8 @@ class ComedorApp {
    */
   async cargarMenuTurnoSiguiente(turnoSiguiente) {
     try {
-      const response = await api.getMenuDelDia(turnoSiguiente);
+      // 🚀 FORZAR REFRESH sin caché para evitar datos corruptos
+      const response = await api.getMenuDelDia(turnoSiguiente, true);
       const data = response.data || response;
       
       if (data.menu && data.menu.length > 0) {
@@ -275,9 +285,9 @@ class ComedorApp {
         const diaMañana = this.obtenerDiaSiguiente();
         
         console.log(`🎯 Buscando: Turno=${turnoSiguiente}, Día=${diaMañana}`);
-        console.log('📋 Platos disponibles:', data.menu.map(p => `${p.Turno || p.turno} - ${p.Dia || p.dia} - ${p.Plato || p.plato}`));
+        console.log('📋 Platos disponibles:', data.menu.map(p => `${p.Turno || p.turno} - ${p.Dia || p.dia} - ${p.Plato || p.nombre}`));
         
-        // Filtrar PRIMERO por turno, LUEGO por día para evitar mezclar turnos
+        // Filtrar PRIMERO por turno, LUEGO por día
         const platoMañana = data.menu.find(p => {
           const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
           const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
@@ -285,7 +295,7 @@ class ComedorApp {
           const coincideTurno = turnoDelPlato === turnoSiguiente.toUpperCase();
           const coincideDia = diaDelPlato === diaMañana.toLowerCase();
           
-          console.log(`  ✓ Comparando: "${turnoDelPlato}" == "${turnoSiguiente}" (${coincideTurno}), "${diaDelPlato}" == "${diaMañana.toLowerCase()}" (${coincideDia})`);
+          console.log(`  ✓ "${turnoDelPlato}" == "${turnoSiguiente}" (${coincideTurno}), "${diaDelPlato}" == "${diaMañana.toLowerCase()}" (${coincideDia})`);
           
           return coincideTurno && coincideDia;
         });
@@ -301,67 +311,85 @@ class ComedorApp {
         );
         
         console.log('✅ Plato a mostrar:', platoAMostrar);
+        console.log('✅ Turno del plato:', platoAMostrar.turno || platoAMostrar.Turno);
         
-        const icono = this.obtenerIconoPlato(platoAMostrar.nombre || platoAMostrar.Plato);
-        const horaInicio = data.horaInicio || (turnoSiguiente === 'MANANA' ? '10:00 AM' : '5:30 PM');
-        const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
-        
-        const banner = document.createElement('div');
-        banner.id = 'bannerTurnoSiguiente';
-        banner.style.cssText = `
-          background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-          color: white;
-          padding: 20px;
-          margin-bottom: 20px;
-          border-radius: 12px;
-          text-align: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-          animation: slideDown 0.3s ease-out;
-        `;
-        
-        banner.innerHTML = `
-          <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-            <div style="font-size: 2.5rem;">${icono}</div>
-            <div style="text-align: left;">
-              <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
-              <div style="font-size: 0.95rem; opacity: 0.9;">
-                <strong>${platoAMostrar.nombre || platoAMostrar.Plato}</strong>
-              </div>
-              <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
-                Disponible desde las <strong>${horaInicio}</strong>
-              </div>
-              <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-                💰 ${Utils.formatPrice(platoAMostrar.precio || platoAMostrar.Precio)}
-              </div>
-            </div>
-          </div>
-        `;
-        
-        // Agregar estilos de animación si no existen
-        if (!document.querySelector('style[data-banner-animation]')) {
-          const style = document.createElement('style');
-          style.setAttribute('data-banner-animation', 'true');
-          style.textContent = `
-            @keyframes slideDown {
-              from { transform: translateY(-20px); opacity: 0; }
-              to { transform: translateY(0); opacity: 1; }
-            }
-          `;
-          document.head.appendChild(style);
+        // Validar que el plato sea del turno correcto
+        const turnoDelPlatoMostrado = (platoAMostrar.turno || platoAMostrar.Turno || '').toUpperCase();
+        if (turnoDelPlatoMostrado !== turnoSiguiente.toUpperCase()) {
+          console.warn(`⚠️ ADVERTENCIA: El plato es de turno ${turnoDelPlatoMostrado}, no de ${turnoSiguiente}. Buscando alternativa...`);
+          const platoCorrecto = data.menu.find(p => 
+            (p.turno || p.Turno || '').toUpperCase() === turnoSiguiente.toUpperCase()
+          );
+          if (platoCorrecto) {
+            console.log('✅ Plato correcto encontrado:', platoCorrecto);
+            return this.mostrarBannerTurnoSiguiente(platoCorrecto, turnoSiguiente);
+          }
         }
         
-        const menuContainer = document.getElementById('menuContainer');
-        if (menuContainer) {
-          // Remover banner anterior si existe
-          const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-          if (bannerAnterior) bannerAnterior.remove();
-          
-          // Insertar nuevo banner
-          menuContainer.insertAdjacentElement('beforebegin', banner);
-        }
+        return this.mostrarBannerTurnoSiguiente(platoAMostrar, turnoSiguiente);
       }
     } catch (error) {
       console.error('❌ Error cargando previsualización del turno siguiente:', error);
+    }
+  }
+
+  /**
+   * 🎨 Mostrar banner del turno siguiente
+   */
+  mostrarBannerTurnoSiguiente(plato, turnoSiguiente) {
+    const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
+    const horaInicio = plato.horaInicio || (turnoSiguiente === 'MANANA' ? '10:00 AM' : '5:30 PM');
+    const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
+    
+    const banner = document.createElement('div');
+    banner.id = 'bannerTurnoSiguiente';
+    banner.style.cssText = `
+      background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+      color: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      animation: slideDown 0.3s ease-out;
+    `;
+    
+    banner.innerHTML = `
+      <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
+        <div style="font-size: 2.5rem;">${icono}</div>
+        <div style="text-align: left;">
+          <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
+          <div style="font-size: 0.95rem; opacity: 0.9;">
+            <strong>${plato.nombre || plato.Plato}</strong>
+          </div>
+          <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
+            Disponible desde las <strong>${horaInicio}</strong>
+          </div>
+          <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
+            💰 ${Utils.formatPrice(plato.precio || plato.Precio)}
+          </div>
+        </div>
+      </div>
+    `;
+    
+    // Agregar estilos de animación si no existen
+    if (!document.querySelector('style[data-banner-animation]')) {
+      const style = document.createElement('style');
+      style.setAttribute('data-banner-animation', 'true');
+      style.textContent = `
+        @keyframes slideDown {
+          from { transform: translateY(-20px); opacity: 0; }
+          to { transform: translateY(0); opacity: 1; }
+        }
+      `;
+      document.head.appendChild(style);
+    }
+    
+    const menuContainer = document.getElementById('menuContainer');
+    if (menuContainer) {
+      const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+      if (bannerAnterior) bannerAnterior.remove();
+      menuContainer.insertAdjacentElement('beforebegin', banner);
     }
   }
 
