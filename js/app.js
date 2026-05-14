@@ -308,46 +308,23 @@ class ComedorApp {
       }
       
       // 🚀 MOSTRAR CARDS DEL TURNO SIGUIENTE (DESHABILITADAS CON VISUAL MEJORADO)
+      // El backend YA filtra por turno + día correcto, así que simplemente renderizar
       if (data.menu && data.menu.length > 0) {
-        // Determinar qué día buscamos
-        const diaParaBuscar = turnoSiguiente === 'MANANA' 
-          ? this.obtenerDiaSiguiente() 
-          : this.obtenerDiaActual();
+        console.log(`✅ Backend retornó ${data.menu.length} platos para ${turnoSiguiente}`);
+        console.log(`   Menú de: ${data.menu[0].dia || 'N/A'}`);
         
-        console.log(`🔍 Buscando menú: Turno=${turnoSiguiente}, Día=${diaParaBuscar}`);
-        
-        // Filtrar platos del turno siguiente y día correcto
-        let platosFiltrados = data.menu.filter(p => {
-          const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
-          const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
-          const diaParaBuscarLower = diaParaBuscar.toLowerCase();
-          return turnoDelPlato === turnoSiguiente.toUpperCase() && diaDelPlato === diaParaBuscarLower;
-        });
-        
-        // Si no encontró, buscar todos los del turno
-        if (platosFiltrados.length === 0) {
-          console.warn(`⚠️ No encontró platos para ${turnoSiguiente} | ${diaParaBuscar}`);
-          platosFiltrados = data.menu.filter(p => {
-            const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
-            return turnoDelPlato === turnoSiguiente.toUpperCase();
-          });
-        }
-        
-        if (platosFiltrados.length > 0) {
-          console.log(`✅ Encontrados ${platosFiltrados.length} platos para preview`);
+        // Renderizar cards DESHABILITADAS CON UX MEJORADO
+        data.menu.forEach(plato => {
+          const card = document.createElement('div');
+          card.className = 'menu-card disabled';
+          card.style.cssText = `
+            opacity: 0.65;
+            filter: grayscale(40%);
+            position: relative;
+            transition: all 0.3s ease;
+          `;
           
-          // Renderizar cards DESHABILITADAS CON UX MEJORADO
-          platosFiltrados.forEach(plato => {
-            const card = document.createElement('div');
-            card.className = 'menu-card disabled';
-            card.style.cssText = `
-              opacity: 0.65;
-              filter: grayscale(40%);
-              position: relative;
-              transition: all 0.3s ease;
-            `;
-            
-            const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
+          const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
             const diaDeLaSemana = (plato.dia || plato.Dia || diaParaBuscar);
             
             // Badge con el día
@@ -419,16 +396,6 @@ class ComedorApp {
             
             menuContainer.appendChild(card);
           });
-        } else {
-          const emptyDiv = document.createElement('div');
-          emptyDiv.className = 'empty-state';
-          emptyDiv.innerHTML = `
-            <div class="icon-empty">🍽️</div>
-            <h3>Menú próximamente</h3>
-            <p>El menú de ${CONFIG.TURNOS[turnoSiguiente].nombre} se actualizará pronto</p>
-          `;
-          menuContainer.appendChild(emptyDiv);
-        }
       } else {
         const emptyDiv = document.createElement('div');
         emptyDiv.className = 'empty-state';
