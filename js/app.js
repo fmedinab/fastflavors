@@ -18,6 +18,9 @@ class ComedorApp {
     this.indiceAnuncioActual = 0;
     this.timerAutoRotacion = null;
     
+    // 🚀 Timer para actualización automática cuando pase hora límite
+    this.timerActualizacionTurno = null;
+    
     this.initTheme();
     this.init();
   }
@@ -229,71 +232,67 @@ class ComedorApp {
 
   /**
    * Cargar menú del día según el turno
+   * ✨ MEJORADO: Detecta automáticamente cambios de turno
    */
   async cargarMenu(turno) {
     try {
       const startTime = Date.now();
       console.log(`📂 cargarMenu(${turno})...`);
       
-      // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar preview del siguiente
-      if (!this.puedeReservar) {
-        console.log(`🔒 Turno ${turno} cerrado. Obteniendo información del backend...`);
+      // Obtener estado completo del backend (SIEMPRE)
+      const response = await api.getMenuDelDia(turno, false);
+      const data = response.data || response;
+      
+      // El backend retorna:
+      // - turnoActual: El turno que DEBEMOS mostrar (puede ser diferente si no está disponible)
+      // - turnoSiguiente: El próximo turno para previsualización
+      // - dia: El día para el menú
+      
+      const turnoAMostrar = data.turnoActual || turno;
+      const menuAMostrar = data.menu || [];
+      const estaDisponible = this.disponibilidadTurnos[turnoAMostrar]?.disponible || false;
+      
+      console.log(`📊 Backend retornó:`);
+      console.log(`   - Turno solicitado: ${turno}`);
+      console.log(`   - Turno a mostrar: ${turnoAMostrar}`);
+      console.log(`   - ¿Disponible?: ${estaDisponible}`);
+      console.log(`   - Turno siguiente para preview: ${data.turnoSiguiente}`);
+      console.log(`   - Día para menú: ${data.dia}`);
+      console.log(`   - Menú contiene ${menuAMostrar.length} platos`);
+      
+      // 🚀 CASO 1: El turno está disponible - MOSTRAR MENÚ NORMAL
+      if (estaDisponible) {
+        console.log(`✅ Turno ${turnoAMostrar} está disponible. Mostrando menú normal...`);
         
-        // PRIMERO: Obtener del backend para saber EXACTAMENTE qué turno mostrar
-        const response = await api.getMenuDelDia(turno, false);
-        const data = response.data || response;
+        // Remover banner anterior si existe
+        const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+        if (bannerAnterior) bannerAnterior.remove();
         
-      // El backend retorna el turno a mostrar (con validaciones de disponibilidad, feriados, etc)
-      const turnoSiguiente = data.turnoSiguiente || turno;
-      const infoTurnoActual = this.disponibilidadTurnos[turno];
+        this.menu = menuAMostrar;
+        this.renderMenu();
         
-        console.log(`📊 Backend retornó turnoActual="${data.turnoActual}", usando para preview: "${turnoSiguiente}"`);
-        console.log(`📊 Menú retornado es para turno="${data.turnoActual}", día="${data.dia}"`);
+      } 
+      // 🚀 CASO 2: El turno NO está disponible - MOSTRAR PREVISUALIZACIÓN DEL SIGUIENTE
+      else {
+        console.log(`🔒 Turno ${turno} cerrado. Mostrando previsualización del turno siguiente...`);
         
-        // Pasar los datos ya obtenidos para evitar petición duplicada
-        const startPreview = Date.now();
-        await this.cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual, data.menu);
-        const previewTime = Date.now() - startPreview;
-        console.log(`✅ Preview cargado en ${previewTime}ms`);
-        
-        return;
+        // El backend ya filtró el menú para el turno siguiente
+        // Solo necesitamos renderizarlo con UX de previsualización
+        await this.cargarMenuTurnoSiguienteConCards(
+          data.turnoSiguiente,  // Turno siguiente
+          data.dia,              // Día del menú
+          data.horaInicioTurnoSiguiente, // Hora inicio del siguiente
+          menuAMostrar           // Menú ya filtrado por backend
+        );
       }
       
-      // 🚀 Si se CAN reservar, cargar el menú normalmente
-      // NO limpiar caché, usar lo que está disponible
-      const cacheKey = `menu_${turno}`;
-      const cached = api.getFromCache(cacheKey);
-      
-      if (cached && cached.data && cached.data.menu && cached.data.menu.length > 0) {
-        console.log(`💾 Usando menú en caché para ${turno}`);
-        this.menu = cached.data.menu || [];
-      } else {
-        console.log(`🌐 Obteniendo menú del servidor para ${turno}...`);
-        const startFetch = Date.now();
-        const response = await api.getMenuDelDia(turno, false);
-        const fetchTime = Date.now() - startFetch;
-        console.log(`✅ Menú obtenido en ${fetchTime}ms`);
-        
-        // El backend envía los datos en response.data
-        const data = response.data || response;
-        
-        this.menu = data.menu || [];
-        
-        // Verificar si el día no está disponible
-        if (data.diaDisponible === false) {
-          this.mostrarDiaNoDisponible(data.mensaje || data.razon);
-          return;
-        }
-      }
-
-      // Remover banner anterior si existe (estamos en modo reserva normal)
-      const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-      if (bannerAnterior) bannerAnterior.remove();
-      
-      this.renderMenu();
+      // 🚀 CONFIGURAR ACTUALIZACIÓN AUTOMÁTICA
+      // Si estamos cerca de la hora límite, actualizar cuando pase
+      this.configurarActualizacionAutomatica(turnoAMostrar, data);
       
       const duration = Date.now() - startTime;
       console.log(`✅ cargarMenu completado en ${duration}ms`);
+      
     } catch (error) {
       console.error('❌ Error en cargarMenu:', error);
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
@@ -302,89 +301,67 @@ class ComedorApp {
 
   /**
    * 🚀 Cargar y mostrar menú del turno siguiente CON CARDS (deshabilitadas) - OPTIMIZADO
+   * Parámetros claros:
+   * - turnoSiguiente: Qué turno es el siguiente
+   * - dia: Qué día es (para mostrar en preview)
+   * - horaInicio: Cuándo comienza
+   * - menuYaObtenido: Menú ya filtrado desde backend
    */
-  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual, menuYaObtenido = null) {
+  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, dia, horaInicio, menuYaObtenido = null) {
     try {
-      let data;
-      
-      // Si ya tenemos el menú, usarlo; si no, obtenerlo del servidor
-      if (menuYaObtenido !== null) {
-        console.log(`✅ Usando menú previamente obtenido para ${turnoSiguiente}`);
-        data = { menu: menuYaObtenido };
-      } else {
-        // 🚀 OPTIMIZACIÓN: Hacer peticiones EN PARALELO, no en serie
-        // Ya tenemos disponibilidad en this.disponibilidadTurnos, así que solo obtener menú
-        const [menuResponse] = await Promise.all([
-          api.getMenuDelDia(turnoSiguiente, false), // NO forzar refresh, usar caché
-        ]);
-        
-        data = menuResponse.data || menuResponse;
-        console.log(`✅ Menú obtenido del servidor para ${turnoSiguiente}`);
-      }
-      
-      // 🚀 Reutilizar disponibilidad que ya tenemos (evita otra petición)
-      const disponibilidadTurnoSiguiente = this.disponibilidadTurnos[turnoSiguiente];
-      
       const menuContainer = document.getElementById('menuContainer');
       if (!menuContainer) return;
       
       menuContainer.innerHTML = '';
       
-      // 🚀 MOSTRAR BANNER DE TURNO SIGUIENTE CON MENSAJES DINÁMICOS
-      if (disponibilidadTurnoSiguiente?.horaInicio) {
-        const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
-        const turnoActual = Object.keys(CONFIG.TURNOS).find(t => t !== turnoSiguiente);
-        const nombreTurnoActual = CONFIG.TURNOS[turnoActual]?.nombre || 'este turno';
-        const horaLimiteActual = infoTurnoActual?.horaLimite || '?';
-        
-        console.log(`📋 Banner Info (desde caché):`);
-        console.log(`   Turno actual: ${turnoActual} (${nombreTurnoActual})`);
-        console.log(`   Turno siguiente: ${turnoSiguiente} (${nombreTurnoSiguiente})`);
-        console.log(`   Hora límite actual: ${horaLimiteActual}`);
-        console.log(`   Hora inicio siguiente: ${disponibilidadTurnoSiguiente.horaInicio}`);
-        
-        const banner = document.createElement('div');
-        banner.id = 'bannerTurnoSiguiente';
-        banner.style.cssText = `
-          background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-          color: white;
-          padding: 20px;
-          margin-bottom: 20px;
-          border-radius: 12px;
-          text-align: center;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-          animation: slideDown 0.3s ease-out;
-        `;
-        
-        banner.innerHTML = `
-          <div style="font-size: 1rem; margin-bottom: 12px; line-height: 1.5;">
-            ⏰ <strong>Reservas de turno ${nombreTurnoActual} cerradas</strong>
-            <br>
-            <span style="opacity: 0.9; font-size: 0.9rem;">Límite: ${horaLimiteActual}</span>
-          </div>
-          <div style="height: 1px; background: rgba(255,255,255,0.3); margin: 12px 0;"></div>
-          <div style="font-size: 1.05rem; font-weight: bold; color: #FFE082; margin-top: 12px;">
-            ⏳ Turno ${nombreTurnoSiguiente}
-          </div>
-          <div style="font-size: 1rem; margin-top: 8px;">
-            Disponible desde: <strong>${disponibilidadTurnoSiguiente.horaInicio}</strong>
-          </div>
-          <div style="font-size: 0.85rem; margin-top: 12px; opacity: 0.95;">
-            👇 Aquí está el menú que te espera:
-          </div>
-        `;
-        
-        menuContainer.appendChild(banner);
-      }
+      console.log(`📋 Renderizando preview de turno siguiente:`);
+      console.log(`   Turno: ${turnoSiguiente}`);
+      console.log(`   Día: ${dia}`);
+      console.log(`   Hora inicio: ${horaInicio}`);
+      console.log(`   Platos en menú: ${menuYaObtenido?.length || 0}`);
+      
+      // Información para el banner
+      const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
+      
+      // Crear banner de previsualización
+      const banner = document.createElement('div');
+      banner.id = 'bannerTurnoSiguiente';
+      banner.style.cssText = `
+        background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+        color: white;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+        text-align: center;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        animation: slideDown 0.3s ease-out;
+      `;
+      
+      banner.innerHTML = `
+        <div style="font-size: 1rem; margin-bottom: 12px; line-height: 1.5;">
+          ⏳ <strong>Próximo turno disponible</strong>
+          <br>
+          <span style="font-size: 1.1rem; font-weight: bold; color: #FFE082;">${nombreTurnoSiguiente}</span>
+        </div>
+        <div style="height: 1px; background: rgba(255,255,255,0.3); margin: 12px 0;"></div>
+        <div style="font-size: 0.95rem; margin-top: 8px;">
+          Disponible desde: <strong>${horaInicio}</strong>
+          <br>
+          <span style="opacity: 0.9; font-size: 0.85rem;">Día: ${dia}</span>
+        </div>
+        <div style="font-size: 0.85rem; margin-top: 12px; opacity: 0.95;">
+          👇 Aquí está el menú que te espera:
+        </div>
+      `;
+      
+      menuContainer.appendChild(banner);
       
       // 🚀 MOSTRAR CARDS DEL TURNO SIGUIENTE (DESHABILITADAS CON VISUAL MEJORADO)
-      // El backend YA filtra por turno + día correcto, así que simplemente renderizar
-      if (data.menu && data.menu.length > 0) {
-        console.log(`✅ Backend retornó ${data.menu.length} platos para ${turnoSiguiente}`);
-        console.log(`   Menú de: ${data.menu[0].dia || 'N/A'}`);
+      if (menuYaObtenido && menuYaObtenido.length > 0) {
+        console.log(`✅ Renderizando ${menuYaObtenido.length} platos para ${turnoSiguiente}`);
         
         // Renderizar cards DESHABILITADAS CON UX MEJORADO
-        data.menu.forEach(plato => {
+        menuYaObtenido.forEach(plato => {
           const card = document.createElement('div');
           card.className = 'menu-card disabled';
           card.style.cssText = `
@@ -395,321 +372,134 @@ class ComedorApp {
           `;
           
           const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
-            const diaDeLaSemana = (plato.dia || plato.Dia || diaParaBuscar);
-            
-            // Badge con el día
-            const badgeDia = document.createElement('div');
-            badgeDia.style.cssText = `
-              position: absolute;
-              top: 10px;
-              right: 10px;
-              background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-              color: white;
-              padding: 4px 12px;
-              border-radius: 20px;
-              font-size: 0.75rem;
-              font-weight: bold;
-              z-index: 10;
-              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-            `;
-            badgeDia.innerHTML = `📅 ${diaDeLaSemana}`;
-            
-            // Overlay de "Preview"
-            const overlay = document.createElement('div');
-            overlay.style.cssText = `
-              position: absolute;
-              top: 50%;
-              left: 50%;
-              transform: translate(-50%, -50%);
-              background: rgba(255, 87, 34, 0.85);
-              color: white;
-              padding: 12px 20px;
-              border-radius: 50px;
-              font-weight: bold;
-              font-size: 0.9rem;
-              text-align: center;
-              pointer-events: none;
-              z-index: 5;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-              backdrop-filter: blur(5px);
-            `;
-            overlay.innerHTML = '👁️ VISTA PREVIA';
-            
-            card.innerHTML = `
-              <div class="menu-image" style="background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(245, 235, 220, 0.5) 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)) grayscale(20%); position: relative;">
-                ${icono}
+          
+          // Badge con el día
+          const badgeDia = document.createElement('div');
+          badgeDia.style.cssText = `
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+          `;
+          badgeDia.innerHTML = `📅 ${dia}`;
+          
+          // Overlay de "Preview"
+          const overlay = document.createElement('div');
+          overlay.style.cssText = `
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 87, 34, 0.85);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-align: center;
+            pointer-events: none;
+            z-index: 5;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            backdrop-filter: blur(5px);
+          `;
+          overlay.innerHTML = '👁️ VISTA PREVIA';
+          
+          card.innerHTML = `
+            <div class="menu-image" style="background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(245, 235, 220, 0.5) 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)) grayscale(20%); position: relative;">
+              ${icono}
+            </div>
+            <div class="menu-info">
+              <h3 class="menu-name">${Utils.sanitizeHTML(plato.nombre || plato.Plato)}</h3>
+              <p class="menu-description" style="opacity: 0.8;">${Utils.sanitizeHTML(plato.descripcion || plato.Descripcion || '')}</p>
+              <div class="menu-footer" style="opacity: 0.8;">
+                <span class="menu-price">${Utils.formatPrice(plato.precio || plato.Precio)}</span>
               </div>
-              <div class="menu-info">
-                <h3 class="menu-name">${Utils.sanitizeHTML(plato.nombre || plato.Plato)}</h3>
-                <p class="menu-description" style="opacity: 0.8;">${Utils.sanitizeHTML(plato.descripcion || plato.Descripcion || '')}</p>
-                <div class="menu-footer" style="opacity: 0.8;">
-                  <span class="menu-price">${Utils.formatPrice(plato.precio || plato.Precio)}</span>
-                </div>
-                <button class="btn-select-menu" disabled style="
-                  opacity: 0.5; 
-                  cursor: not-allowed;
-                  background: #ccc !important;
-                  border-color: #999 !important;
-                  color: #666 !important;
-                ">
-                  🔒 Disponible en ${CONFIG.TURNOS[turnoSiguiente].nombre}
-                </button>
-              </div>
-            `;
-            
-            // Agregar badge y overlay
-            card.appendChild(badgeDia);
-            const menuImage = card.querySelector('.menu-image');
-            if (menuImage) {
-              menuImage.appendChild(overlay);
-            }
-            
-            menuContainer.appendChild(card);
-          });
+              <button class="btn-select-menu" disabled style="
+                opacity: 0.5; 
+                cursor: not-allowed;
+                background: #ccc;
+              ">Disponible más tarde</button>
+            </div>
+          `;
+          
+          card.appendChild(badgeDia);
+          card.querySelector('.menu-image').appendChild(overlay);
+          menuContainer.appendChild(card);
+        });
       } else {
-        const emptyDiv = document.createElement('div');
-        emptyDiv.className = 'empty-state';
-        emptyDiv.innerHTML = `
-          <div class="icon-empty">🍽️</div>
-          <h3>Menú próximamente</h3>
-          <p>El menú de ${CONFIG.TURNOS[turnoSiguiente].nombre} se actualizará pronto</p>
+        console.log(`⚠️ No hay platos disponibles para ${turnoSiguiente}`);
+        const emptyMsg = document.createElement('div');
+        emptyMsg.style.cssText = `
+          text-align: center;
+          padding: 40px 20px;
+          color: #999;
         `;
-        menuContainer.appendChild(emptyDiv);
+        emptyMsg.innerHTML = '❌ No hay menú disponible para este turno';
+        menuContainer.appendChild(emptyMsg);
       }
+      
     } catch (error) {
       console.error('❌ Error en cargarMenuTurnoSiguienteConCards:', error);
     }
   }
 
   /**
-   * � Las siguientes funciones YA NO SE NECESITAN - El backend maneja todo
-   * Se mantienen comentadas por historial pero no se usan:
-   * - calcularTurnoSiguiente() ❌ ELIMINADO
-   * - convertirHoraADecimal() ❌ ELIMINADO
-   * - obtenerDiaActual() ❌ Usar backend
-   * - obtenerDiaSiguiente() ❌ Usar backend
+   * 🚀 Configurar actualización automática cuando pase la hora límite del turno
+   * Esto asegura que el preview se actualice automáticamente sin que el usuario tenga que recargar
    */
-
-  /**
-   * 🚀 Cargar menú del turno siguiente para previsualización (async, no bloqueante)
-   * Lógica mejorada para manejar turno TARDE (día actual) y MAÑANA (día siguiente)
-   */
-  async cargarMenuTurnoSiguiente(turnoSiguiente, dataBackendActual = {}) {
-    try {
-      // 🚀 FORZAR REFRESH sin caché para evitar datos corruptos
-      let response = await api.getMenuDelDia(turnoSiguiente, true);
-      let data = response.data || response;
+  configurarActualizacionAutomatica(turnoActual, estadoBackend) {
+    // Limpiar timer anterior si existe
+    if (this.timerActualizacionTurno) {
+      clearTimeout(this.timerActualizacionTurno);
+    }
+    
+    // Obtener hora límite del turno actual
+    const horaLimite = estadoBackend.horaLimite;
+    if (!horaLimite) {
+      console.log('⚠️ No hay horaLimite, skipeando actualización automática');
+      return;
+    }
+    
+    // Calcular tiempo hasta la hora límite
+    const ahora = new Date();
+    const [horas, minutos] = horaLimite.split(':').map(Number);
+    const fechaLimite = new Date(ahora);
+    fechaLimite.setHours(horas, minutos, 0, 0);
+    
+    // Si la hora límite ya pasó hoy, será mañana
+    if (fechaLimite <= ahora) {
+      fechaLimite.setDate(fechaLimite.getDate() + 1);
+    }
+    
+    const tiempoHastaLimite = fechaLimite - ahora;
+    const minutosHasta = Math.floor(tiempoHastaLimite / 60000);
+    
+    console.log(`⏰ Configurando actualización automática:`);
+    console.log(`   Turno actual: ${turnoActual}`);
+    console.log(`   Hora límite: ${horaLimite}`);
+    console.log(`   Minutos hasta cierre: ${minutosHasta}`);
+    
+    // Solo configurar si faltan menos de 1 hora
+    if (minutosHasta <= 60) {
+      // Actualizar 2 minutos después de la hora límite para asegurar cambio
+      const tiempoActualizacion = tiempoHastaLimite + (2 * 60 * 1000);
       
-      // 🚀 MEJORADO: Obtener también la disponibilidad del turno siguiente para saber cuándo inicia
-      let disponibilidadTurnoSiguiente = null;
-      try {
-        const disponResp = await api.checkDisponibilidad(turnoSiguiente);
-        disponibilidadTurnoSiguiente = disponResp.data || disponResp;
-        console.log(`📅 Disponibilidad ${turnoSiguiente}:`, disponibilidadTurnoSiguiente);
-      } catch (error) {
-        console.warn(`⚠️ No se pudo obtener disponibilidad de ${turnoSiguiente}:`, error);
-      }
+      this.timerActualizacionTurno = setTimeout(() => {
+        console.log(`🔄 ⏰ HORA LÍMITE ALCANZADA - Actualizando preview automáticamente...`);
+        this.cargarMenu(this.turnoActual);
+      }, tiempoActualizacion);
       
-      if (data.menu && data.menu.length > 0) {
-        // Determinar qué día buscamos
-        // Si es TARDE (previsualización en mismo día) → usar día actual
-        // Si es MAÑANA (previsualización para siguiente día) → usar día siguiente
-        const diaParaBuscar = turnoSiguiente === 'MANANA' 
-          ? this.obtenerDiaSiguiente() 
-          : this.obtenerDiaActual();
-        
-        console.log(`🔍 Buscando menú: Turno=${turnoSiguiente}, Día=${diaParaBuscar}`);
-        
-        let platoMañana = data.menu.find(p => {
-          const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
-          const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
-          const diaParaBuscarLower = diaParaBuscar.toLowerCase();
-          return turnoDelPlato === turnoSiguiente.toUpperCase() && diaDelPlato === diaParaBuscarLower;
-        });
-        
-        // Si no encontró nada, buscar el primero disponible del turno
-        if (!platoMañana) {
-          console.warn(`⚠️ No encontró plato para ${turnoSiguiente} | ${diaParaBuscar}, usando primero disponible`);
-          platoMañana = data.menu.find(p => {
-            const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
-            return turnoDelPlato === turnoSiguiente.toUpperCase();
-          }) || data.menu[0];
-        }
-        
-        if (platoMañana) {
-          console.log(`✅ Plato encontrado: ${platoMañana.nombre || platoMañana.Plato}`);
-          
-          // 🚀 Pasar también la disponibilidad para mostrar hora de inicio correcta
-          data.horaInicioTurnoSiguiente = disponibilidadTurnoSiguiente?.horaInicio || null;
-          return this.mostrarBannerTurnoSiguiente(platoMañana, turnoSiguiente, data);
-        } else {
-          // 🚀 MEJORADO: Si no hay platos pero hay disponibilidad info, mostrar banner informativo
-          console.warn(`⚠️ No hay platos disponibles para ${turnoSiguiente} | ${diaParaBuscar}`);
-          if (disponibilidadTurnoSiguiente?.horaInicio) {
-            console.log(`ℹ️ Mostrando banner con hora de inicio de ${turnoSiguiente}`);
-            return this.mostrarBannerTurnoSiguienteVacio(turnoSiguiente, disponibilidadTurnoSiguiente);
-          }
-        }
-      } else {
-        console.warn(`⚠️ Respuesta del servidor sin menú para ${turnoSiguiente}`);
-        // 🚀 MEJORADO: Si no hay menú pero hay info de disponibilidad, mostrar banner informativo
-        if (disponibilidadTurnoSiguiente?.horaInicio) {
-          console.log(`ℹ️ Mostrando banner informativo sin menú para ${turnoSiguiente}`);
-          return this.mostrarBannerTurnoSiguienteVacio(turnoSiguiente, disponibilidadTurnoSiguiente);
-        }
-      }
-    } catch (error) {
-      console.error('❌ Error en cargarMenuTurnoSiguiente:', error);
+      console.log(`✅ Timer configurado para ${tiempoActualizacion}ms`);
+    } else {
+      console.log(`✓ Faltan demasiados minutos (${minutosHasta}), no configurar timer aún`);
     }
-  }
-
-  /**
-   * 🚀 Mostrar banner cuando el turno siguiente está por iniciar pero aún no hay menú
-   */
-  mostrarBannerTurnoSiguienteVacio(turnoSiguiente, disponibilidad) {
-    const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
-    const horaInicio = disponibilidad.horaInicio || '?';
-    
-    const banner = document.createElement('div');
-    banner.id = 'bannerTurnoSiguiente';
-    banner.style.cssText = `
-      background: linear-gradient(135deg, #FF9800 0%, #FF6F00 100%);
-      color: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      animation: slideDown 0.3s ease-out;
-    `;
-    
-    banner.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-        <div style="font-size: 2.5rem;">⏳</div>
-        <div style="text-align: left;">
-          <div style="font-size: 1.2rem; font-weight: bold;">Turno ${nombreTurno} próximo</div>
-          <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-            📌 Disponible desde las <strong>${horaInicio}</strong>
-          </div>
-          <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 8px;">
-            El menú se actualizará pronto
-          </div>
-        </div>
-      </div>
-    `;
-    
-    const menuContainer = document.querySelector('.menu-container') || document.querySelector('main');
-    if (menuContainer) {
-      const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-      if (bannerAnterior) bannerAnterior.remove();
-      menuContainer.insertBefore(banner, menuContainer.firstChild);
-    }
-  }
-
-  /**
-   * 🎨 Mostrar banner del turno siguiente con horas dinámicas desde backend
-   */
-  mostrarBannerTurnoSiguiente(plato, turnoSiguiente, dataResponse = {}) {
-    const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
-    const nombreTurno = CONFIG.TURNOS[turnoSiguiente].nombre;
-    
-    // Obtener hora de inicio del turno siguiente desde la respuesta del backend
-    // Si viene en la respuesta, usarla; sino, usar valores por defecto
-    let horaInicio = dataResponse.horaInicioTurnoSiguiente || 
-                     (turnoSiguiente === 'MANANA' ? '7:00 AM' : '1:30 PM');
-    
-    // Si es formato 24h (HH:mm), convertir a 12h (HH:mm AM/PM)
-    if (horaInicio && !horaInicio.includes('AM') && !horaInicio.includes('PM')) {
-      const partes = horaInicio.split(':');
-      const horas = parseInt(partes[0]);
-      const minutos = partes[1] || '00';
-      const ampm = horas >= 12 ? 'PM' : 'AM';
-      const horas12 = horas % 12 || 12;
-      horaInicio = `${horas12}:${minutos} ${ampm}`;
-    }
-    
-    const banner = document.createElement('div');
-    banner.id = 'bannerTurnoSiguiente';
-    banner.style.cssText = `
-      background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-      color: white;
-      padding: 20px;
-      margin-bottom: 20px;
-      border-radius: 12px;
-      text-align: center;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      animation: slideDown 0.3s ease-out;
-    `;
-    
-    banner.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center; gap: 15px; flex-wrap: wrap;">
-        <div style="font-size: 2.5rem;">${icono}</div>
-        <div style="text-align: left;">
-          <div style="font-size: 1.2rem; font-weight: bold;">Próximo turno: ${nombreTurno}</div>
-          <div style="font-size: 0.95rem; opacity: 0.9;">
-            <strong>${plato.nombre || plato.Plato}</strong>
-          </div>
-          <div style="font-size: 0.85rem; opacity: 0.8; margin-top: 5px;">
-            Disponible desde las <strong>${horaInicio}</strong>
-          </div>
-          <div style="font-size: 0.9rem; margin-top: 8px; background: rgba(255,255,255,0.2); padding: 8px 12px; border-radius: 6px;">
-            💰 ${Utils.formatPrice(plato.precio || plato.Precio)}
-          </div>
-        </div>
-      </div>
-    `;
-    
-    // Agregar estilos de animación si no existen
-    if (!document.querySelector('style[data-banner-animation]')) {
-      const style = document.createElement('style');
-      style.setAttribute('data-banner-animation', 'true');
-      style.textContent = `
-        @keyframes slideDown {
-          from { transform: translateY(-20px); opacity: 0; }
-          to { transform: translateY(0); opacity: 1; }
-        }
-      `;
-      document.head.appendChild(style);
-    }
-    
-    const menuContainer = document.getElementById('menuContainer');
-    if (menuContainer) {
-      const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-      if (bannerAnterior) bannerAnterior.remove();
-      menuContainer.insertAdjacentElement('beforebegin', banner);
-    }
-  }
-
-  /**
-   * Mostrar alerta de día no disponible
-   */
-  mostrarDiaNoDisponible(mensaje) {
-    const menuContainer = document.getElementById('menuContainer');
-    if (menuContainer) {
-      const iconos = {
-        'feriado': '🎉',
-        'semana': '🏖️',
-        'desactivado': '⚠️'
-      };
-      
-      let icono = '📅';
-      if (mensaje.toLowerCase().includes('feriado')) icono = iconos.feriado;
-      else if (mensaje.toLowerCase().includes('semana')) icono = iconos.semana;
-      else if (mensaje.toLowerCase().includes('desactivado') || mensaje.toLowerCase().includes('disponible')) icono = iconos.desactivado;
-      
-      menuContainer.innerHTML = `
-        <div class="empty-state">
-          <div class="icon-empty">${icono}</div>
-          <h3>Servicio no disponible</h3>
-          <p>${mensaje}</p>
-        </div>
-      `;
-    }
-    
-    // Actualizar resumen
-    this.menu = [];
-    this.menusSeleccionados = [];
-    this.actualizarResumen();
   }
 
   /**
