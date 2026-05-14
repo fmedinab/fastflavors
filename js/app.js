@@ -161,12 +161,17 @@ class ComedorApp {
       const updateTime = Date.now() - updateStart;
       console.log(`✅ UI actualizada en ${updateTime}ms`);
       
-      // Si el turno actual está cerrado, cambiar al primero disponible
+      // 🚀 ACTUALIZAR ESTADO DE DISPONIBILIDAD DEL TURNO ACTUAL
       const turnoActualInfo = disponibilidad[this.turnoActual];
+      this.puedeReservar = turnoActualInfo ? turnoActualInfo.disponible : false;
+      console.log(`✅ this.puedeReservar = ${this.puedeReservar} (Turno actual: ${this.turnoActual})`);
+      
       if (turnoActualInfo && !turnoActualInfo.disponible) {
         const turnoDisponible = Object.keys(disponibilidad).find(t => disponibilidad[t].disponible);
         if (turnoDisponible) {
           this.turnoActual = turnoDisponible;
+          this.puedeReservar = true; // El nuevo turno SÍ está disponible
+          console.log(`🔄 Cambiando turno a ${turnoDisponible} (está disponible)`);
           // Actualizar el botón activo visualmente
           document.querySelectorAll('.btn-turno').forEach(btn => {
             btn.classList.remove('active');
@@ -175,7 +180,8 @@ class ComedorApp {
             }
           });
         } else {
-          // Si no hay turnos disponibles, mostrar mensaje
+          // Si no hay turnos disponibles, mostrar preview del siguiente
+          console.log(`🔒 Todos los turnos cerrados. Mostrando preview del siguiente...`);
         }
       }
       
