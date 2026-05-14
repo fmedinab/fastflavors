@@ -237,13 +237,22 @@ class ComedorApp {
       
       // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar preview del siguiente
       if (!this.puedeReservar) {
-        console.log(`🔒 Turno ${turno} cerrado. Mostrando preview del turno siguiente...`);
-        const turnoSiguiente = this.calcularTurnoSiguiente();
+        console.log(`🔒 Turno ${turno} cerrado. Obteniendo información del backend...`);
+        
+        // PRIMERO: Obtener del backend para saber EXACTAMENTE qué turno mostrar
+        const response = await api.getMenuDelDia(turno, false);
+        const data = response.data || response;
+        
+        // El backend ya calculó cuál es el turno siguiente correcto
+        const turnoSiguiente = data.turnoActual || this.calcularTurnoSiguiente();
         const infoTurnoActual = this.disponibilidadTurnos[turno];
         
-        // Obtener menú del turno siguiente
+        console.log(`📊 Backend retornó turnoActual="${data.turnoActual}", usando para preview: "${turnoSiguiente}"`);
+        console.log(`📊 Menú retornado es para turno="${data.turnoActual}", día="${data.dia}"`);
+        
+        // Pasar los datos ya obtenidos para evitar petición duplicada
         const startPreview = Date.now();
-        await this.cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual);
+        await this.cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual, data.menu);
         const previewTime = Date.now() - startPreview;
         console.log(`✅ Preview cargado en ${previewTime}ms`);
         
@@ -294,20 +303,27 @@ class ComedorApp {
   /**
    * 🚀 Cargar y mostrar menú del turno siguiente CON CARDS (deshabilitadas) - OPTIMIZADO
    */
-  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual) {
+  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual, menuYaObtenido = null) {
     try {
-      // 🚀 OPTIMIZACIÓN: Hacer peticiones EN PARALELO, no en serie
-      // Ya tenemos disponibilidad en this.disponibilidadTurnos, así que solo obtener menú
-      const [menuResponse] = await Promise.all([
-        api.getMenuDelDia(turnoSiguiente, false), // NO forzar refresh, usar caché
-      ]);
+      let data;
       
-      let data = menuResponse.data || menuResponse;
+      // Si ya tenemos el menú, usarlo; si no, obtenerlo del servidor
+      if (menuYaObtenido !== null) {
+        console.log(`✅ Usando menú previamente obtenido para ${turnoSiguiente}`);
+        data = { menu: menuYaObtenido };
+      } else {
+        // 🚀 OPTIMIZACIÓN: Hacer peticiones EN PARALELO, no en serie
+        // Ya tenemos disponibilidad en this.disponibilidadTurnos, así que solo obtener menú
+        const [menuResponse] = await Promise.all([
+          api.getMenuDelDia(turnoSiguiente, false), // NO forzar refresh, usar caché
+        ]);
+        
+        data = menuResponse.data || menuResponse;
+        console.log(`✅ Menú obtenido del servidor para ${turnoSiguiente}`);
+      }
       
       // 🚀 Reutilizar disponibilidad que ya tenemos (evita otra petición)
       const disponibilidadTurnoSiguiente = this.disponibilidadTurnos[turnoSiguiente];
-      
-      console.log(`✅ Menú + disponibilidad cargados en paralelo para ${turnoSiguiente}`);
       
       const menuContainer = document.getElementById('menuContainer');
       if (!menuContainer) return;
