@@ -243,9 +243,9 @@ class ComedorApp {
         const response = await api.getMenuDelDia(turno, false);
         const data = response.data || response;
         
-        // El backend ya calculó cuál es el turno siguiente correcto
-        const turnoSiguiente = data.turnoActual || this.calcularTurnoSiguiente();
-        const infoTurnoActual = this.disponibilidadTurnos[turno];
+      // El backend retorna el turno a mostrar (con validaciones de disponibilidad, feriados, etc)
+      const turnoSiguiente = data.turnoSiguiente || turno;
+      const infoTurnoActual = this.disponibilidadTurnos[turno];
         
         console.log(`📊 Backend retornó turnoActual="${data.turnoActual}", usando para preview: "${turnoSiguiente}"`);
         console.log(`📊 Menú retornado es para turno="${data.turnoActual}", día="${data.dia}"`);
@@ -482,71 +482,13 @@ class ComedorApp {
   }
 
   /**
-   * 🚀 Calcular el turno siguiente de forma inteligente según la hora actual
-   * DINÁMICO: Usa las horas límite reales del backend desde disponibilidadTurnos
+   * � Las siguientes funciones YA NO SE NECESITAN - El backend maneja todo
+   * Se mantienen comentadas por historial pero no se usan:
+   * - calcularTurnoSiguiente() ❌ ELIMINADO
+   * - convertirHoraADecimal() ❌ ELIMINADO
+   * - obtenerDiaActual() ❌ Usar backend
+   * - obtenerDiaSiguiente() ❌ Usar backend
    */
-  calcularTurnoSiguiente() {
-    const now = new Date();
-    const horaActual = now.getHours() + (now.getMinutes() / 60);
-    
-    // 🚀 DINÁMICO: Obtener horas límite del backend que ya verificamos
-    let horaLimiteMananaNum = 8.5;  // Valor por defecto (8:30 AM)
-    let horaLimiteTardeNum = 16.5;  // Valor por defecto (4:30 PM)
-    
-    // Si tenemos datos del backend, usarlos
-    if (this.disponibilidadTurnos?.MANANA?.horaLimite) {
-      horaLimiteMananaNum = this.convertirHoraADecimal(this.disponibilidadTurnos.MANANA.horaLimite);
-    }
-    
-    if (this.disponibilidadTurnos?.TARDE?.horaLimite) {
-      horaLimiteTardeNum = this.convertirHoraADecimal(this.disponibilidadTurnos.TARDE.horaLimite);
-    }
-    
-    console.log(`📊 calcularTurnoSiguiente: Hora actual=${horaActual.toFixed(2)}, LimiteManana=${horaLimiteMananaNum.toFixed(2)}, LimiteTarde=${horaLimiteTardeNum.toFixed(2)}`);
-    
-    // Lógica: Determinar cuál turno mostrar como preview
-    if (horaActual < horaLimiteMananaNum) {
-      // Aún falta para que cierre Mañana → mostrar TARDE como preview
-      return 'TARDE';
-    }
-    
-    if (horaActual >= horaLimiteMananaNum && horaActual < horaLimiteTardeNum) {
-      // Ya pasó la hora límite de Mañana → mostrar TARDE como preview
-      return 'TARDE';
-    }
-    
-    // Ya pasó la hora límite de Tarde → mostrar MAÑANA (del siguiente día)
-    return 'MANANA';
-  }
-
-  /**
-   * 🚀 Convertir hora formato "HH:mm" a número decimal (ej: "9:30" → 9.5)
-   */
-  convertirHoraADecimal(horaStr) {
-    if (!horaStr || typeof horaStr !== 'string') return 8.5;
-    const partes = horaStr.split(':');
-    const horas = parseInt(partes[0]) || 8;
-    const minutos = parseInt(partes[1]) || 0;
-    return horas + (minutos / 60);
-  }
-
-  /**
-   * 🚀 Obtener el nombre del día actual (ej: "Miércoles")
-   */
-  obtenerDiaActual() {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    return dias[new Date().getDay()];
-  }
-
-  /**
-   * 🚀 Obtener el nombre del día siguiente (ej: "Miércoles")
-   */
-  obtenerDiaSiguiente() {
-    const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
-    const mañana = new Date();
-    mañana.setDate(mañana.getDate() + 1);
-    return dias[mañana.getDay()];
-  }
 
   /**
    * 🚀 Cargar menú del turno siguiente para previsualización (async, no bloqueante)
