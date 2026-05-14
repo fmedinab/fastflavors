@@ -269,15 +269,18 @@ class ComedorApp {
       
       menuContainer.innerHTML = '';
       
-      // 🚀 MOSTRAR BANNER DE TURNO SIGUIENTE
+      // 🚀 MOSTRAR BANNER DE TURNO SIGUIENTE CON MENSAJES DINÁMICOS
       if (disponibilidadTurnoSiguiente?.horaInicio) {
-        const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente].nombre;
-        const nombreTurnoActual = CONFIG.TURNOS[Object.keys(this.disponibilidadTurnos).find(t => 
-          this.disponibilidadTurnos[t].disponible === false && 
-          this.disponibilidadTurnos[t].razon === 'hora_limite_superada'
-        )] || { nombre: 'este turno' };
-        
+        const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
+        const turnoActual = Object.keys(CONFIG.TURNOS).find(t => t !== turnoSiguiente);
+        const nombreTurnoActual = CONFIG.TURNOS[turnoActual]?.nombre || 'este turno';
         const horaLimiteActual = infoTurnoActual?.horaLimite || '?';
+        
+        console.log(`📋 Banner Info:`);
+        console.log(`   Turno actual (cerrado): ${turnoActual} (${nombreTurnoActual})`);
+        console.log(`   Turno siguiente: ${turnoSiguiente} (${nombreTurnoSiguiente})`);
+        console.log(`   Hora límite actual: ${horaLimiteActual}`);
+        console.log(`   Hora inicio siguiente: ${disponibilidadTurnoSiguiente.horaInicio}`);
         
         const banner = document.createElement('div');
         banner.id = 'bannerTurnoSiguiente';
@@ -293,14 +296,20 @@ class ComedorApp {
         `;
         
         banner.innerHTML = `
-          <div style="font-size: 1rem; margin-bottom: 10px;">
-            ⏰ Reservas de turno <strong>${nombreTurnoActual.nombre || 'actual'}</strong> cerradas (límite: ${horaLimiteActual})
+          <div style="font-size: 1rem; margin-bottom: 12px; line-height: 1.5;">
+            ⏰ <strong>Reservas de turno ${nombreTurnoActual} cerradas</strong>
+            <br>
+            <span style="opacity: 0.9; font-size: 0.9rem;">Límite: ${horaLimiteActual}</span>
           </div>
-          <div style="font-size: 1.1rem; font-weight: bold; color: #FFE082;">
-            ⏳ Turno ${nombreTurnoSiguiente} disponible desde: <strong>${disponibilidadTurnoSiguiente.horaInicio}</strong>
+          <div style="height: 1px; background: rgba(255,255,255,0.3); margin: 12px 0;"></div>
+          <div style="font-size: 1.05rem; font-weight: bold; color: #FFE082; margin-top: 12px;">
+            ⏳ Turno ${nombreTurnoSiguiente}
           </div>
-          <div style="font-size: 0.9rem; margin-top: 8px; opacity: 0.9;">
-            Aquí puedes ver el menú que viene:
+          <div style="font-size: 1rem; margin-top: 8px;">
+            Disponible desde: <strong>${disponibilidadTurnoSiguiente.horaInicio}</strong>
+          </div>
+          <div style="font-size: 0.85rem; margin-top: 12px; opacity: 0.95;">
+            👇 Aquí está el menú que te espera:
           </div>
         `;
         
