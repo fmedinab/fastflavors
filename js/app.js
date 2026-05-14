@@ -322,35 +322,34 @@ class ComedorApp {
       
       // Información para el banner
       const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
+      const primerPlato = menuYaObtenido && menuYaObtenido.length > 0 
+        ? menuYaObtenido[0].nombre || menuYaObtenido[0].Plato 
+        : 'Menú disponible';
       
-      // Crear banner de previsualización
+      // Crear banner de previsualización COMPACTO
       const banner = document.createElement('div');
       banner.id = 'bannerTurnoSiguiente';
       banner.style.cssText = `
         background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
         color: white;
-        padding: 20px;
-        margin-bottom: 20px;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        padding: 10px 16px;
+        margin-bottom: 16px;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         animation: slideDown 0.3s ease-out;
+        font-size: 0.9rem;
       `;
       
       banner.innerHTML = `
-        <div style="font-size: 1rem; margin-bottom: 12px; line-height: 1.5;">
-          ⏳ <strong>Próximo turno disponible</strong>
-          <br>
-          <span style="font-size: 1.1rem; font-weight: bold; color: #FFE082;">${nombreTurnoSiguiente}</span>
-        </div>
-        <div style="height: 1px; background: rgba(255,255,255,0.3); margin: 12px 0;"></div>
-        <div style="font-size: 0.95rem; margin-top: 8px;">
-          Disponible desde: <strong>${horaInicio}</strong>
-          <br>
-          <span style="opacity: 0.9; font-size: 0.85rem;">Día: ${dia}</span>
-        </div>
-        <div style="font-size: 0.85rem; margin-top: 12px; opacity: 0.95;">
-          👇 Aquí está el menú que te espera:
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+          <div>
+            <strong>⏳ ${nombreTurnoSiguiente}</strong> desde ${horaInicio}
+            <br>
+            <span style="font-size: 0.8rem; opacity: 0.9;">🍽️ ${primerPlato}</span>
+          </div>
+          <div style="text-align: right; font-size: 0.75rem; opacity: 0.8;">
+            ${dia}
+          </div>
         </div>
       `;
       
