@@ -276,13 +276,13 @@ class ComedorApp {
       else {
         console.log(`🔒 Turno ${turno} cerrado. Mostrando previsualización del turno siguiente...`);
         
-        // El backend ya filtró el menú para el turno siguiente
-        // Solo necesitamos renderizarlo con UX de previsualización
+        // El backend ya filtró el menú para el turno QUE SÍ MOSTRAREMOS (alternativo)
+        // Ej: Si MANANA está cerrado, muestra preview de TARDE
         await this.cargarMenuTurnoSiguienteConCards(
-          data.turnoSiguiente,  // Turno siguiente
-          data.dia,              // Día del menú
-          data.horaInicioTurnoSiguiente, // Hora inicio del siguiente
-          menuAMostrar           // Menú ya filtrado por backend
+          turnoAMostrar,              // Turno que mostramos (el alternativo disponible)
+          data.dia,                   // Día del menú
+          data.horaLimite,            // Hora límite de este turno
+          menuAMostrar                // Menú ya filtrado por backend
         );
       }
       
