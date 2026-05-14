@@ -64,13 +64,15 @@ class ComedorApp {
 
     this.setupEventListeners();
     
-    // 🚀 OPTIMIZACIÓN: Paralelizar carga de disponibilidad y menú
-    // Anuncios se cargan después (no bloquean menú principal)
-    await this.verificarDisponibilidadTurnos();
+    // 🚀 OPTIMIZACIÓN PARALELA: Cargar disponibilidad mientras configuramos UI
+    const disponibilidadPromise = this.verificarDisponibilidadTurnos();
+    
+    // Esperar disponibilidad, luego cargar menú
+    await disponibilidadPromise;
     await this.cambiarTurno(this.turnoActual);
     
-    // Cargar anuncios en background (no bloqueante)
-    this.cargarAnuncios();
+    // 🚀 Cargar anuncios en background de forma NO bloqueante (sin await)
+    setTimeout(() => this.cargarAnuncios(), 500);
   }
 
   /**
@@ -196,25 +198,14 @@ class ComedorApp {
     try {
       Utils.showLoader();
       
-      // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar solo preview del siguiente
+      // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar preview del siguiente
       if (!this.puedeReservar) {
         console.log(`🔒 Turno ${turno} cerrado. Mostrando preview del turno siguiente...`);
         const turnoSiguiente = this.calcularTurnoSiguiente();
+        const infoTurnoActual = this.disponibilidadTurnos[turno];
         
-        // Mostrar preview sin cargar el menú del turno actual
-        await this.cargarMenuTurnoSiguiente(turnoSiguiente);
-        
-        // Mostrar estado "cerrado" en lugar del menú
-        const menuContainer = document.getElementById('menuContainer');
-        if (menuContainer) {
-          menuContainer.innerHTML = `
-            <div class="empty-state">
-              <div class="icon-empty">🔒</div>
-              <h3>Reservas cerradas</h3>
-              <p>${this.disponibilidadTurnos[turno]?.mensaje || 'Intenta con el siguiente turno'}</p>
-            </div>
-          `;
-        }
+        // Obtener menú del turno siguiente
+        await this.cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual);
         
         Utils.hideLoader();
         return;
@@ -241,6 +232,10 @@ class ComedorApp {
         this.mostrarDiaNoDisponible(data.mensaje || data.razon);
         return;
       }
+
+      // Remover banner anterior si existe (estamos en modo reserva normal)
+      const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
+      if (bannerAnterior) bannerAnterior.remove();
       
       this.renderMenu();
     } catch (error) {
@@ -248,6 +243,204 @@ class ComedorApp {
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
     } finally {
       Utils.hideLoader();
+    }
+  }
+
+  /**
+   * 🚀 Cargar y mostrar menú del turno siguiente CON CARDS (deshabilitadas)
+   */
+  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual) {
+    try {
+      // 🚀 Obtener menú del turno siguiente
+      let response = await api.getMenuDelDia(turnoSiguiente, true);
+      let data = response.data || response;
+      
+      // 🚀 Obtener disponibilidad del turno siguiente
+      let disponibilidadTurnoSiguiente = null;
+      try {
+        const disponResp = await api.checkDisponibilidad(turnoSiguiente);
+        disponibilidadTurnoSiguiente = disponResp.data || disponResp;
+      } catch (error) {
+        console.warn(`⚠️ No se pudo obtener disponibilidad de ${turnoSiguiente}:`, error);
+      }
+      
+      const menuContainer = document.getElementById('menuContainer');
+      if (!menuContainer) return;
+      
+      menuContainer.innerHTML = '';
+      
+      // 🚀 MOSTRAR BANNER DE TURNO SIGUIENTE
+      if (disponibilidadTurnoSiguiente?.horaInicio) {
+        const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente].nombre;
+        const nombreTurnoActual = CONFIG.TURNOS[Object.keys(this.disponibilidadTurnos).find(t => 
+          this.disponibilidadTurnos[t].disponible === false && 
+          this.disponibilidadTurnos[t].razon === 'hora_limite_superada'
+        )] || { nombre: 'este turno' };
+        
+        const horaLimiteActual = infoTurnoActual?.horaLimite || '?';
+        
+        const banner = document.createElement('div');
+        banner.id = 'bannerTurnoSiguiente';
+        banner.style.cssText = `
+          background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+          color: white;
+          padding: 20px;
+          margin-bottom: 20px;
+          border-radius: 12px;
+          text-align: center;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          animation: slideDown 0.3s ease-out;
+        `;
+        
+        banner.innerHTML = `
+          <div style="font-size: 1rem; margin-bottom: 10px;">
+            ⏰ Reservas de turno <strong>${nombreTurnoActual.nombre || 'actual'}</strong> cerradas (límite: ${horaLimiteActual})
+          </div>
+          <div style="font-size: 1.1rem; font-weight: bold; color: #FFE082;">
+            ⏳ Turno ${nombreTurnoSiguiente} disponible desde: <strong>${disponibilidadTurnoSiguiente.horaInicio}</strong>
+          </div>
+          <div style="font-size: 0.9rem; margin-top: 8px; opacity: 0.9;">
+            Aquí puedes ver el menú que viene:
+          </div>
+        `;
+        
+        menuContainer.appendChild(banner);
+      }
+      
+      // 🚀 MOSTRAR CARDS DEL TURNO SIGUIENTE (DESHABILITADAS CON VISUAL MEJORADO)
+      if (data.menu && data.menu.length > 0) {
+        // Determinar qué día buscamos
+        const diaParaBuscar = turnoSiguiente === 'MANANA' 
+          ? this.obtenerDiaSiguiente() 
+          : this.obtenerDiaActual();
+        
+        console.log(`🔍 Buscando menú: Turno=${turnoSiguiente}, Día=${diaParaBuscar}`);
+        
+        // Filtrar platos del turno siguiente y día correcto
+        let platosFiltrados = data.menu.filter(p => {
+          const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
+          const diaDelPlato = (p.dia || p.Dia || '').toLowerCase();
+          const diaParaBuscarLower = diaParaBuscar.toLowerCase();
+          return turnoDelPlato === turnoSiguiente.toUpperCase() && diaDelPlato === diaParaBuscarLower;
+        });
+        
+        // Si no encontró, buscar todos los del turno
+        if (platosFiltrados.length === 0) {
+          console.warn(`⚠️ No encontró platos para ${turnoSiguiente} | ${diaParaBuscar}`);
+          platosFiltrados = data.menu.filter(p => {
+            const turnoDelPlato = (p.turno || p.Turno || '').toUpperCase();
+            return turnoDelPlato === turnoSiguiente.toUpperCase();
+          });
+        }
+        
+        if (platosFiltrados.length > 0) {
+          console.log(`✅ Encontrados ${platosFiltrados.length} platos para preview`);
+          
+          // Renderizar cards DESHABILITADAS CON UX MEJORADO
+          platosFiltrados.forEach(plato => {
+            const card = document.createElement('div');
+            card.className = 'menu-card disabled';
+            card.style.cssText = `
+              opacity: 0.65;
+              filter: grayscale(40%);
+              position: relative;
+              transition: all 0.3s ease;
+            `;
+            
+            const icono = this.obtenerIconoPlato(plato.nombre || plato.Plato);
+            const diaDeLaSemana = (plato.dia || plato.Dia || diaParaBuscar);
+            
+            // Badge con el día
+            const badgeDia = document.createElement('div');
+            badgeDia.style.cssText = `
+              position: absolute;
+              top: 10px;
+              right: 10px;
+              background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
+              color: white;
+              padding: 4px 12px;
+              border-radius: 20px;
+              font-size: 0.75rem;
+              font-weight: bold;
+              z-index: 10;
+              box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            `;
+            badgeDia.innerHTML = `📅 ${diaDeLaSemana}`;
+            
+            // Overlay de "Preview"
+            const overlay = document.createElement('div');
+            overlay.style.cssText = `
+              position: absolute;
+              top: 50%;
+              left: 50%;
+              transform: translate(-50%, -50%);
+              background: rgba(255, 87, 34, 0.85);
+              color: white;
+              padding: 12px 20px;
+              border-radius: 50px;
+              font-weight: bold;
+              font-size: 0.9rem;
+              text-align: center;
+              pointer-events: none;
+              z-index: 5;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+              backdrop-filter: blur(5px);
+            `;
+            overlay.innerHTML = '👁️ VISTA PREVIA';
+            
+            card.innerHTML = `
+              <div class="menu-image" style="background: linear-gradient(135deg, var(--secondary-color) 0%, rgba(245, 235, 220, 0.5) 100%); display: flex; align-items: center; justify-content: center; font-size: 4.5rem; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1)) grayscale(20%); position: relative;">
+                ${icono}
+              </div>
+              <div class="menu-info">
+                <h3 class="menu-name">${Utils.sanitizeHTML(plato.nombre || plato.Plato)}</h3>
+                <p class="menu-description" style="opacity: 0.8;">${Utils.sanitizeHTML(plato.descripcion || plato.Descripcion || '')}</p>
+                <div class="menu-footer" style="opacity: 0.8;">
+                  <span class="menu-price">${Utils.formatPrice(plato.precio || plato.Precio)}</span>
+                </div>
+                <button class="btn-select-menu" disabled style="
+                  opacity: 0.5; 
+                  cursor: not-allowed;
+                  background: #ccc !important;
+                  border-color: #999 !important;
+                  color: #666 !important;
+                ">
+                  🔒 Disponible en ${CONFIG.TURNOS[turnoSiguiente].nombre}
+                </button>
+              </div>
+            `;
+            
+            // Agregar badge y overlay
+            card.appendChild(badgeDia);
+            const menuImage = card.querySelector('.menu-image');
+            if (menuImage) {
+              menuImage.appendChild(overlay);
+            }
+            
+            menuContainer.appendChild(card);
+          });
+        } else {
+          const emptyDiv = document.createElement('div');
+          emptyDiv.className = 'empty-state';
+          emptyDiv.innerHTML = `
+            <div class="icon-empty">🍽️</div>
+            <h3>Menú próximamente</h3>
+            <p>El menú de ${CONFIG.TURNOS[turnoSiguiente].nombre} se actualizará pronto</p>
+          `;
+          menuContainer.appendChild(emptyDiv);
+        }
+      } else {
+        const emptyDiv = document.createElement('div');
+        emptyDiv.className = 'empty-state';
+        emptyDiv.innerHTML = `
+          <div class="icon-empty">🍽️</div>
+          <h3>Menú próximamente</h3>
+          <p>El menú de ${CONFIG.TURNOS[turnoSiguiente].nombre} se actualizará pronto</p>
+        `;
+        menuContainer.appendChild(emptyDiv);
+      }
+    } catch (error) {
+      console.error('❌ Error en cargarMenuTurnoSiguienteConCards:', error);
     }
   }
 

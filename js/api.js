@@ -8,7 +8,8 @@ class API {
   constructor() {
     this.baseURL = CONFIG.API_URL;
     this.cache = {};
-    this.cacheTimeout = 5 * 60 * 1000; // 5 minutos de caché
+    this.cacheTimeout = 5 * 60 * 1000; // 5 minutos de caché para menú
+    this.cacheTimeoutDisponibilidad = 30 * 1000; // 30 segundos para disponibilidad (más dinámico)
     this.cacheTimestamps = {};
   }
 
@@ -20,8 +21,14 @@ class API {
     const timestamp = this.cacheTimestamps[key] || 0;
     const cacheAge = now - timestamp;
     
-    // Si el caché tiene menos de 5 minutos, devolverlo
-    if (this.cache[key] && cacheAge < this.cacheTimeout) {
+    // Timeout diferente según tipo de dato
+    let timeout = this.cacheTimeout;
+    if (key.includes('disponibilidad')) {
+      timeout = this.cacheTimeoutDisponibilidad;
+    }
+    
+    // Si el caché tiene menos que su timeout, devolverlo
+    if (this.cache[key] && cacheAge < timeout) {
       return this.cache[key];
     }
     
