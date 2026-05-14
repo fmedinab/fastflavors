@@ -196,7 +196,32 @@ class ComedorApp {
     try {
       Utils.showLoader();
       
-      // 🚀 Limpiar caché para este turno si está corrupto
+      // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar solo preview del siguiente
+      if (!this.puedeReservar) {
+        console.log(`🔒 Turno ${turno} cerrado. Mostrando preview del turno siguiente...`);
+        const turnoSiguiente = this.calcularTurnoSiguiente();
+        
+        // Mostrar preview sin cargar el menú del turno actual
+        await this.cargarMenuTurnoSiguiente(turnoSiguiente);
+        
+        // Mostrar estado "cerrado" en lugar del menú
+        const menuContainer = document.getElementById('menuContainer');
+        if (menuContainer) {
+          menuContainer.innerHTML = `
+            <div class="empty-state">
+              <div class="icon-empty">🔒</div>
+              <h3>Reservas cerradas</h3>
+              <p>${this.disponibilidadTurnos[turno]?.mensaje || 'Intenta con el siguiente turno'}</p>
+            </div>
+          `;
+        }
+        
+        Utils.hideLoader();
+        return;
+      }
+      
+      // 🚀 Si se CAN reservar, cargar el menú normalmente
+      // Limpiar caché para este turno si está corrupto
       const cacheKey = `menu_${turno}`;
       if (api.cache[cacheKey]) {
         console.log(`🗑️ Limpiando caché: ${cacheKey}`);
@@ -211,17 +236,6 @@ class ComedorApp {
       
       this.menu = data.menu || [];
       
-      // 🚀 MEJORA OPTIMIZADA: Mostrar previsualización del TURNO SIGUIENTE inteligentemente
-      // Calcular turno siguiente según la hora actual
-      if (this.menu.length > 0 && !this.puedeReservar) {
-        const turnoSiguiente = this.calcularTurnoSiguiente();
-        this.cargarMenuTurnoSiguiente(turnoSiguiente, data); // Pasar data del backend actual
-      } else {
-        // Si se puede reservar, remover banner anterior
-        const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
-        if (bannerAnterior) bannerAnterior.remove();
-      }
-      
       // Verificar si el día no está disponible
       if (data.diaDisponible === false) {
         this.mostrarDiaNoDisponible(data.mensaje || data.razon);
@@ -230,6 +244,7 @@ class ComedorApp {
       
       this.renderMenu();
     } catch (error) {
+      console.error('❌ Error en cargarMenu:', error);
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
     } finally {
       Utils.hideLoader();
