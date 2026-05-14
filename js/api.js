@@ -47,11 +47,12 @@ class API {
   }
 
   /**
-   * 🚀 Fetch con timeout automático (15 segundos max)
+   * 🚀 Fetch con timeout automático (10 segundos max, optimizado)
    */
-  async fetchWithTimeout(url, timeoutMs = 15000) {
+  async fetchWithTimeout(url, timeoutMs = 10000) {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    const startTime = Date.now();
     
     try {
       const response = await fetch(url, {
@@ -59,6 +60,10 @@ class API {
         cache: 'no-cache',
         signal: controller.signal
       });
+      const duration = Date.now() - startTime;
+      if (duration > 3000) {
+        console.warn(`⚠️ Petición lenta (${duration}ms): ${url}`);
+      }
       clearTimeout(timeoutId);
       return response;
     } catch (error) {

@@ -64,15 +64,29 @@ class ComedorApp {
 
     this.setupEventListeners();
     
-    // 🚀 OPTIMIZACIÓN PARALELA: Cargar disponibilidad mientras configuramos UI
-    const disponibilidadPromise = this.verificarDisponibilidadTurnos();
+    // 🚀 OPTIMIZACIÓN MÁXIMA: 
+    // 1. Verificar disponibilidad de TODOS los turnos (en paralelo)
+    // 2. Mientras se carga, preparar el DOM
+    // 3. Luego cargar menú del turno actual
+    // 4. Anuncios en background
     
-    // Esperar disponibilidad, luego cargar menú
-    await disponibilidadPromise;
-    await this.cambiarTurno(this.turnoActual);
+    Utils.showLoader();
     
-    // 🚀 Cargar anuncios en background de forma NO bloqueante (sin await)
-    setTimeout(() => this.cargarAnuncios(), 500);
+    try {
+      // Paralela: Verificar disponibilidad
+      await this.verificarDisponibilidadTurnos();
+      
+      // Una vez sabemos qué turno está disponible, cargar su menú
+      await this.cambiarTurno(this.turnoActual);
+    } catch (error) {
+      console.error('❌ Error en init:', error);
+      Utils.showToast('Error al cargar la aplicación', 'error');
+    } finally {
+      Utils.hideLoader();
+    }
+    
+    // 🚀 Cargar anuncios en background (NO bloqueante)
+    setTimeout(() => this.cargarAnuncios(), 300);
   }
 
   /**
@@ -80,9 +94,16 @@ class ComedorApp {
    */
   async verificarDisponibilidadTurnos() {
     try {
-      Utils.showLoader();
+      const startTime = Date.now();
+      console.log(`⏱️ Iniciando verificarDisponibilidadTurnos...`);
+      
       const disponibilidad = await api.checkTodosLosTurnos();
+      const loadTime = Date.now() - startTime;
+      console.log(`✅ checkTodosLosTurnos completado en ${loadTime}ms`);
+      
       this.disponibilidadTurnos = disponibilidad; // 🚀 Guardar para reutilizar
+      
+      const updateStart = Date.now();
       
       document.querySelectorAll('.btn-turno').forEach(btn => {
         const turno = btn.dataset.turno;
@@ -137,6 +158,9 @@ class ComedorApp {
         }
       });
       
+      const updateTime = Date.now() - updateStart;
+      console.log(`✅ UI actualizada en ${updateTime}ms`);
+      
       // Si el turno actual está cerrado, cambiar al primero disponible
       const turnoActualInfo = disponibilidad[this.turnoActual];
       if (turnoActualInfo && !turnoActualInfo.disponible) {
@@ -166,6 +190,9 @@ class ComedorApp {
    * Cambiar turno y cargar menú correspondiente
    */
   async cambiarTurno(turno) {
+    const startTime = Date.now();
+    console.log(`🔄 cambiarTurno(${turno})...`);
+    
     this.turnoActual = turno;
     
     document.querySelectorAll('.btn-turno').forEach(btn => {
@@ -189,6 +216,9 @@ class ComedorApp {
     }
     
     await this.cargarMenu(turno);
+    
+    const duration = Date.now() - startTime;
+    console.log(`✅ cambiarTurno completado en ${duration}ms`);
   }
 
   /**
@@ -196,7 +226,8 @@ class ComedorApp {
    */
   async cargarMenu(turno) {
     try {
-      Utils.showLoader();
+      const startTime = Date.now();
+      console.log(`📂 cargarMenu(${turno})...`);
       
       // 🚀 IMPORTANTE: Si NO se puede reservar en este turno, mostrar preview del siguiente
       if (!this.puedeReservar) {
@@ -205,32 +236,39 @@ class ComedorApp {
         const infoTurnoActual = this.disponibilidadTurnos[turno];
         
         // Obtener menú del turno siguiente
+        const startPreview = Date.now();
         await this.cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual);
+        const previewTime = Date.now() - startPreview;
+        console.log(`✅ Preview cargado en ${previewTime}ms`);
         
-        Utils.hideLoader();
         return;
       }
       
       // 🚀 Si se CAN reservar, cargar el menú normalmente
-      // Limpiar caché para este turno si está corrupto
+      // NO limpiar caché, usar lo que está disponible
       const cacheKey = `menu_${turno}`;
-      if (api.cache[cacheKey]) {
-        console.log(`🗑️ Limpiando caché: ${cacheKey}`);
-        delete api.cache[cacheKey];
-        delete api.cacheTimestamps[cacheKey];
-      }
+      const cached = api.getFromCache(cacheKey);
       
-      const response = await api.getMenuDelDia(turno);
-      
-      // El backend envía los datos en response.data
-      const data = response.data || response;
-      
-      this.menu = data.menu || [];
-      
-      // Verificar si el día no está disponible
-      if (data.diaDisponible === false) {
-        this.mostrarDiaNoDisponible(data.mensaje || data.razon);
-        return;
+      if (cached && cached.data && cached.data.menu && cached.data.menu.length > 0) {
+        console.log(`💾 Usando menú en caché para ${turno}`);
+        this.menu = cached.data.menu || [];
+      } else {
+        console.log(`🌐 Obteniendo menú del servidor para ${turno}...`);
+        const startFetch = Date.now();
+        const response = await api.getMenuDelDia(turno, false);
+        const fetchTime = Date.now() - startFetch;
+        console.log(`✅ Menú obtenido en ${fetchTime}ms`);
+        
+        // El backend envía los datos en response.data
+        const data = response.data || response;
+        
+        this.menu = data.menu || [];
+        
+        // Verificar si el día no está disponible
+        if (data.diaDisponible === false) {
+          this.mostrarDiaNoDisponible(data.mensaje || data.razon);
+          return;
+        }
       }
 
       // Remover banner anterior si existe (estamos en modo reserva normal)
@@ -238,31 +276,32 @@ class ComedorApp {
       if (bannerAnterior) bannerAnterior.remove();
       
       this.renderMenu();
+      
+      const duration = Date.now() - startTime;
+      console.log(`✅ cargarMenu completado en ${duration}ms`);
     } catch (error) {
       console.error('❌ Error en cargarMenu:', error);
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
-    } finally {
-      Utils.hideLoader();
     }
   }
 
   /**
-   * 🚀 Cargar y mostrar menú del turno siguiente CON CARDS (deshabilitadas)
+   * 🚀 Cargar y mostrar menú del turno siguiente CON CARDS (deshabilitadas) - OPTIMIZADO
    */
   async cargarMenuTurnoSiguienteConCards(turnoSiguiente, infoTurnoActual) {
     try {
-      // 🚀 Obtener menú del turno siguiente
-      let response = await api.getMenuDelDia(turnoSiguiente, true);
-      let data = response.data || response;
+      // 🚀 OPTIMIZACIÓN: Hacer peticiones EN PARALELO, no en serie
+      // Ya tenemos disponibilidad en this.disponibilidadTurnos, así que solo obtener menú
+      const [menuResponse] = await Promise.all([
+        api.getMenuDelDia(turnoSiguiente, false), // NO forzar refresh, usar caché
+      ]);
       
-      // 🚀 Obtener disponibilidad del turno siguiente
-      let disponibilidadTurnoSiguiente = null;
-      try {
-        const disponResp = await api.checkDisponibilidad(turnoSiguiente);
-        disponibilidadTurnoSiguiente = disponResp.data || disponResp;
-      } catch (error) {
-        console.warn(`⚠️ No se pudo obtener disponibilidad de ${turnoSiguiente}:`, error);
-      }
+      let data = menuResponse.data || menuResponse;
+      
+      // 🚀 Reutilizar disponibilidad que ya tenemos (evita otra petición)
+      const disponibilidadTurnoSiguiente = this.disponibilidadTurnos[turnoSiguiente];
+      
+      console.log(`✅ Menú + disponibilidad cargados en paralelo para ${turnoSiguiente}`);
       
       const menuContainer = document.getElementById('menuContainer');
       if (!menuContainer) return;
@@ -276,8 +315,8 @@ class ComedorApp {
         const nombreTurnoActual = CONFIG.TURNOS[turnoActual]?.nombre || 'este turno';
         const horaLimiteActual = infoTurnoActual?.horaLimite || '?';
         
-        console.log(`📋 Banner Info:`);
-        console.log(`   Turno actual (cerrado): ${turnoActual} (${nombreTurnoActual})`);
+        console.log(`📋 Banner Info (desde caché):`);
+        console.log(`   Turno actual: ${turnoActual} (${nombreTurnoActual})`);
         console.log(`   Turno siguiente: ${turnoSiguiente} (${nombreTurnoSiguiente})`);
         console.log(`   Hora límite actual: ${horaLimiteActual}`);
         console.log(`   Hora inicio siguiente: ${disponibilidadTurnoSiguiente.horaInicio}`);
