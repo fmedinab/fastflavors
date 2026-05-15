@@ -8,7 +8,7 @@ const CONFIG = {
   // URL de tu Google Apps Script Web App
   // ⚠️ REEMPLAZA esta URL con la que obtuviste al implementar el Apps Script
   // Ejemplo: 'https://script.google.com/macros/s/AKfycbx.../exec'
-  API_URL: 'https://script.google.com/macros/s/AKfycbxZFw1lO5U4U2jbdGy9Pg-O5oXsUgJpfEdNto7vj41OSy7AGFaXWkqC_fdvP3XD0Fe3/exec',
+  API_URL: 'https://script.google.com/macros/s/AKfycbxzwcYaN6H42RTxp_Zc6DAzUVvJ04bkg5grq4kCw6wmt2KLqPkjvRO_kzWCyZKIWC_V/exec',
   
   // Configuración de turnos
   TURNOS: {
