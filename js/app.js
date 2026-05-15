@@ -278,10 +278,15 @@ class ComedorApp {
         
         // El backend ya filtró el menú para el turno QUE SÍ MOSTRAREMOS (alternativo)
         // Ej: Si MANANA está cerrado, muestra preview de TARDE
+        const horaInicioPreview =
+          this.disponibilidadTurnos?.[turnoAMostrar]?.horaInicio ||
+          data.horaInicioTurnoSiguiente ||
+          'Pronto';
+
         await this.cargarMenuTurnoSiguienteConCards(
           turnoAMostrar,              // Turno que mostramos (el alternativo disponible)
           data.dia,                   // Día del menú
-          data.horaLimite,            // Hora límite de este turno
+          horaInicioPreview,          // Hora de inicio de este turno
           menuAMostrar                // Menú ya filtrado por backend
         );
       }
