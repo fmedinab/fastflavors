@@ -200,7 +200,7 @@ class ComedorApp {
       const alerta = document.getElementById('alertaTurnoCerrado');
       if (!this.puedeReservar && alerta) {
         alerta.style.display = 'block';
-        alerta.textContent = this.disponibilidadTurnos[turno].mensaje;
+        alerta.textContent = this.obtenerMensajeCierre(turno);
       } else if (alerta) {
         alerta.style.display = 'none';
       }
@@ -208,6 +208,33 @@ class ComedorApp {
     
     await this.cargarMenu(turno);
     
+  }
+
+  /**
+   * Obtener mensaje de cierre dinamico para el banner
+   */
+  obtenerMensajeCierre(turno) {
+    const info = this.disponibilidadTurnos?.[turno];
+    if (!info) return CONFIG.MENSAJES.RESERVA_CERRADA;
+
+    if (info.razon === 'turno_no_iniciado') {
+      const nombreTurno = CONFIG.TURNOS[turno]?.nombre || turno;
+      const horaInicio = info.horaInicio || '';
+      return `⏳ Turno ${nombreTurno} inicia a las ${horaInicio}`.trim();
+    }
+
+    if (info.razon === 'hora_limite_superada') {
+      const turnoProximo = Object.keys(this.disponibilidadTurnos)
+        .find(t => this.disponibilidadTurnos[t].razon === 'turno_no_iniciado');
+
+      if (turnoProximo) {
+        const nombreTurno = CONFIG.TURNOS[turnoProximo]?.nombre || turnoProximo;
+        const horaInicio = this.disponibilidadTurnos[turnoProximo].horaInicio || '';
+        return `⏳ Turno ${nombreTurno} inicia a las ${horaInicio}`.trim();
+      }
+    }
+
+    return info.mensaje || CONFIG.MENSAJES.RESERVA_CERRADA;
   }
 
   /**
