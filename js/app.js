@@ -232,6 +232,15 @@ class ComedorApp {
         const horaInicio = this.disponibilidadTurnos[turnoProximo].horaInicio || '';
         return `⏳ Turno ${nombreTurno} inicia a las ${horaInicio}`.trim();
       }
+
+      const turnoSiguiente = this.disponibilidadTurnos?.MANANA?.horaInicio
+        ? 'MANANA'
+        : null;
+      if (turnoSiguiente) {
+        const nombreTurno = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
+        const horaInicio = this.disponibilidadTurnos[turnoSiguiente].horaInicio || '';
+        return `⏳ Próximo turno: ${nombreTurno} desde ${horaInicio}`.trim();
+      }
     }
 
     return info.mensaje || CONFIG.MENSAJES.RESERVA_CERRADA;
