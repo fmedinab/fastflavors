@@ -97,16 +97,9 @@ class ComedorApp {
    */
   async verificarDisponibilidadTurnos() {
     try {
-      const startTime = Date.now();
-      console.log(`⏱️ Iniciando verificarDisponibilidadTurnos...`);
-      
       const disponibilidad = await api.checkTodosLosTurnos();
-      const loadTime = Date.now() - startTime;
-      console.log(`✅ checkTodosLosTurnos completado en ${loadTime}ms`);
       
       this.disponibilidadTurnos = disponibilidad; // 🚀 Guardar para reutilizar
-      
-      const updateStart = Date.now();
       
       document.querySelectorAll('.btn-turno').forEach(btn => {
         const turno = btn.dataset.turno;
@@ -161,20 +154,15 @@ class ComedorApp {
         }
       });
       
-      const updateTime = Date.now() - updateStart;
-      console.log(`✅ UI actualizada en ${updateTime}ms`);
-      
       // 🚀 ACTUALIZAR ESTADO DE DISPONIBILIDAD DEL TURNO ACTUAL
       const turnoActualInfo = disponibilidad[this.turnoActual];
       this.puedeReservar = turnoActualInfo ? turnoActualInfo.disponible : false;
-      console.log(`✅ this.puedeReservar = ${this.puedeReservar} (Turno actual: ${this.turnoActual})`);
       
       if (turnoActualInfo && !turnoActualInfo.disponible) {
         const turnoDisponible = Object.keys(disponibilidad).find(t => disponibilidad[t].disponible);
         if (turnoDisponible) {
           this.turnoActual = turnoDisponible;
           this.puedeReservar = true; // El nuevo turno SÍ está disponible
-          console.log(`🔄 Cambiando turno a ${turnoDisponible} (está disponible)`);
           // Actualizar el botón activo visualmente
           document.querySelectorAll('.btn-turno').forEach(btn => {
             btn.classList.remove('active');
@@ -182,9 +170,6 @@ class ComedorApp {
               btn.classList.add('active');
             }
           });
-        } else {
-          // Si no hay turnos disponibles, mostrar preview del siguiente
-          console.log(`🔒 Todos los turnos cerrados. Mostrando preview del siguiente...`);
         }
       }
       
@@ -199,9 +184,6 @@ class ComedorApp {
    * Cambiar turno y cargar menú correspondiente
    */
   async cambiarTurno(turno) {
-    const startTime = Date.now();
-    console.log(`🔄 cambiarTurno(${turno})...`);
-    
     this.turnoActual = turno;
     
     document.querySelectorAll('.btn-turno').forEach(btn => {
@@ -226,8 +208,6 @@ class ComedorApp {
     
     await this.cargarMenu(turno);
     
-    const duration = Date.now() - startTime;
-    console.log(`✅ cambiarTurno completado en ${duration}ms`);
   }
 
   /**
@@ -236,9 +216,6 @@ class ComedorApp {
    */
   async cargarMenu(turno) {
     try {
-      const startTime = Date.now();
-      console.log(`📂 cargarMenu(${turno})...`);
-      
       // Obtener estado completo del backend (SIEMPRE)
       const response = await api.getMenuDelDia(turno, false);
       const data = response.data || response;
@@ -252,18 +229,8 @@ class ComedorApp {
       const menuAMostrar = data.menu || [];
       const estaDisponible = this.disponibilidadTurnos[turnoAMostrar]?.disponible || false;
       
-      console.log(`📊 Backend retornó:`);
-      console.log(`   - Turno solicitado: ${turno}`);
-      console.log(`   - Turno a mostrar: ${turnoAMostrar}`);
-      console.log(`   - ¿Disponible?: ${estaDisponible}`);
-      console.log(`   - Turno siguiente para preview: ${data.turnoSiguiente}`);
-      console.log(`   - Día para menú: ${data.dia}`);
-      console.log(`   - Menú contiene ${menuAMostrar.length} platos`);
-      
       // 🚀 CASO 1: El turno está disponible - MOSTRAR MENÚ NORMAL
       if (estaDisponible) {
-        console.log(`✅ Turno ${turnoAMostrar} está disponible. Mostrando menú normal...`);
-        
         // Remover banner anterior si existe
         const bannerAnterior = document.getElementById('bannerTurnoSiguiente');
         if (bannerAnterior) bannerAnterior.remove();
@@ -274,8 +241,6 @@ class ComedorApp {
       } 
       // 🚀 CASO 2: El turno NO está disponible - MOSTRAR PREVISUALIZACIÓN DEL SIGUIENTE
       else {
-        console.log(`🔒 Turno ${turno} cerrado. Mostrando previsualización del turno siguiente...`);
-        
         // El backend ya filtró el menú para el turno QUE SÍ MOSTRAREMOS (alternativo)
         // Ej: Si MANANA está cerrado, muestra preview de TARDE
         const horaInicioPreview =
@@ -294,10 +259,6 @@ class ComedorApp {
       // 🚀 CONFIGURAR ACTUALIZACIÓN AUTOMÁTICA
       // Si estamos cerca de la hora límite, actualizar cuando pase
       this.configurarActualizacionAutomatica(turnoAMostrar, data);
-      
-      const duration = Date.now() - startTime;
-      console.log(`✅ cargarMenu completado en ${duration}ms`);
-      
     } catch (error) {
       console.error('❌ Error en cargarMenu:', error);
       Utils.showToast(CONFIG.MENSAJES.ERROR_CONEXION, 'error');
@@ -319,51 +280,33 @@ class ComedorApp {
       
       menuContainer.innerHTML = '';
       
-      console.log(`📋 Renderizando preview de turno siguiente:`);
-      console.log(`   Turno: ${turnoSiguiente}`);
-      console.log(`   Día: ${dia}`);
-      console.log(`   Hora inicio: ${horaInicio}`);
-      console.log(`   Platos en menú: ${menuYaObtenido?.length || 0}`);
-      
       // Información para el banner
       const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
       const primerPlato = menuYaObtenido && menuYaObtenido.length > 0 
         ? menuYaObtenido[0].nombre || menuYaObtenido[0].Plato 
         : 'Menú disponible';
       
-      // Crear banner de previsualización COMPACTO
+      // Crear banner de previsualización
       const banner = document.createElement('div');
       banner.id = 'bannerTurnoSiguiente';
-      banner.style.cssText = `
-        background: linear-gradient(135deg, #FF5722 0%, #FF6F00 100%);
-        color: white;
-        padding: 10px 16px;
-        margin-bottom: 16px;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-        animation: slideDown 0.3s ease-out;
-        font-size: 0.9rem;
-      `;
+      banner.className = 'menu-preview-banner';
       
       banner.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px;">
-          <div>
-            <strong>⏳ ${nombreTurnoSiguiente}</strong> desde ${horaInicio}
-            <br>
-            <span style="font-size: 0.8rem; opacity: 0.9;">🍽️ ${primerPlato}</span>
+        <div class="menu-preview-main">
+          <div class="menu-preview-title">
+            <span class="menu-preview-icon">⏳</span>
+            <span class="menu-preview-turno">${nombreTurnoSiguiente}</span>
+            <span class="menu-preview-time">desde ${horaInicio}</span>
           </div>
-          <div style="text-align: right; font-size: 0.75rem; opacity: 0.8;">
-            ${dia}
-          </div>
+          <div class="menu-preview-sub">🍽️ ${primerPlato}</div>
         </div>
+        <div class="menu-preview-day">📅 ${dia}</div>
       `;
       
       menuContainer.appendChild(banner);
       
       // 🚀 MOSTRAR CARDS DEL TURNO SIGUIENTE (DESHABILITADAS CON VISUAL MEJORADO)
       if (menuYaObtenido && menuYaObtenido.length > 0) {
-        console.log(`✅ Renderizando ${menuYaObtenido.length} platos para ${turnoSiguiente}`);
-        
         // Renderizar cards DESHABILITADAS CON UX MEJORADO
         menuYaObtenido.forEach(plato => {
           const card = document.createElement('div');
@@ -438,7 +381,6 @@ class ComedorApp {
           menuContainer.appendChild(card);
         });
       } else {
-        console.log(`⚠️ No hay platos disponibles para ${turnoSiguiente}`);
         const emptyMsg = document.createElement('div');
         emptyMsg.style.cssText = `
           text-align: center;
@@ -466,10 +408,7 @@ class ComedorApp {
     
     // Obtener hora límite del turno actual
     const horaLimite = estadoBackend.horaLimite;
-    if (!horaLimite) {
-      console.log('⚠️ No hay horaLimite, skipeando actualización automática');
-      return;
-    }
+    if (!horaLimite) return;
     
     // Calcular tiempo hasta la hora límite
     const ahora = new Date();
@@ -485,24 +424,14 @@ class ComedorApp {
     const tiempoHastaLimite = fechaLimite - ahora;
     const minutosHasta = Math.floor(tiempoHastaLimite / 60000);
     
-    console.log(`⏰ Configurando actualización automática:`);
-    console.log(`   Turno actual: ${turnoActual}`);
-    console.log(`   Hora límite: ${horaLimite}`);
-    console.log(`   Minutos hasta cierre: ${minutosHasta}`);
-    
     // Solo configurar si faltan menos de 1 hora
     if (minutosHasta <= 60) {
       // Actualizar 2 minutos después de la hora límite para asegurar cambio
       const tiempoActualizacion = tiempoHastaLimite + (2 * 60 * 1000);
       
       this.timerActualizacionTurno = setTimeout(() => {
-        console.log(`🔄 ⏰ HORA LÍMITE ALCANZADA - Actualizando preview automáticamente...`);
         this.cargarMenu(this.turnoActual);
       }, tiempoActualizacion);
-      
-      console.log(`✅ Timer configurado para ${tiempoActualizacion}ms`);
-    } else {
-      console.log(`✓ Faltan demasiados minutos (${minutosHasta}), no configurar timer aún`);
     }
   }
 

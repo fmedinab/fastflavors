@@ -61,9 +61,6 @@ class API {
         signal: controller.signal
       });
       const duration = Date.now() - startTime;
-      if (duration > 3000) {
-        console.warn(`⚠️ Petición lenta (${duration}ms): ${url}`);
-      }
       clearTimeout(timeoutId);
       return response;
     } catch (error) {
