@@ -282,9 +282,10 @@ class ComedorApp {
       
       // Información para el banner
       const nombreTurnoSiguiente = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
-      const primerPlato = menuYaObtenido && menuYaObtenido.length > 0 
+      const primerPlatoNombre = menuYaObtenido && menuYaObtenido.length > 0 
         ? menuYaObtenido[0].nombre || menuYaObtenido[0].Plato 
         : 'Menú disponible';
+      const primerPlatoIcono = this.obtenerIconoPlato(primerPlatoNombre);
       
       // Crear banner de previsualización
       const banner = document.createElement('div');
@@ -298,7 +299,10 @@ class ComedorApp {
             <span class="menu-preview-turno">${nombreTurnoSiguiente}</span>
             <span class="menu-preview-time">desde ${horaInicio}</span>
           </div>
-          <div class="menu-preview-sub">🍽️ ${primerPlato}</div>
+          <div class="menu-preview-sub">
+            <span class="menu-preview-dish-icon" aria-hidden="true">${primerPlatoIcono}</span>
+            <span class="menu-preview-dish-text">${primerPlatoNombre}</span>
+          </div>
         </div>
         <div class="menu-preview-day">📅 ${dia}</div>
       `;
