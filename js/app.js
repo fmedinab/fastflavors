@@ -277,19 +277,35 @@ class ComedorApp {
       } 
       // 🚀 CASO 2: El turno NO está disponible - MOSTRAR PREVISUALIZACIÓN DEL SIGUIENTE
       else {
-        // El backend ya filtró el menú para el turno QUE SÍ MOSTRAREMOS (alternativo)
-        // Ej: Si MANANA está cerrado, muestra preview de TARDE
-        const horaInicioPreview =
-          this.disponibilidadTurnos?.[turnoAMostrar]?.horaInicio ||
-          data.horaInicioTurnoSiguiente ||
-          'Pronto';
+        const esDiaInactivo = data.diaDisponible === false;
+        const hoy = Utils.getDiaSemana();
+        const diaPreview = data.dia;
+        const esOtroDia = diaPreview && diaPreview !== hoy;
+        
+        // Si es día inactivo o día diferente (ej: domingo mostrando lunes)
+        if (esDiaInactivo || esOtroDia) {
+          await this.cargarMenuTurnoSiguienteConCards(
+            turnoAMostrar,
+            diaPreview,
+            '',                // Sin hora, mostramos solo el día
+            menuAMostrar,
+            true               // flag: es preview de otro día
+          );
+        } else {
+          // Preview normal entre turnos del mismo día
+          const horaInicioPreview =
+            this.disponibilidadTurnos?.[turnoAMostrar]?.horaInicio ||
+            data.horaInicioTurnoSiguiente ||
+            'Pronto';
 
-        await this.cargarMenuTurnoSiguienteConCards(
-          turnoAMostrar,              // Turno que mostramos (el alternativo disponible)
-          data.dia,                   // Día del menú
-          horaInicioPreview,          // Hora de inicio de este turno
-          menuAMostrar                // Menú ya filtrado por backend
-        );
+          await this.cargarMenuTurnoSiguienteConCards(
+            turnoAMostrar,
+            diaPreview,
+            horaInicioPreview,
+            menuAMostrar,
+            false
+          );
+        }
       }
       
       // 🚀 CONFIGURAR ACTUALIZACIÓN AUTOMÁTICA
@@ -309,7 +325,7 @@ class ComedorApp {
    * - horaInicio: Cuándo comienza
    * - menuYaObtenido: Menú ya filtrado desde backend
    */
-  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, dia, horaInicio, menuYaObtenido = null) {
+  async cargarMenuTurnoSiguienteConCards(turnoSiguiente, dia, horaInicio, menuYaObtenido = null, esOtroDia = false) {
     try {
       const menuContainer = document.getElementById('menuContainer');
       if (!menuContainer) return;
@@ -328,20 +344,37 @@ class ComedorApp {
       banner.id = 'bannerTurnoSiguiente';
       banner.className = 'menu-preview-banner';
       
-      banner.innerHTML = `
-        <div class="menu-preview-main">
-          <div class="menu-preview-title">
-            <span class="menu-preview-icon">⏳</span>
-            <span class="menu-preview-turno">${nombreTurnoSiguiente}</span>
-            <span class="menu-preview-time">desde ${horaInicio}</span>
+      if (esOtroDia) {
+        // Preview de OTRO DÍA (ej: domingo mostrando lunes)
+        banner.innerHTML = `
+          <div class="menu-preview-main">
+            <div class="menu-preview-title">
+              <span class="menu-preview-icon">📅</span>
+              <span class="menu-preview-turno">${dia} - ${nombreTurnoSiguiente}</span>
+            </div>
+            <div class="menu-preview-sub">
+              <span class="menu-preview-dish-icon" aria-hidden="true">${primerPlatoIcono}</span>
+              <span class="menu-preview-dish-text">${primerPlatoNombre}</span>
+            </div>
           </div>
-          <div class="menu-preview-sub">
-            <span class="menu-preview-dish-icon" aria-hidden="true">${primerPlatoIcono}</span>
-            <span class="menu-preview-dish-text">${primerPlatoNombre}</span>
+        `;
+      } else {
+        // Preview del mismo día (entre turnos)
+        banner.innerHTML = `
+          <div class="menu-preview-main">
+            <div class="menu-preview-title">
+              <span class="menu-preview-icon">⏳</span>
+              <span class="menu-preview-turno">${nombreTurnoSiguiente}</span>
+              <span class="menu-preview-time">desde ${horaInicio || 'Pronto'}</span>
+            </div>
+            <div class="menu-preview-sub">
+              <span class="menu-preview-dish-icon" aria-hidden="true">${primerPlatoIcono}</span>
+              <span class="menu-preview-dish-text">${primerPlatoNombre}</span>
+            </div>
           </div>
-        </div>
-        <div class="menu-preview-day">📅 ${dia}</div>
-      `;
+          <div class="menu-preview-day">📅 ${dia}</div>
+        `;
+      }
       
       menuContainer.appendChild(banner);
       
