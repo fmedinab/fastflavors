@@ -33,6 +33,18 @@ const Utils = {
   },
 
   /**
+   * Convertir hora 24h (HH:mm) a 12h con AM/PM
+   */
+  formatHora12(hora24) {
+    if (!hora24) return '';
+    const [h, m] = hora24.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return hora24;
+    const periodo = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 || 12;
+    return `${h12}:${String(m).padStart(2, '0')} ${periodo}`;
+  },
+
+  /**
    * Formatear fecha legible (DD/MM/YYYY)
    */
   formatFecha(fecha) {

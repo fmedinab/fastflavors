@@ -10,19 +10,15 @@ const CONFIG = {
   // Ejemplo: 'https://script.google.com/macros/s/AKfycbx.../exec'
   API_URL: 'https://script.google.com/macros/s/AKfycbx3vxxjtFi2hKglGRXhcTq7HMcFdBibvH4jaIvr78Ynssult8EYLlfLzZ-ya4TR-0oF/exec',
   
-  // Configuración de turnos
+  // Configuración de turnos (nombres dinámicos desde backend)
   TURNOS: {
     MANANA: {
       nombre: 'Mañana',
-      horaReceso: '10:00 AM',
-      horaLimite: '09:00 AM',
-      descripcion: 'Receso de mañana'
+      descripcion: 'Turno mañana'
     },
     TARDE: {
       nombre: 'Tarde',
-      horaReceso: '5:30 PM',
-      horaLimite: '4:30 PM',
-      descripcion: 'Receso de tarde'
+      descripcion: 'Turno tarde'
     }
   },
   

@@ -94,6 +94,7 @@ class ComedorApp {
 
   /**
    * Verificar disponibilidad de todos los turnos y actualizar botones
+   * 🚀 AHORA DINÁMICO: Usa datos del backend (HorasEntreTurnos, horaLimite, horaInicio)
    */
   async verificarDisponibilidadTurnos() {
     try {
@@ -117,16 +118,19 @@ class ComedorApp {
           btn.disabled = true;
           btn.title = info.mensaje;
           
-          // Diferentes iconos según la razón
           if (turnoIcon) {
-            // Si es porque aún no inicia (turno tarde antes de que cierre mañana)
             if (info.razon === 'turno_no_iniciado') {
               turnoIcon.textContent = '⏳';
               if (turnoSmall) {
-                turnoSmall.textContent = `Inicia ${info.horaInicio || ''}`;
+                const horaInicioFormato = Utils.formatHora12(info.horaInicio);
+                turnoSmall.textContent = `Inicia ${horaInicioFormato || ''}`;
+              }
+            } else if (info.razon === 'dia_cerrado') {
+              turnoIcon.textContent = '📅';
+              if (turnoSmall) {
+                turnoSmall.textContent = 'Hoy cerrado';
               }
             } else {
-              // Ya pasó la hora límite
               turnoIcon.textContent = '🔒';
               if (turnoSmall) {
                 turnoSmall.textContent = 'Cerrado';
@@ -143,13 +147,22 @@ class ComedorApp {
             turnoIcon.textContent = btn.dataset.iconoOriginal;
           }
           
-          // Actualizar texto con hora límite (solo formato HH:mm)
-          if (turnoSmall && info && info.horaLimite) {
-            // Extraer solo HH:mm del string de hora límite
-            const horaLimiteFormato = info.horaLimite.includes(':') 
-              ? info.horaLimite.split(':').slice(0, 2).join(':')
-              : info.horaLimite;
-            turnoSmall.textContent = `Reserva hasta ${horaLimiteFormato}`;
+          // Mostrar rango dinámico: horaInicio → horaLimite
+          if (turnoSmall && info) {
+            const inicioFormato = Utils.formatHora12(info.horaInicio);
+            const limiteFormato = info.horaLimite
+              ? Utils.formatHora12(info.horaLimite)
+              : '';
+            
+            if (inicioFormato && limiteFormato) {
+              turnoSmall.textContent = `${inicioFormato} → ${limiteFormato}`;
+            } else if (limiteFormato) {
+              turnoSmall.textContent = `Reserva hasta ${limiteFormato}`;
+            } else if (inicioFormato) {
+              turnoSmall.textContent = `Desde ${inicioFormato}`;
+            } else {
+              turnoSmall.textContent = 'Disponible';
+            }
           }
         }
       });
@@ -219,7 +232,7 @@ class ComedorApp {
 
     if (info.razon === 'turno_no_iniciado') {
       const nombreTurno = CONFIG.TURNOS[turno]?.nombre || turno;
-      const horaInicio = info.horaInicio || '';
+      const horaInicio = Utils.formatHora12(info.horaInicio) || info.horaInicio || '';
       return `⏳ Turno ${nombreTurno} inicia a las ${horaInicio}`.trim();
     }
 
@@ -229,18 +242,13 @@ class ComedorApp {
 
       if (turnoProximo) {
         const nombreTurno = CONFIG.TURNOS[turnoProximo]?.nombre || turnoProximo;
-        const horaInicio = this.disponibilidadTurnos[turnoProximo].horaInicio || '';
-        return `⏳ Turno ${nombreTurno} inicia a las ${horaInicio}`.trim();
+        const horaInicio = Utils.formatHora12(this.disponibilidadTurnos[turnoProximo].horaInicio) || '';
+        return `⏳ Próximo: ${nombreTurno} desde ${horaInicio}`.trim();
       }
+    }
 
-      const turnoSiguiente = this.disponibilidadTurnos?.MANANA?.horaInicio
-        ? 'MANANA'
-        : null;
-      if (turnoSiguiente) {
-        const nombreTurno = CONFIG.TURNOS[turnoSiguiente]?.nombre || turnoSiguiente;
-        const horaInicio = this.disponibilidadTurnos[turnoSiguiente].horaInicio || '';
-        return `⏳ Próximo turno: ${nombreTurno} desde ${horaInicio}`.trim();
-      }
+    if (info.razon === 'dia_cerrado') {
+      return info.mensaje || CONFIG.MENSAJES.DIA_DESACTIVADO;
     }
 
     return info.mensaje || CONFIG.MENSAJES.RESERVA_CERRADA;
@@ -360,12 +368,13 @@ class ComedorApp {
         `;
       } else {
         // Preview del mismo día (entre turnos)
+        const horaFormateada = Utils.formatHora12(horaInicio) || horaInicio || 'Pronto';
         banner.innerHTML = `
           <div class="menu-preview-main">
             <div class="menu-preview-title">
               <span class="menu-preview-icon">⏳</span>
               <span class="menu-preview-turno">${nombreTurnoSiguiente}</span>
-              <span class="menu-preview-time">desde ${horaInicio || 'Pronto'}</span>
+              <span class="menu-preview-time">desde ${horaFormateada}</span>
             </div>
             <div class="menu-preview-sub">
               <span class="menu-preview-dish-icon" aria-hidden="true">${primerPlatoIcono}</span>
