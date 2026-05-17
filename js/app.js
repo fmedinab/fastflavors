@@ -188,8 +188,6 @@ class ComedorApp {
       
     } catch (error) {
       console.error('Error en verificarDisponibilidadTurnos:', error);
-    } finally {
-      Utils.hideLoader();
     }
   }
 

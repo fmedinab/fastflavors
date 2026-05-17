@@ -217,45 +217,40 @@ class API {
   }
 
   /**
-   * Verificar disponibilidad de todos los turnos en paralelo
+   * Verificar disponibilidad de TODOS los turnos en UNA sola llamada
+   * 🚀 OPTIMIZADO: Usa endpoint batch del backend
    */
   async checkTodosLosTurnos() {
-    const turnos = Object.keys(CONFIG.TURNOS);
-    
-    const promesas = turnos.map(turno => 
-      this.checkDisponibilidad(turno)
-        .then(response => {
-          const data = response.data || response;
-          return {
-            turno,
-            resultado: {
-              disponible: data.puedeReservar || false,
-              mensaje: data.mensaje || '',
-              horaLimite: data.horaLimite || '',
-              razon: data.razon || null,
-              horaInicio: data.horaInicio || null
-            }
-          };
-        })
-        .catch(() => {
-          return {
-            turno,
-            resultado: {
-              disponible: false,
-              mensaje: 'Error al verificar',
-              horaLimite: ''
-            }
-          };
-        })
-    );
-    
-    const resultadosArray = await Promise.all(promesas);
-    const resultados = {};
-    resultadosArray.forEach(({ turno, resultado }) => {
-      resultados[turno] = resultado;
-    });
-    
-    return resultados;
+    try {
+      const response = await this.get('checkTodosLosTurnos');
+      const data = response.data || response;
+      
+      const resultados = {};
+      Object.keys(data).forEach(turno => {
+        const info = data[turno];
+        resultados[turno] = {
+          disponible: info.disponible || false,
+          mensaje: info.mensaje || '',
+          horaLimite: info.horaLimite || '',
+          razon: info.razon || null,
+          horaInicio: info.horaInicio || null
+        };
+      });
+      return resultados;
+    } catch (error) {
+      console.error('Error en checkTodosLosTurnos:', error);
+      const fallback = {};
+      Object.keys(CONFIG.TURNOS).forEach(turno => {
+        fallback[turno] = {
+          disponible: false,
+          mensaje: 'Error al verificar',
+          horaLimite: '',
+          razon: null,
+          horaInicio: null
+        };
+      });
+      return fallback;
+    }
   }
 
   /**
